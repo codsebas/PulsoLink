@@ -490,3 +490,14 @@ Otros pendientes: cuenta principal de Didhyer, aceptación de invitaciones, conf
 - [Cookies de sesión de Firebase](https://firebase.google.com/docs/auth/admin/manage-cookies)
 - [Firebase SQL Connect, alternativa no utilizada](https://firebase.google.com/docs/sql-connect)
 
+## 17. Skills compartidas del proyecto
+
+El proyecto cuenta con un conjunto de siete skills especializadas para agentes de asistencia, documentadas detalladamente en [docs/skills/README.md](docs/skills/README.md):
+
+- **Versionado en el repositorio:** Las skills compartidas están versionadas dentro de `.agents/skills/`.
+- **Disponibilidad inmediata:** Al clonar el repositorio o ejecutar `git pull`, se reciben automáticamente todos los archivos y referencias correspondientes.
+- **Sin reinstalación individual:** No es necesario que cada colaborador reinstale individualmente las skills ya incluidas en el proyecto.
+- **Descubrimiento por el agente:** Cada colaborador debe abrir el agente de asistencia (como Codex u otro agente compatible) desde la raíz del proyecto y comprobar que las reconoce.
+- **Herramientas y dependencias externas:** Las herramientas ejecutables o dependencias adicionales (por ejemplo, Firebase CLI o Playwright CLI) se instalan por separado según correspondan a las tareas de cada integrante.
+- **Mantenimiento y actualizaciones:** Cualquier actualización, adición o modificación de skills se coordina de manera centralizada mediante pull requests.
+

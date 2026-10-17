@@ -1,34 +1,9 @@
-import { Router, Request, Response } from 'express';
-import { sendError } from '../../shared/response.js';
-
-export const deviceMeasurementsRouter = Router();
+import { createDeviceMeasurementsRouter } from './device-measurements.router.js';
 
 /**
- * Endpoints del Contrato A asignados a @codsebas (Issue #4).
+ * Router activo para los endpoints del Contrato A bajo `/api/v1/device` (Issue #4 - @codsebas):
+ * - GET /api/v1/device/config
+ * - POST /api/v1/device/heartbeat
+ * - POST /api/v1/device/measurements
  */
-deviceMeasurementsRouter.get('/config', (_req: Request, res: Response) => {
-  sendError(
-    res,
-    'NOT_IMPLEMENTED',
-    'Configuración del dispositivo está en desarrollo (Issue #4 - @codsebas).',
-    501
-  );
-});
-
-deviceMeasurementsRouter.post('/heartbeat', (_req: Request, res: Response) => {
-  sendError(
-    res,
-    'NOT_IMPLEMENTED',
-    'Heartbeat del dispositivo está en desarrollo (Issue #4 - @codsebas).',
-    501
-  );
-});
-
-deviceMeasurementsRouter.post('/measurements', (_req: Request, res: Response) => {
-  sendError(
-    res,
-    'NOT_IMPLEMENTED',
-    'Recepción autenticada e idempotente de mediciones está en desarrollo (Issue #4 - @codsebas).',
-    501
-  );
-});
+export const deviceMeasurementsRouter = createDeviceMeasurementsRouter();

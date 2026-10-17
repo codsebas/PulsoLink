@@ -1,8 +1,11 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
+import { NotFoundPage } from '../components/layout/NotFoundPage';
+import { RouteErrorPage } from '../components/layout/RouteErrorPage';
 import { HomePage } from '../features/home/HomePage';
 import { AuthCard } from '../features/auth/AuthCard';
+import { ProtectedRoute } from '../features/auth/ProtectedRoute';
 import { SessionsPage } from '../features/sessions/SessionsPage';
 import { DashboardPage } from '../features/monitoring/DashboardPage';
 
@@ -10,31 +13,39 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
+    errorElement: <RouteErrorPage />,
     children: [
       {
-        index: true,
-        element: <HomePage />,
-      },
-      {
-        path: 'login',
-        element: <AuthCard />,
-      },
-      {
-        path: 'sessions',
-        element: <SessionsPage />,
-      },
-      {
-        path: 'sessions/:id',
-        element: <DashboardPage />,
-      },
-      {
-        path: '*',
-        element: (
-          <div className="text-center py-12 space-y-3">
-            <h2 className="text-xl font-bold text-slate-800">404 - Página no encontrada</h2>
-            <p className="text-sm text-slate-500">La ruta solicitada no existe en la aplicación.</p>
-          </div>
-        ),
+        // Los errores de una pantalla se muestran dentro del layout, sin perder la navegación.
+        errorElement: <RouteErrorPage />,
+        children: [
+          {
+            index: true,
+            element: <HomePage />,
+          },
+          {
+            path: 'login',
+            element: <AuthCard />,
+          },
+          {
+            // Rutas que requieren usuario autenticado (Issue #10 - @Mar-03).
+            element: <ProtectedRoute />,
+            children: [
+              {
+                path: 'sessions',
+                element: <SessionsPage />,
+              },
+              {
+                path: 'sessions/:id',
+                element: <DashboardPage />,
+              },
+            ],
+          },
+          {
+            path: '*',
+            element: <NotFoundPage />,
+          },
+        ],
       },
     ],
   },

@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: PulsoLink — Contrato B: Frontend Web ↔ Backend API
+  title: 'PulsoLink — Contrato B: Frontend Web ↔ Backend API'
   version: 1.0.0
   description: >
     Especificación de la API para la plataforma web de monitoreo de signos vitales.
@@ -206,102 +206,331 @@ paths:
   /devices:
     get:
       summary: Lista paginada de dispositivos habilitados
-      description: [PLANIFICADO - Issue #5 (@Didhyer)]
+      description: 'Solo devuelve datos públicos de dispositivos habilitados. [IMPLEMENTADO - Issue #5]'
       operationId: getDevices
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
       responses:
         '200':
           description: Dispositivos habilitados
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Device'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
 
   /sessions:
     get:
       summary: Lista paginada de sesiones
-      description: [PLANIFICADO - Issue #5 (@Didhyer)]
+      description: 'Operadores ven solo sus sesiones; administradores pueden ver todas. [IMPLEMENTADO - Issue #5]'
       operationId: getSessions
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [created, active, finished]
+        - name: deviceId
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
       responses:
         '200':
           description: Listado de sesiones
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionListResponse'
     post:
       summary: Creación de sesión de medición
-      description: [PLANIFICADO - Issue #5 (@Didhyer) / Issue #9 (@Lis671)]
+      description: 'El propietario procede de la cookie autenticada. [IMPLEMENTADO - Issue #5]'
       operationId: createSession
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required: [participantCode, deviceId]
               properties:
                 participantCode:
                   type: string
+                  pattern: '^[A-Za-z0-9_-]{1,32}$'
                 deviceId:
                   type: string
       responses:
         '201':
           description: Sesión creada en estado created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+
+  /sessions/{id}:
+    get:
+      summary: Detalle de sesión propia o visible para un administrador
+      description: 'Devuelve 404 para una sesión inexistente o ajena. [IMPLEMENTADO - Issue #5]'
+      operationId: getSession
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: Detalle de sesión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '404':
+          description: Sesión inexistente o no visible
 
   /sessions/{id}/start:
     post:
       summary: Iniciar sesión de medición
-      description: Pasa la sesión a estado active y reserva el dispositivo. [PLANIFICADO - Issue #5]
+      description: 'Reserva el dispositivo; repetir el inicio conserva las fechas. [IMPLEMENTADO - Issue #5]'
       operationId: startSession
+      security:
+        - sessionCookie: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/SessionId'
+        - $ref: '#/components/parameters/CsrfToken'
       responses:
         '200':
           description: Sesión activa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '409':
+          description: Dispositivo ocupado o transición no permitida
 
   /sessions/{id}/finish:
     post:
       summary: Finalizar sesión de medición
-      description: Pasa la sesión a estado finished y libera el dispositivo. [PLANIFICADO - Issue #5]
+      description: 'Libera el dispositivo; repetir el cierre conserva las fechas. [IMPLEMENTADO - Issue #5]'
       operationId: finishSession
+      security:
+        - sessionCookie: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/SessionId'
+        - $ref: '#/components/parameters/CsrfToken'
       responses:
         '200':
           description: Sesión finalizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '409':
+          description: Sesión aún no iniciada o transición no permitida
 
   /sessions/{id}/latest:
     get:
       summary: Consulta de la última lectura y metadatos de calidad
-      description: Consulta periódica cada 2 segundos para el dashboard. [PLANIFICADO - Issue #5 / Issue #8]
+      description: 'Consulta periódica cada 2 segundos para el dashboard. [IMPLEMENTADO - Issue #5]'
       operationId: getLatestMeasurement
+      security:
+        - sessionCookie: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/SessionId'
       responses:
         '200':
           description: Última lectura o null con meta (stale, ageMs, deviceOnline)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    oneOf:
+                      - $ref: '#/components/schemas/Measurement'
+                      - type: 'null'
+                  meta:
+                    $ref: '#/components/schemas/LatestMeta'
 
   /sessions/{id}/measurements:
     get:
       summary: Historial de mediciones de la sesión con paginación
-      description: [PLANIFICADO - Issue #5 / Issue #9]
+      description: 'Lecturas en orden de recepción descendente, accesibles solo al propietario o al administrador. [IMPLEMENTADO - Issue #5]'
       operationId: getSessionMeasurements
+      security:
+        - sessionCookie: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/SessionId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
       responses:
         '200':
           description: Lista paginada de mediciones
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Measurement'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
 
 components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: pulsolink_session
+  parameters:
+    SessionId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    CsrfToken:
+      name: X-CSRF-Token
+      in: header
+      required: true
+      description: El origen Origin/Referer también debe estar permitido.
+      schema:
+        type: string
+    Limit:
+      name: limit
+      in: query
+      description: Predeterminado 50; máximo 100.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+    From:
+      name: from
+      in: query
+      description: Inicio inclusivo sobre createdAt (sesiones) o receivedAt (mediciones).
+      schema:
+        type: string
+        format: date-time
+    To:
+      name: to
+      in: query
+      description: Fin exclusivo sobre createdAt (sesiones) o receivedAt (mediciones).
+      schema:
+        type: string
+        format: date-time
   schemas:
+    Pagination:
+      type: object
+      required: [nextCursor, hasMore]
+      properties:
+        nextCursor:
+          type: [string, 'null']
+        hasMore:
+          type: boolean
+    Device:
+      type: object
+      required: [id, code, board, source, activeSessionId, lastSeenAt]
+      properties:
+        id: { type: string }
+        code: { type: string }
+        board: { type: string }
+        source: { type: string, enum: [real, simulated] }
+        activeSessionId: { type: [string, 'null'] }
+        lastSeenAt: { type: [string, 'null'], format: date-time }
+    Session:
+      type: object
+      required: [id, participantCode, operatorId, deviceId, source, status, createdAt, startedAt, finishedAt]
+      properties:
+        id: { type: string }
+        participantCode: { type: string }
+        operatorId: { type: string }
+        deviceId: { type: string }
+        source: { type: string, enum: [real, simulated] }
+        status: { type: string, enum: [created, active, finished] }
+        createdAt: { type: string, format: date-time }
+        startedAt: { type: [string, 'null'], format: date-time }
+        finishedAt: { type: [string, 'null'], format: date-time }
+    SessionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Session'
+    SessionListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Session'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    Vital:
+      type: object
+      required: [value, unit, status]
+      properties:
+        value: { type: [number, 'null'] }
+        unit: { type: string, enum: [bpm, '%', C] }
+        status: { type: string, enum: [valid, no_contact, invalid, unavailable] }
+    Measurement:
+      type: object
+      required: [id, sessionId, deviceId, source, bootId, sequence, capturedAt, receivedAt, measurements]
+      properties:
+        id: { type: string }
+        sessionId: { type: string }
+        deviceId: { type: string }
+        source: { type: string, enum: [real, simulated] }
+        bootId: { type: string, format: uuid }
+        sequence: { type: integer, minimum: 0, maximum: 4294967295 }
+        capturedAt: { type: [string, 'null'], format: date-time }
+        receivedAt: { type: string, format: date-time }
+        measurements:
+          type: object
+          required: [heartRate, spo2, skinTemperature]
+          properties:
+            heartRate: { $ref: '#/components/schemas/Vital' }
+            spo2: { $ref: '#/components/schemas/Vital' }
+            skinTemperature: { $ref: '#/components/schemas/Vital' }
+    LatestMeta:
+      type: object
+      required: [serverTime, lastSeenAt, deviceOnline, ageMs, stale]
+      properties:
+        serverTime: { type: string, format: date-time }
+        lastSeenAt: { type: [string, 'null'], format: date-time }
+        deviceOnline: { type: boolean }
+        ageMs: { type: [integer, 'null'], minimum: 0 }
+        stale: { type: boolean }
     ErrorResponse:
       type: object
       required: [error]

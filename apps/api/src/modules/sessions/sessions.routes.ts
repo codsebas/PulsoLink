@@ -1,35 +1,60 @@
-import { Router, Request, Response } from 'express';
-import { sendError } from '../../shared/response.js';
+import { Router } from 'express';
+import { z } from 'zod';
+import { AppError } from '../../middleware/error-handler.js';
+import { documentId } from '../../shared/persistence.js';
+import { sendSuccess } from '../../shared/response.js';
+import { pageQuery, sessionListQuery, webRoute } from '../../shared/web-routes.js';
+import { SessionsService } from './sessions.service.js';
 
-export const sessionsRouter = Router();
+const createBody = z.object({
+  participantCode: z.string().regex(/^[A-Za-z0-9_-]{1,32}$/),
+  deviceId: documentId,
+}).strict();
+const emptyBody = z.object({}).strict();
 
-/**
- * Rutas de sesiones asignadas a Didhyer (Issue #5).
- */
-sessionsRouter.get('/', (_req: Request, res: Response) => {
-  sendError(res, 'NOT_IMPLEMENTED', 'Listar sesiones está en desarrollo (Issue #5 - Didhyer).', 501);
-});
+function authenticatedUser(req: Express.Request) {
+  if (!req.user) throw new AppError('UNAUTHENTICATED', 'No hay una sesión activa.', 401);
+  return req.user;
+}
 
-sessionsRouter.post('/', (_req: Request, res: Response) => {
-  sendError(res, 'NOT_IMPLEMENTED', 'Crear sesión está en desarrollo (Issue #5 - Didhyer).', 501);
-});
+export function createSessionsRouter(service = new SessionsService()): Router {
+  const router = Router();
 
-sessionsRouter.get('/:id', (_req: Request, res: Response) => {
-  sendError(res, 'NOT_IMPLEMENTED', 'Detalle de sesión está en desarrollo (Issue #5 - Didhyer).', 501);
-});
+  router.get('/', webRoute(async (req, res) => {
+    const page = await service.list(sessionListQuery.parse(req.query), authenticatedUser(req));
+    sendSuccess(res, page.data, 200, { pagination: page.pagination });
+  }));
 
-sessionsRouter.post('/:id/start', (_req: Request, res: Response) => {
-  sendError(res, 'NOT_IMPLEMENTED', 'Iniciar sesión está en desarrollo (Issue #5 - Didhyer).', 501);
-});
+  router.post('/', webRoute(async (req, res) => {
+    const session = await service.create(createBody.parse(req.body), authenticatedUser(req));
+    sendSuccess(res, session, 201);
+  }));
 
-sessionsRouter.post('/:id/finish', (_req: Request, res: Response) => {
-  sendError(res, 'NOT_IMPLEMENTED', 'Finalizar sesión está en desarrollo (Issue #5 - Didhyer).', 501);
-});
+  router.get('/:id', webRoute(async (req, res) => {
+    sendSuccess(res, await service.get(documentId.parse(req.params.id), authenticatedUser(req)));
+  }));
 
-sessionsRouter.get('/:id/latest', (_req: Request, res: Response) => {
-  sendError(res, 'NOT_IMPLEMENTED', 'Consulta de última lectura está en desarrollo (Issue #5 - Didhyer).', 501);
-});
+  router.post('/:id/start', webRoute(async (req, res) => {
+    emptyBody.parse(req.body ?? {});
+    sendSuccess(res, await service.transition(documentId.parse(req.params.id), authenticatedUser(req), 'active'));
+  }));
 
-sessionsRouter.get('/:id/measurements', (_req: Request, res: Response) => {
-  sendError(res, 'NOT_IMPLEMENTED', 'Consulta de historial está en desarrollo (Issue #5 - Didhyer).', 501);
-});
+  router.post('/:id/finish', webRoute(async (req, res) => {
+    emptyBody.parse(req.body ?? {});
+    sendSuccess(res, await service.transition(documentId.parse(req.params.id), authenticatedUser(req), 'finished'));
+  }));
+
+  router.get('/:id/latest', webRoute(async (req, res) => {
+    const result = await service.latest(documentId.parse(req.params.id), authenticatedUser(req));
+    sendSuccess(res, result.data, 200, { meta: result.meta });
+  }));
+
+  router.get('/:id/measurements', webRoute(async (req, res) => {
+    const page = await service.measurements(documentId.parse(req.params.id), authenticatedUser(req), pageQuery.parse(req.query));
+    sendSuccess(res, page.data, 200, { pagination: page.pagination });
+  }));
+
+  return router;
+}
+
+export const sessionsRouter = createSessionsRouter();

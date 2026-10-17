@@ -42,6 +42,12 @@ export function errorHandler(
     return;
   }
 
+  // Auth (Issue #10): JSON malformado enviado por el cliente.
+  if ('type' in err && (err as { type: string }).type === 'entity.parse.failed') {
+    sendError(res, 'VALIDATION_ERROR', 'El cuerpo de la petición no es JSON válido.', 400, requestId);
+    return;
+  }
+
   console.error(`[UnhandledError] ${req.method} ${req.originalUrl}:`, err);
 
   sendError(

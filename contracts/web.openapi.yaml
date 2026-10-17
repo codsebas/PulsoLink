@@ -22,18 +22,28 @@ paths:
   /auth/csrf:
     get:
       summary: Obtención de token CSRF
-      description: Entrega token CSRF para autorizar mutaciones web. [IMPLEMENTADO EN ESQUELETO]
+      description: >
+        Entrega un token CSRF para autorizar mutaciones web y garantiza la cookie
+        pulsolink_csrf (HttpOnly; SameSite=Lax; Path=/; Secure en HTTPS).
+        [IMPLEMENTADO - Issue #10 (@Mar-03)]
       operationId: getCsrfToken
       responses:
         '200':
           description: Token CSRF generado
+          headers:
+            Set-Cookie:
+              description: Cookie pulsolink_csrf con el secreto de double-submit.
+              schema:
+                type: string
           content:
             application/json:
               schema:
                 type: object
+                required: [data]
                 properties:
                   data:
                     type: object
+                    required: [csrfToken]
                     properties:
                       csrfToken:
                         type: string
@@ -41,14 +51,24 @@ paths:
   /auth/login:
     post:
       summary: Inicio de sesión con correo y contraseña
-      description: Verifica credenciales con Firebase Auth y crea cookie pulsolink_session. [PLANIFICADO - Issue #10 (@Mar-03)]
+      description: >
+        Verifica credenciales con Firebase Auth, exige la cookie y el token CSRF,
+        y crea la cookie de sesión pulsolink_session. [IMPLEMENTADO - Issue #10 (@Mar-03)]
       operationId: postLogin
+      parameters:
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          description: Token devuelto por /auth/csrf; la cabecera Origin/Referer debe estar permitida.
+          schema:
+            type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required: [email, password]
               properties:
                 email:
@@ -56,27 +76,132 @@ paths:
                   format: email
                 password:
                   type: string
+                  minLength: 1
+                  maxLength: 128
       responses:
         '200':
-          description: Sesión iniciada con éxito
+          description: >
+            Sesión iniciada; establece pulsolink_session (HttpOnly) y rota pulsolink_csrf.
+          headers:
+            Set-Cookie:
+              description: pulsolink_session (HttpOnly; SameSite=Lax; Path=/; Secure en HTTPS; Max-Age = SESSION_TTL_HOURS).
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [id, displayName, role]
+                    properties:
+                      id:
+                        type: string
+                      displayName:
+                        type: string
+                      role:
+                        type: string
+                        enum: [admin, operator]
+        '400':
+          description: Cuerpo inválido o JSON malformado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Credenciales inválidas (correo inexistente o contraseña incorrecta).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: CSRF/origen inválido o cuenta deshabilitada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: Cuerpo mayor al límite permitido (8 KiB).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Demasiados intentos; incluye cabecera Retry-After (segundos).
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Servicio de autenticación no disponible (Firebase sin configurar o 5xx).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /auth/logout:
     post:
       summary: Cierre de sesión y eliminación de cookie
-      description: [PLANIFICADO - Issue #10 (@Mar-03)]
+      description: >
+        Elimina la cookie de sesión y rota pulsolink_csrf. Es idempotente: responde
+        204 aunque no haya sesión. Exige token CSRF y origen permitido.
+        [IMPLEMENTADO - Issue #10 (@Mar-03)]
       operationId: postLogout
+      parameters:
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
         '204':
-          description: Sesión cerrada
+          description: Sesión cerrada (sin cuerpo).
+        '403':
+          description: CSRF/origen inválido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /auth/me:
     get:
       summary: Datos del usuario autenticado
-      description: [PLANIFICADO - Issue #10 (@Mar-03)]
+      description: >
+        Devuelve el perfil del usuario de la cookie de sesión.
+        [IMPLEMENTADO - Issue #10 (@Mar-03)]
       operationId: getMe
       responses:
         '200':
           description: Perfil del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [id, displayName, role]
+                    properties:
+                      id:
+                        type: string
+                      displayName:
+                        type: string
+                      role:
+                        type: string
+                        enum: [admin, operator]
+        '401':
+          description: Sin sesión, cookie inválida/vencida o usuario sin documento.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /devices:
     get:
@@ -174,3 +299,21 @@ paths:
       responses:
         '200':
           description: Lista paginada de mediciones
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            requestId:
+              type: string
+            details: {}

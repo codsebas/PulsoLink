@@ -118,7 +118,7 @@ Abra `http://localhost:5173` en su navegador. La pantalla de bienvenida consulta
 
 ## 6. Compilación, Comprobación de Tipos y Lint
 
-Para validar la integridad de todo el código del monorepositorio:
+Para ejecutar las comprobaciones disponibles del monorepositorio:
 
 ```powershell
 # Comprobar tipos TypeScript sin emitir código
@@ -130,6 +130,42 @@ npm run build
 # Ejecutar validación de linters
 npm run lint
 ```
+
+### 6.1 Estado conocido de las comprobaciones
+
+La ejecución local registrada por integracion y QA el 16 de octubre de 2026, tras `npm ci`, produjo el siguiente resultado:
+
+| Comando | Resultado | Alcance y observaciones |
+| --- | --- | --- |
+| `npm run typecheck` | Fallo | La API y el simulador completaron su comprobación. La web falla con `TS6310` porque `apps/web/tsconfig.json` referencia `tsconfig.node.json`, que declara `noEmit`. |
+| `npm run build` | Fallo | La API y el simulador completaron su compilación. La web se bloquea por el mismo `TS6310`; Vite no llega a ejecutarse. |
+| `npm run lint` | Sale correctamente | Los scripts de API y web solo imprimen mensajes `lint ok`; no sustituyen un linter real. |
+
+No considere el typecheck ni la compilación globales aprobados hasta resolver la configuración TypeScript de `apps/web`. Los detalles reproducibles están en [la evidencia de integración AV1-09](../evidencias/integracion-av1-09.md).
+
+### 6.2 Pruebas de persistencia con emuladores
+
+La suite de persistencia requiere Java 21 o posterior y los emuladores de Firestore y Authentication. Se ejecuta sobre el proyecto local desechable `demo-pulsolink`; no configura ni modifica recursos en la nube:
+
+```powershell
+$env:FIREBASE_PROJECT_ID = 'demo-pulsolink'
+npx -y firebase-tools@latest emulators:exec --config firebase/emulators.test.json --project demo-pulsolink --only firestore,auth 'npm run test --workspace=apps/api'
+```
+
+Sin ambos hosts de emulador, los casos de persistencia se omiten. No presente esa omisión como una prueba integrada aprobada.
+
+### 6.3 Contratos y orden de integración
+
+Los contratos versionados son la fuente de integración: [Contrato A](../../contracts/device.openapi.yaml) para dispositivo/simulador y [Contrato B](../../contracts/web.openapi.yaml) para la web. Ambos usan el prefijo `/api/v1`.
+
+| Componente | Consume o proporciona | Dependencia actual |
+| --- | --- | --- |
+| `apps/web` | Consume Contrato B por el proxy Vite `/api` | Requiere autenticación, sesiones y consultas HTTP implementadas en API. |
+| `apps/api` | Proporciona ambos contratos y usa Firebase Admin SDK | Requiere configuración Firebase para operaciones persistentes; no expone Firestore al cliente. |
+| `tools/device-simulator` | Consume Contrato A con credencial de dispositivo | Requiere endpoints de dispositivo, credencial aprovisionada y una sesión activa. |
+| `firebase/` | Reglas, índices y emuladores de Firestore/Auth | La API usa Admin SDK; las reglas bloquean el acceso directo de clientes. |
+
+Al momento de esta guía, `GET /api/v1/health` está operativo y `GET /api/v1/auth/csrf` genera un token básico. Las rutas de autenticación, dispositivos, sesiones y dispositivo responden `501 NOT_IMPLEMENTED`; los repositorios Firestore existen, pero todavía no están conectados a esas rutas. El simulador y las pantallas de sesión/monitoreo son esqueletos de integración. Esta condición bloquea el recorrido completo, pero no bloquea el arranque de API y web.
 
 ---
 

@@ -29,11 +29,12 @@ function vital(unit: 'bpm' | '%' | 'C', min: number, max: number, exclusiveMin =
   });
 }
 
-const inputSchema = z.object({
+export const measurementInputSchema = z.object({
   sessionId: documentId, bootId: z.string().uuid(), sequence: z.number().int().min(0).max(2 ** 32 - 1),
   capturedAt: dateTime.nullable().optional().transform((value) => value ?? null),
   measurements: z.object({ heartRate: vital('bpm', 0, 300, true), spo2: vital('%', 0, 100), skinTemperature: vital('C', -55, 125) }).strict(),
 }).strict();
+const inputSchema = measurementInputSchema;
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
 export class MeasurementsRepository {

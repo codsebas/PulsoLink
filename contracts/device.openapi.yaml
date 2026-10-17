@@ -38,7 +38,7 @@ paths:
       summary: Consulta de configuración y sesión activa
       description: >
         Devuelve el intervalo de reporte (2000 ms), heartbeat y el activeSessionId asignado.
-        [PLANIFICADO - Issue #4 (@codsebas)]
+        [IMPLEMENTADO - Issue #4 (@codsebas)]
       operationId: getDeviceConfig
       security:
         - DeviceBearerAuth: []
@@ -73,7 +73,7 @@ paths:
   /device/heartbeat:
     post:
       summary: Reporte periódico de presencia y tiempo de actividad
-      description: [PLANIFICADO - Issue #4 (@codsebas)]
+      description: [IMPLEMENTADO - Issue #4 (@codsebas)]
       operationId: postDeviceHeartbeat
       security:
         - DeviceBearerAuth: []
@@ -105,7 +105,7 @@ paths:
       summary: Recepción idempotente de mediciones de signos vitales
       description: >
         Ingestión de pulso, SpO₂ y temperatura. Idempotencia mediante clave única deviceId + bootId + sequence.
-        [PLANIFICADO - Issue #4 (@codsebas)]
+        [IMPLEMENTADO - Issue #4 (@codsebas)]
       operationId: postDeviceMeasurement
       security:
         - DeviceBearerAuth: []

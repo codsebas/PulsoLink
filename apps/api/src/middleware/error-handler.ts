@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { sendError } from '../shared/response.js';
+import { PersistenceError } from '../shared/persistence.js';
 
 export class AppError extends Error {
   constructor(
@@ -33,6 +34,25 @@ export function errorHandler(
       message: issue.message,
     }));
     sendError(res, 'VALIDATION_ERROR', 'Los datos proporcionados no son válidos.', 400, requestId, formatted);
+    return;
+  }
+
+  if (err instanceof PersistenceError) {
+    const statusMap: Record<string, number> = {
+      IDEMPOTENCY_CONFLICT: 409,
+      SESSION_NOT_ACTIVE: 409,
+      DEVICE_BUSY: 409,
+      INVALID_SESSION_STATE: 409,
+      DEVICE_SOURCE_CHANGED: 409,
+      PROVISIONING_CONFLICT: 409,
+      SESSION_NOT_FOUND: 404,
+      DEVICE_NOT_FOUND: 404,
+      DEVICE_DISABLED: 401,
+      INVALID_CURSOR: 400,
+      AUTH_USER_DISABLED: 403,
+    };
+    const statusCode = statusMap[err.code] ?? 400;
+    sendError(res, err.code, err.message, statusCode, requestId);
     return;
   }
 

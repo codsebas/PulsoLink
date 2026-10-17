@@ -1,0 +1,23 @@
+{
+  "name": "@pulsolink/device-simulator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Simulador IoT en Node.js/TypeScript para enviar mediciones según Contrato A",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "rimraf dist && tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

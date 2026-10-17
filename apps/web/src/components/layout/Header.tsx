@@ -1,10 +1,8 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Activity, ShieldCheck, Radio, Clock } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const location = useLocation();
-
   const navItems = [
     { label: 'Estado & Health', path: '/', icon: Activity },
     { label: 'Sesiones', path: '/sessions', icon: Clock },
@@ -29,20 +27,22 @@ export const Header: React.FC = () => {
         <nav className="flex items-center gap-1 sm:gap-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
             return (
-              <Link
+              <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-sky-50 text-sky-700'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
+                end={item.path === '/'}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-sky-50 text-sky-700'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`
+                }
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4" aria-hidden="true" />
                 <span>{item.label}</span>
-              </Link>
+              </NavLink>
             );
           })}
         </nav>

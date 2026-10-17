@@ -1,0 +1,25 @@
+{
+  "name": "pulsolink",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sistema académico IoT para visualizar y almacenar frecuencia cardíaca, SpO2 estimada y temperatura superficial",
+  "workspaces": [
+    "apps/*",
+    "tools/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -p \"[{name}]\" -n \"api,web\" -c \"cyan,magenta\" \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

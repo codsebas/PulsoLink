@@ -1,0 +1,216 @@
+openapi: 3.1.0
+info:
+  title: PulsoLink — Contrato A: Dispositivo IoT / Simulador ↔ Backend API
+  version: 1.0.0
+  description: >
+    Especificación de la API de ingestión y configuración para dispositivos telemétricos (NodeMCU ESP8266)
+    y el simulador de pruebas. Requiere autenticación mediante cabecera Authorization: Bearer <credentialId>.<secret>.
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Servidor de desarrollo local
+
+paths:
+  /health:
+    get:
+      summary: Verificación de salud del proceso API
+      description: Estado del proceso backend. [IMPLEMENTADO EN ESQUELETO]
+      operationId: getHealth
+      responses:
+        '200':
+          description: Proceso activo y saludable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: pulsolink-api
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /device/config:
+    get:
+      summary: Consulta de configuración y sesión activa
+      description: >
+        Devuelve el intervalo de reporte (2000 ms), heartbeat y el activeSessionId asignado.
+        [PLANIFICADO - Issue #4 (@codsebas)]
+      operationId: getDeviceConfig
+      security:
+        - DeviceBearerAuth: []
+      responses:
+        '200':
+          description: Configuración obtenida correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      deviceId:
+                        type: string
+                      activeSessionId:
+                        type: string
+                        nullable: true
+                      uploadIntervalMs:
+                        type: integer
+                        example: 2000
+                      heartbeatIntervalMs:
+                        type: integer
+                        example: 15000
+                      serverTime:
+                        type: string
+                        format: date-time
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /device/heartbeat:
+    post:
+      summary: Reporte periódico de presencia y tiempo de actividad
+      description: [PLANIFICADO - Issue #4 (@codsebas)]
+      operationId: postDeviceHeartbeat
+      security:
+        - DeviceBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - bootId
+                - uptimeMs
+              properties:
+                bootId:
+                  type: string
+                  format: uuid
+                uptimeMs:
+                  type: integer
+                firmwareVersion:
+                  type: string
+      responses:
+        '200':
+          description: Heartbeat recibido
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /device/measurements:
+    post:
+      summary: Recepción idempotente de mediciones de signos vitales
+      description: >
+        Ingestión de pulso, SpO₂ y temperatura. Idempotencia mediante clave única deviceId + bootId + sequence.
+        [PLANIFICADO - Issue #4 (@codsebas)]
+      operationId: postDeviceMeasurement
+      security:
+        - DeviceBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - bootId
+                - sequence
+                - measurements
+              properties:
+                sessionId:
+                  type: string
+                bootId:
+                  type: string
+                  format: uuid
+                sequence:
+                  type: integer
+                  minimum: 0
+                capturedAt:
+                  type: string
+                  format: date-time
+                  nullable: true
+                measurements:
+                  type: object
+                  required:
+                    - heartRate
+                    - spo2
+                    - skinTemperature
+                  properties:
+                    heartRate:
+                      $ref: '#/components/schemas/VitalMeasurement'
+                    spo2:
+                      $ref: '#/components/schemas/VitalMeasurement'
+                    skinTemperature:
+                      $ref: '#/components/schemas/VitalMeasurement'
+      responses:
+        '201':
+          description: Medición almacenada correctamente
+        '200':
+          description: Reintento idéntico procesado sin duplicar (duplicate = true)
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          description: Conflicto de idempotencia o sesión no activa
+
+components:
+  securitySchemes:
+    DeviceBearerAuth:
+      type: http
+      scheme: bearer
+      description: Cabecera con formato Bearer <credentialId>.<secret>
+
+  schemas:
+    VitalMeasurement:
+      type: object
+      required:
+        - value
+        - unit
+        - status
+      properties:
+        value:
+          type: number
+          nullable: true
+        unit:
+          type: string
+          enum: [bpm, '%', C]
+        status:
+          type: string
+          enum: [valid, no_contact, invalid, unavailable]
+
+    ApiError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            requestId:
+              type: string
+
+  responses:
+    BadRequestError:
+      description: Solicitud inválida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    UnauthorizedError:
+      description: Credencial inválida o ausente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'

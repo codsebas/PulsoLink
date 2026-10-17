@@ -501,3 +501,36 @@ El proyecto cuenta con un conjunto de siete skills especializadas para agentes d
 - **Herramientas y dependencias externas:** Las herramientas ejecutables o dependencias adicionales (por ejemplo, Firebase CLI o Playwright CLI) se instalan por separado según correspondan a las tareas de cada integrante.
 - **Mantenimiento y actualizaciones:** Cualquier actualización, adición o modificación de skills se coordina de manera centralizada mediante pull requests.
 
+## 18. Puesta en marcha rápida del monorepositorio
+
+La guía completa paso a paso para Windows PowerShell se encuentra en [docs/setup/desarrollo-local.md](docs/setup/desarrollo-local.md).
+
+### Comandos principales desde la raíz:
+
+```powershell
+# 1. Instalar todas las dependencias del monorepositorio
+npm install
+
+# 2. Iniciar el entorno completo de desarrollo (API en :3001 y Web en :5173)
+npm run dev
+
+# 3. Iniciar servicios de forma independiente
+npm run dev:api     # Backend Express 5
+npm run dev:web     # Frontend React + Vite
+npm run dev --workspace=tools/device-simulator  # Simulador IoT
+
+# 4. Comprobaciones de calidad y compilación
+npm run typecheck   # Validación de tipos TypeScript en todos los workspaces
+npm run build       # Compilación de producción
+npm run lint        # Verificación de linters
+```
+
+### Enlaces a la documentación del sistema:
+- **Desarrollo local:** [docs/setup/desarrollo-local.md](docs/setup/desarrollo-local.md)
+- **Contrato A (IoT / Simulador):** [contracts/device.openapi.yaml](contracts/device.openapi.yaml)
+- **Contrato B (Frontend Web):** [contracts/web.openapi.yaml](contracts/web.openapi.yaml)
+- **Reglas y persistencia Firebase:** [firebase/README.md](firebase/README.md)
+- **Firmware NodeMCU:** [firmware/nodemcu/README.md](firmware/nodemcu/README.md)
+- **Documentación de hardware:** [docs/hardware/README.md](docs/hardware/README.md)
+- **Planificación de entrega:** [docs/planificacion/avance-2026-10-17.md](docs/planificacion/avance-2026-10-17.md)
+

@@ -1,0 +1,176 @@
+openapi: 3.1.0
+info:
+  title: PulsoLink — Contrato B: Frontend Web ↔ Backend API
+  version: 1.0.0
+  description: >
+    Especificación de la API para la plataforma web de monitoreo de signos vitales.
+    Utiliza cookies de sesión HttpOnly y verificación de token CSRF para mutaciones.
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Servidor de desarrollo local
+
+paths:
+  /health:
+    get:
+      summary: Salud del proceso API
+      description: Estado del proceso backend. [IMPLEMENTADO EN ESQUELETO]
+      operationId: getHealth
+      responses:
+        '200':
+          description: Proceso activo
+
+  /auth/csrf:
+    get:
+      summary: Obtención de token CSRF
+      description: Entrega token CSRF para autorizar mutaciones web. [IMPLEMENTADO EN ESQUELETO]
+      operationId: getCsrfToken
+      responses:
+        '200':
+          description: Token CSRF generado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      csrfToken:
+                        type: string
+
+  /auth/login:
+    post:
+      summary: Inicio de sesión con correo y contraseña
+      description: Verifica credenciales con Firebase Auth y crea cookie pulsolink_session. [PLANIFICADO - Issue #10 (@Mar-03)]
+      operationId: postLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Sesión iniciada con éxito
+
+  /auth/logout:
+    post:
+      summary: Cierre de sesión y eliminación de cookie
+      description: [PLANIFICADO - Issue #10 (@Mar-03)]
+      operationId: postLogout
+      responses:
+        '204':
+          description: Sesión cerrada
+
+  /auth/me:
+    get:
+      summary: Datos del usuario autenticado
+      description: [PLANIFICADO - Issue #10 (@Mar-03)]
+      operationId: getMe
+      responses:
+        '200':
+          description: Perfil del usuario
+
+  /devices:
+    get:
+      summary: Lista paginada de dispositivos habilitados
+      description: [PLANIFICADO - Issue #5 (@Didhyer)]
+      operationId: getDevices
+      responses:
+        '200':
+          description: Dispositivos habilitados
+
+  /sessions:
+    get:
+      summary: Lista paginada de sesiones
+      description: [PLANIFICADO - Issue #5 (@Didhyer)]
+      operationId: getSessions
+      responses:
+        '200':
+          description: Listado de sesiones
+    post:
+      summary: Creación de sesión de medición
+      description: [PLANIFICADO - Issue #5 (@Didhyer) / Issue #9 (@Lis671)]
+      operationId: createSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [participantCode, deviceId]
+              properties:
+                participantCode:
+                  type: string
+                deviceId:
+                  type: string
+      responses:
+        '201':
+          description: Sesión creada en estado created
+
+  /sessions/{id}/start:
+    post:
+      summary: Iniciar sesión de medición
+      description: Pasa la sesión a estado active y reserva el dispositivo. [PLANIFICADO - Issue #5]
+      operationId: startSession
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sesión activa
+
+  /sessions/{id}/finish:
+    post:
+      summary: Finalizar sesión de medición
+      description: Pasa la sesión a estado finished y libera el dispositivo. [PLANIFICADO - Issue #5]
+      operationId: finishSession
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sesión finalizada
+
+  /sessions/{id}/latest:
+    get:
+      summary: Consulta de la última lectura y metadatos de calidad
+      description: Consulta periódica cada 2 segundos para el dashboard. [PLANIFICADO - Issue #5 / Issue #8]
+      operationId: getLatestMeasurement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Última lectura o null con meta (stale, ageMs, deviceOnline)
+
+  /sessions/{id}/measurements:
+    get:
+      summary: Historial de mediciones de la sesión con paginación
+      description: [PLANIFICADO - Issue #5 / Issue #9]
+      operationId: getSessionMeasurements
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista paginada de mediciones

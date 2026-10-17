@@ -1,0 +1,13 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // REGLA CRÍTICA DE PULSOLINK:
+    // Todo el acceso a la base de datos se realiza EXCLUSIVAMENTE a través del
+    // backend de Express utilizando Firebase Admin SDK.
+    // Se deniega de manera estricta y absoluta el acceso directo de clientes web o móviles.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

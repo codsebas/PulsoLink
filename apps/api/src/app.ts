@@ -7,6 +7,8 @@ import { notFoundHandler } from './middleware/not-found.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { authRouter } from './modules/auth/auth.routes.js';
+// Auth (Issue #10): middlewares reales de autenticación y CSRF.
+import { requireUser, csrfProtection } from './modules/auth/index.js';
 import { devicesRouter } from './modules/devices/devices.routes.js';
 import { sessionsRouter } from './modules/sessions/sessions.routes.js';
 import { deviceMeasurementsRouter } from './modules/measurements/measurements.routes.js';
@@ -30,8 +32,9 @@ export function createApp(): Express {
   // Rutas base API v1
   app.use('/api/v1', healthRouter);
   app.use('/api/v1/auth', authRouter);
-  app.use('/api/v1/devices', devicesRouter);
-  app.use('/api/v1/sessions', sessionsRouter);
+  // Auth (Issue #10): las rutas web exigen usuario; las mutaciones exigen CSRF.
+  app.use('/api/v1/devices', requireUser, devicesRouter);
+  app.use('/api/v1/sessions', requireUser, csrfProtection, sessionsRouter);
   app.use('/api/v1/device', deviceMeasurementsRouter);
 
   // Manejador 404 para rutas no encontradas

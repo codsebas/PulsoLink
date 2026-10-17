@@ -1,20 +1,165 @@
 {
+  "fieldOverrides": [],
   "indexes": [
     {
-      "collectionGroup": "sessions",
       "queryScope": "COLLECTION",
+      "collectionGroup": "sessions",
       "fields": [
-        { "fieldPath": "operatorId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
+        {
+          "order": "ASCENDING",
+          "fieldPath": "operatorId"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "createdAt"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "__name__"
+        }
       ]
     },
     {
-      "collectionGroup": "measurements",
       "queryScope": "COLLECTION",
+      "collectionGroup": "sessions",
       "fields": [
-        { "fieldPath": "receivedAt", "order": "DESCENDING" }
+        {
+          "order": "ASCENDING",
+          "fieldPath": "status"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "createdAt"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "__name__"
+        }
+      ]
+    },
+    {
+      "queryScope": "COLLECTION",
+      "collectionGroup": "sessions",
+      "fields": [
+        {
+          "order": "ASCENDING",
+          "fieldPath": "operatorId"
+        },
+        {
+          "order": "ASCENDING",
+          "fieldPath": "status"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "createdAt"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "__name__"
+        }
+      ]
+    },
+    {
+      "queryScope": "COLLECTION",
+      "collectionGroup": "sessions",
+      "fields": [
+        {
+          "order": "ASCENDING",
+          "fieldPath": "deviceId"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "createdAt"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "__name__"
+        }
+      ]
+    },
+    {
+      "queryScope": "COLLECTION",
+      "collectionGroup": "sessions",
+      "fields": [
+        {
+          "order": "ASCENDING",
+          "fieldPath": "operatorId"
+        },
+        {
+          "order": "ASCENDING",
+          "fieldPath": "deviceId"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "createdAt"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "__name__"
+        }
+      ]
+    },
+    {
+      "queryScope": "COLLECTION",
+      "collectionGroup": "sessions",
+      "fields": [
+        {
+          "order": "ASCENDING",
+          "fieldPath": "status"
+        },
+        {
+          "order": "ASCENDING",
+          "fieldPath": "deviceId"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "createdAt"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "__name__"
+        }
+      ]
+    },
+    {
+      "queryScope": "COLLECTION",
+      "collectionGroup": "sessions",
+      "fields": [
+        {
+          "order": "ASCENDING",
+          "fieldPath": "operatorId"
+        },
+        {
+          "order": "ASCENDING",
+          "fieldPath": "status"
+        },
+        {
+          "order": "ASCENDING",
+          "fieldPath": "deviceId"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "createdAt"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "__name__"
+        }
+      ]
+    },
+    {
+      "queryScope": "COLLECTION",
+      "collectionGroup": "devices",
+      "fields": [
+        {
+          "order": "ASCENDING",
+          "fieldPath": "enabled"
+        },
+        {
+          "order": "DESCENDING",
+          "fieldPath": "__name__"
+        }
       ]
     }
-  ],
-  "fieldOverrides": []
+  ]
 }

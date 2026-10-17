@@ -6,12 +6,22 @@ let initError: string | null = null;
 
 function initializeFirebase(): boolean {
   if (initialized) return true;
-  if (admin.apps.length > 0) {
+  if (admin.apps.some((app) => app?.name === '[DEFAULT]')) {
     initialized = true;
     return true;
   }
 
   try {
+    if (process.env.FIRESTORE_EMULATOR_HOST) {
+      if (env.NODE_ENV === 'production' || !env.FIREBASE_PROJECT_ID) {
+        throw new Error('El emulador exige un proyecto explícito y un entorno no productivo.');
+      }
+      admin.initializeApp({ projectId: env.FIREBASE_PROJECT_ID });
+      initialized = true;
+      initError = null;
+      return true;
+    }
+
     if (env.GOOGLE_APPLICATION_CREDENTIALS) {
       admin.initializeApp({
         credential: admin.credential.applicationDefault(),
@@ -33,12 +43,19 @@ function initializeFirebase(): boolean {
       return true;
     }
 
+    // Application Default Credentials also support managed Google runtimes.
+    if (env.FIREBASE_PROJECT_ID) {
+      admin.initializeApp({ projectId: env.FIREBASE_PROJECT_ID, credential: admin.credential.applicationDefault() });
+      initialized = true;
+      initError = null;
+      return true;
+    }
+
     // Si no se proporcionaron credenciales, se deja pendiente
     initError = 'Credenciales de Firebase Admin SDK no configuradas en el entorno.';
     return false;
-  } catch (error) {
-    initError = error instanceof Error ? error.message : 'Error desconocido al inicializar Firebase Admin';
-    console.warn(`⚠️ [Firebase] Inicialización no completada: ${initError}`);
+  } catch {
+    initError = 'No se pudo inicializar Firebase Admin. Revise la configuración del servidor.';
     return false;
   }
 }

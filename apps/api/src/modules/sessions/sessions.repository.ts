@@ -1,4 +1,9 @@
+import { FieldPath, type Firestore, type Query } from 'firebase-admin/firestore';
+import { z } from 'zod';
 import { getDb } from '../../config/firebase.js';
+import { documentId, pagination, PersistenceError, type PageOptions } from '../../shared/persistence.js';
+import type { StoredMeasurement } from '../measurements/measurements.repository.js';
+import type { DeviceDocument } from '../devices/devices.repository.js';
 
 export interface SessionDocument {
   sessionId: string;
@@ -10,16 +15,82 @@ export interface SessionDocument {
   createdAt: string;
   startedAt: string | null;
   finishedAt: string | null;
+  latestMeasurement: StoredMeasurement | null;
+}
+export interface SessionListOptions extends PageOptions {
+  operatorId?: string; status?: SessionDocument['status']; deviceId?: string;
 }
 
 export class SessionsRepository {
-  private collection() {
-    return getDb().collection('sessions');
+  constructor(private readonly db: () => Firestore = getDb) {}
+  async getById(sessionId: string): Promise<SessionDocument | null> {
+    const doc = await this.db().collection('sessions').doc(documentId.parse(sessionId)).get();
+    return doc.exists ? { ...doc.data(), sessionId: doc.id } as SessionDocument : null;
   }
 
-  async getById(sessionId: string): Promise<SessionDocument | null> {
-    const doc = await this.collection().doc(sessionId).get();
-    if (!doc.exists) return null;
-    return doc.data() as SessionDocument;
+  // operatorId must come from the authenticated context, never from a request body.
+  async create(input: { participantCode: string; operatorId: string; deviceId: string }): Promise<SessionDocument> {
+    const data = z.object({ participantCode: z.string().regex(/^[A-Za-z0-9_-]{1,32}$/), operatorId: documentId, deviceId: documentId }).strict().parse(input);
+    const db = this.db();
+    const ref = db.collection('sessions').doc();
+    return db.runTransaction(async (tx) => {
+      const device = await tx.get(db.collection('devices').doc(data.deviceId));
+      if (!device.exists || !device.data()?.enabled) throw new PersistenceError('DEVICE_DISABLED', 'Dispositivo no habilitado.');
+      const session: SessionDocument = { ...data, sessionId: ref.id, source: (device.data() as DeviceDocument).source,
+        status: 'created', createdAt: new Date().toISOString(), startedAt: null, finishedAt: null, latestMeasurement: null };
+      tx.create(ref, session);
+      return session;
+    });
+  }
+
+  async start(sessionId: string): Promise<SessionDocument> { return this.transition(sessionId, 'active'); }
+  async finish(sessionId: string): Promise<SessionDocument> { return this.transition(sessionId, 'finished'); }
+
+  private async transition(sessionId: string, target: 'active' | 'finished'): Promise<SessionDocument> {
+    const db = this.db();
+    const sessionRef = db.collection('sessions').doc(documentId.parse(sessionId));
+    return db.runTransaction(async (tx) => {
+      const snapshot = await tx.get(sessionRef);
+      if (!snapshot.exists) throw new PersistenceError('SESSION_NOT_FOUND', 'Sesión no encontrada.');
+      const session = snapshot.data() as SessionDocument;
+      if (session.status === target) return session;
+      if ((target === 'active' && session.status !== 'created') || (target === 'finished' && session.status !== 'active')) {
+        throw new PersistenceError('INVALID_SESSION_STATE', 'La transición de sesión no está permitida.');
+      }
+      const deviceRef = db.collection('devices').doc(session.deviceId);
+      const device = (await tx.get(deviceRef)).data() as DeviceDocument | undefined;
+      if (!device) throw new PersistenceError('DEVICE_NOT_FOUND', 'Dispositivo no encontrado.');
+      if (target === 'active') {
+        if (!device.enabled) throw new PersistenceError('DEVICE_DISABLED', 'Dispositivo no habilitado.');
+        if (device.activeSessionId) throw new PersistenceError('DEVICE_BUSY', 'El dispositivo ya está reservado.');
+        if (device.source !== session.source) throw new PersistenceError('DEVICE_SOURCE_CHANGED', 'Cambió el origen del dispositivo.');
+      } else if (device.activeSessionId !== sessionId) {
+        throw new PersistenceError('SESSION_NOT_ACTIVE', 'La reserva del dispositivo no corresponde a la sesión.');
+      }
+      const now = new Date().toISOString();
+      const changes = { status: target, ...(target === 'active' ? { startedAt: now } : { finishedAt: now }) };
+      tx.update(sessionRef, changes);
+      tx.update(deviceRef, { activeSessionId: target === 'active' ? sessionId : null });
+      return { ...session, ...changes };
+    });
+  }
+
+  // API must supply operatorId for operators; only an authorized admin may omit it.
+  async list(options: SessionListOptions = {}) {
+    const operatorId = options.operatorId === undefined ? undefined : documentId.parse(options.operatorId);
+    const deviceId = options.deviceId === undefined ? undefined : documentId.parse(options.deviceId);
+    const status = z.enum(['created', 'active', 'finished']).optional().parse(options.status);
+    const page = pagination(options, { collection: 'sessions', operatorId: operatorId ?? null,
+      deviceId: deviceId ?? null, status: status ?? null, order: 'createdAt:desc,id:desc' });
+    let query: Query = this.db().collection('sessions');
+    if (operatorId) query = query.where('operatorId', '==', operatorId);
+    if (deviceId) query = query.where('deviceId', '==', deviceId);
+    if (status) query = query.where('status', '==', status);
+    if (page.from) query = query.where('createdAt', '>=', page.from);
+    if (page.to) query = query.where('createdAt', '<', page.to);
+    query = query.orderBy('createdAt', 'desc').orderBy(FieldPath.documentId(), 'desc').limit(page.limit + 1);
+    if (page.after) query = query.startAfter(page.after.date, page.after.id);
+    const rows = (await query.get()).docs.map((doc) => ({ ...doc.data(), sessionId: doc.id }) as SessionDocument);
+    return page.page(rows, (row) => ({ date: row.createdAt, id: row.sessionId }));
   }
 }

@@ -5,9 +5,11 @@
 - **Repositorio:** https://github.com/codsebas/PulsoLink
 - **Inicio de planificación:** 16 de octubre de 2026.
 - **Primer avance:** sábado 17 de octubre de 2026, horario de Guatemala.
-- **Estado de este commit:** documentación inicial únicamente. No contiene todavía una aplicación ejecutable, configuración de Firebase, firmware, pruebas ni despliegue.
+- **Estado actual:** base web/API y capa de persistencia Firestore implementadas. La persistencia se valida en emuladores; la integración de rutas, autenticación, simulador y nube sigue pendiente. Las secciones de planificación inferiores describen el objetivo del proyecto, no funcionalidades ya verificadas.
 - **Responsable del dispositivo y coordinación técnica:** `@codsebas`.
 - **Base de datos acordada:** Cloud Firestore, de Firebase.
+
+El bloque AV1-04 de `@gioore` incluye repositorios, transacciones de sesiones/ingestión, aprovisionamiento repetible y configuración de índices. Consulte [firmas de integración y comandos de verificación](firebase/README.md) y [evidencia de ejecución](docs/evidencias/firestore-av1-04.md).
 
 ## 1. Propósito
 

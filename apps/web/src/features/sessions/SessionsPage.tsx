@@ -38,13 +38,23 @@ export const SessionsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Lista vacía / placeholder */}
-      <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500 space-y-3">
+      {/* Lista vacía / placeholder con acceso a Demo */}
+      <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500 space-y-4">
         <Clock className="w-10 h-10 text-slate-300 mx-auto" />
-        <h3 className="font-semibold text-slate-700 text-sm">No hay sesiones activas en este momento</h3>
-        <p className="text-xs text-slate-400 max-w-sm mx-auto">
-          Al crear una sesión e iniciarla con el simulador o dispositivo, aparecerá en esta lista con acceso al dashboard en tiempo real.
-        </p>
+        <div>
+          <h3 className="font-semibold text-slate-800 text-sm">No hay sesiones en la base de datos real</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
+            Para la presentación de clase y evaluación del prototipo, puedes interactuar directamente con la sala de monitoreo y telemetría simulada.
+          </p>
+        </div>
+        <div>
+          <a
+            href="/demo"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+          >
+            <span>Abrir Sala de Monitoreo en Vivo (Prototipo)</span>
+          </a>
+        </div>
       </div>
     </div>
   );

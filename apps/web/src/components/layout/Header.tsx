@@ -4,9 +4,10 @@ import { Activity, ShieldCheck, Radio, Clock } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const navItems = [
-    { label: 'Estado & Health', path: '/', icon: Activity },
-    { label: 'Sesiones', path: '/sessions', icon: Clock },
-    { label: 'Acceso', path: '/login', icon: ShieldCheck },
+    { label: 'Estado & Health', path: '/', icon: Activity, isDemo: false },
+    { label: 'Prototipo en Vivo', path: '/demo', icon: Radio, isDemo: true },
+    { label: 'Sesiones', path: '/sessions', icon: Clock, isDemo: false },
+    { label: 'Acceso', path: '/login', icon: ShieldCheck, isDemo: false },
   ];
 
   return (
@@ -33,14 +34,25 @@ export const Header: React.FC = () => {
                 to={item.path}
                 end={item.path === '/'}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-sky-50 text-sky-700'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  `flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    item.isDemo
+                      ? isActive
+                        ? 'bg-rose-100 text-rose-800 font-bold ring-1 ring-rose-300'
+                        : 'bg-rose-50 text-rose-700 hover:bg-rose-100 font-semibold'
+                      : isActive
+                        ? 'bg-sky-50 text-sky-700'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`
                 }
               >
-                <Icon className="w-4 h-4" aria-hidden="true" />
+                {item.isDemo ? (
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                  </span>
+                ) : (
+                  <Icon className="w-4 h-4" aria-hidden="true" />
+                )}
                 <span>{item.label}</span>
               </NavLink>
             );

@@ -65,6 +65,16 @@ export const HomePage: React.FC = () => {
             de signos vitales (pulso cardíaco, SpO₂ estimada y temperatura superficial)
             mediante API modular y Cloud Firestore.
           </p>
+          <div className="pt-2 flex flex-wrap gap-3">
+            <Link
+              to="/demo"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all"
+            >
+              <Activity className="w-4 h-4 animate-pulse" />
+              <span>Probar Prototipo en Vivo (Simulador de Telemetría)</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </section>
 

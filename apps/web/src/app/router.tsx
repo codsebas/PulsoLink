@@ -8,6 +8,7 @@ import { AuthCard } from '../features/auth/AuthCard';
 import { ProtectedRoute } from '../features/auth/ProtectedRoute';
 import { SessionsPage } from '../features/sessions/SessionsPage';
 import { DashboardPage } from '../features/monitoring/DashboardPage';
+import { LiveMockupPage } from '../features/demo/LiveMockupPage';
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,10 @@ export const router = createBrowserRouter([
           {
             path: 'login',
             element: <AuthCard />,
+          },
+          {
+            path: 'demo',
+            element: <LiveMockupPage />,
           },
           {
             // Rutas que requieren usuario autenticado (Issue #10 - @Mar-03).

@@ -9,6 +9,11 @@ import { ProtectedRoute } from '../features/auth/ProtectedRoute';
 import { SessionsPage } from '../features/sessions/SessionsPage';
 import { DashboardPage } from '../features/monitoring/DashboardPage';
 import { LiveMockupPage } from '../features/demo/LiveMockupPage';
+import { PatientsPage } from '../features/patients/PatientsPage';
+import { DevicesPage } from '../features/devices/DevicesPage';
+import { AssignmentsPage } from '../features/assignments/AssignmentsPage';
+import { UsersPage } from '../features/admin/users/UsersPage';
+import { AuditPage } from '../features/admin/audit/AuditPage';
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +56,28 @@ export const router = createBrowserRouter([
               {
                 path: 'sessions/:id',
                 element: <DashboardPage />,
+              },
+              {
+                // PL2-06 (#30): listados administrativos. La autorización fuerte
+                // vive en la API; aquí se muestra la sección según rol.
+                path: 'patients',
+                element: <PatientsPage />,
+              },
+              {
+                path: 'devices',
+                element: <DevicesPage />,
+              },
+              {
+                path: 'assignments',
+                element: <AssignmentsPage />,
+              },
+              {
+                path: 'admin/users',
+                element: <UsersPage />,
+              },
+              {
+                path: 'admin/audit',
+                element: <AuditPage />,
               },
             ],
           },

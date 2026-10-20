@@ -23,7 +23,7 @@ const roleOptions = [
   { value: 'admin', label: 'Administrador' },
 ];
 
-const EMPTY_FILTERS: UserFilters = {};
+const EMPTY_FILTERS: UserFilters = { enabled: true };
 
 const UsersContent: React.FC = () => {
   const [filters, setFilters] = useState<UserFilters>(EMPTY_FILTERS);
@@ -173,13 +173,12 @@ const UsersContent: React.FC = () => {
           </label>
           <select
             id="users-enabled-filter"
-            value={filters.enabled === undefined ? '' : String(filters.enabled)}
+            value={String(filters.enabled ?? true)}
             onChange={(event) =>
-              setFilters(event.target.value === '' ? EMPTY_FILTERS : { enabled: event.target.value === 'true' })
+              setFilters({ enabled: event.target.value === 'true' })
             }
             className="px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
           >
-            <option value="">Todos</option>
             <option value="true">Habilitados</option>
             <option value="false">Deshabilitados</option>
           </select>

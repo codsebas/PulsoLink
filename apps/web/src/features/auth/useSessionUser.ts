@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../../lib/api-client';
+import { AUTH_QUERY_KEY, fetchSessionUser } from './auth.api';
 import type { AuthUser } from '../../lib/contract-types';
 
 /**
@@ -9,22 +9,8 @@ import type { AuthUser } from '../../lib/contract-types';
  */
 export function useSessionUser() {
   return useQuery<AuthUser | null>({
-    queryKey: ['auth', 'me'],
-    queryFn: async () => {
-      try {
-        const res = await apiClient<AuthUser>('/auth/me');
-        return res.data;
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          'statusCode' in error &&
-          (error as { statusCode: number }).statusCode === 401
-        ) {
-          return null;
-        }
-        throw error;
-      }
-    },
+    queryKey: AUTH_QUERY_KEY,
+    queryFn: ({ signal }) => fetchSessionUser(signal),
     retry: false,
     staleTime: 60_000,
   });

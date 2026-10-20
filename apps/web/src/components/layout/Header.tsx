@@ -27,6 +27,7 @@ const navItems: NavItem[] = [
   { label: 'Placas', path: '/devices', icon: CircuitBoard },
   { label: 'Asignaciones', path: '/assignments', icon: Link2 },
   { label: 'Sesiones', path: '/sessions', icon: Clock },
+  { label: 'Monitoreo', path: '/monitoring', icon: Activity },
   { label: 'Usuarios', path: '/admin/users', icon: UserCog, adminOnly: true },
   { label: 'Auditoría', path: '/admin/audit', icon: ScrollText, adminOnly: true },
   { label: 'Prototipo', path: '/demo', icon: Radio, isDemo: true },
@@ -41,7 +42,7 @@ export const Header: React.FC = () => {
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+      <div className="max-w-6xl mx-auto px-4 min-h-16 py-3 flex flex-wrap items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-3 flex-shrink-0">
           <div className="w-10 h-10 rounded-lg bg-sky-600 flex items-center justify-center text-white shadow-sm">
             <Activity className="w-6 h-6 animate-pulse" />
@@ -54,7 +55,7 @@ export const Header: React.FC = () => {
           </div>
         </Link>
 
-        <nav className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto" aria-label="Principal">
+        <nav className="flex max-w-full items-center gap-1 sm:gap-1.5 overflow-x-auto" aria-label="Principal">
           {visibleItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -63,7 +64,7 @@ export const Header: React.FC = () => {
                 to={item.path}
                 end={item.path === '/'}
                 className={({ isActive }) =>
-                  `flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                  `flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                     item.isDemo
                       ? isActive
                         ? 'bg-rose-100 text-rose-800 font-bold ring-1 ring-rose-300'

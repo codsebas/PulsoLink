@@ -1,5 +1,7 @@
 # PulsoLink
 
+**Entrega PL2 de Gerson (en revisión):** [base Firebase reproducible](docs/setup/firebase-pl2.md), [repositorios, interfaces y migración](docs/arquitectura/persistencia-pl2-integracion.md) y [propuesta de dashboard](docs/diseno/dashboard-pacientes-pl2.md). Incluye lecturas HTTP por paciente; los CRUD, el corte del contrato de dispositivo, la nube y la aprobación de diseño conservan los pendientes indicados en esas guías.
+
 > **Alcance aprobado:** [contrato de arquitectura de PulsoLink](docs/arquitectura/contrato-aprobado-2026-10-18.md), [plan de implementación](docs/planificacion/ejecucion-2026-10-18.md) y [modelo objetivo de Firestore](firebase/modelo-objetivo.md). Los OpenAPI 2.0.0 son el contrato objetivo pendiente de implementar; el flujo anterior de `participantCode` y `operator` sigue en el código. La planificación del primer avance que aparece más abajo es antecedente histórico.
 
 ## Archivos de referencia para implementar el alcance aprobado

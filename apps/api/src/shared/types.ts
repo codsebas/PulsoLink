@@ -1,4 +1,5 @@
-export type UserRole = 'admin' | 'operator';
+// operator is retained only for the explicit legacy migration window.
+export type UserRole = 'admin' | 'viewer' | 'operator';
 
 export type DeviceSource = 'real' | 'simulated';
 

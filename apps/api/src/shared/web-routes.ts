@@ -18,6 +18,8 @@ export const devicePageQuery = z.object({ limit: pageQueryFields.limit, cursor: 
 export const sessionListQuery = z.object({ ...pageQueryFields,
   status: z.enum(['created', 'active', 'finished']).optional(),
   deviceId: documentId.optional(),
+  patientId: documentId.optional(),
+  assignmentId: documentId.optional(),
 }).strict().refine(validInterval, 'Intervalo inválido');
 
 // La API del dispositivo responde 401 a DEVICE_DISABLED por su credencial;

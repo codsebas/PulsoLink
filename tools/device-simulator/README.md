@@ -1,5 +1,7 @@
 # PulsoLink — Simulador IoT de Dispositivo
 
+> **Alcance objetivo:** El [contrato aprobado](../../docs/arquitectura/contrato-aprobado-2026-10-18.md) y el [plan vigente](../../docs/planificacion/ejecucion-2026-10-18.md) definen el objetivo del simulador bajo Contrato A 2.0.0. El código actual es un esqueleto; debe adaptarse al contrato nuevo y descartar muestras producidas sin conexión.
+
 Herramienta en Node.js y TypeScript para simular la transmisión periódica de mediciones telemétricas de signos vitales hacia el backend de PulsoLink, conforme a las especificaciones del **Contrato A**.
 
 - **Responsable asignado:** `@HugoX2024` (Issue #7).

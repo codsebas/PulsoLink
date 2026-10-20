@@ -1,3 +1,5 @@
+> **Estado y versión:** este documento describe los repositorios existentes con `operator` y `participantCode`. El [modelo objetivo](modelo-objetivo.md) y el [plan vigente](../docs/planificacion/ejecucion-2026-10-18.md) especifican la migración aprobada a pacientes, asignaciones, `viewer` y auditoría. No implica que esos cambios ya estén implementados; los comandos de aprovisionamiento siguientes siguen siendo los del código actual.
+
 # PulsoLink — Configuración de Firebase y Persistencia
 
 Directorio de versionado de reglas de seguridad, índices y directrices de persistencia para **Cloud Firestore (Edición Standard)** y **Firebase Authentication**.
@@ -23,7 +25,7 @@ Directorio de versionado de reglas de seguridad, índices y directrices de persi
 
 ## 2. Implementación disponible (AV1-04 / #6)
 
-La persistencia utiliza Firebase Admin SDK únicamente en `apps/api`. Se conservan fechas ISO UTC normalizadas con milisegundos, compatibles con las interfaces iniciales. No se han conectado todavía las rutas pendientes de #4, #5 y #10.
+La persistencia utiliza Firebase Admin SDK únicamente en `apps/api`. Se conservan fechas ISO UTC normalizadas con milisegundos, compatibles con las interfaces iniciales. Las rutas de ingestión, autenticación y sesiones del primer contrato ya están conectadas en `main`; este documento conserva las firmas del modelo anterior. Pacientes, asignaciones, historial por paciente y auditoría requieren una ampliación posterior.
 
 | Repositorio | Operaciones |
 | --- | --- |

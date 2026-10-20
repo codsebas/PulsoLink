@@ -1,3 +1,5 @@
+> **Migración pendiente:** la implementación descrita aquí conserva `admin|operator`. El contrato objetivo usa `admin|viewer`; `viewer` solo consulta y toda administración requiere `admin`. Ver [plan de migración](planificacion/ejecucion-2026-10-18.md). La auditoría de login y apertura de expediente aún debe implementarse.
+
 # Módulo de autenticación y autorización (contrato B)
 
 Documento del bloque de Autenticación y autorización (`@Mar-03`). Implementa la

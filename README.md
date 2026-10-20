@@ -1,11 +1,13 @@
 # PulsoLink
 
+> **Alcance aprobado:** [arquitectura del paciente](docs/arquitectura/contrato-aprobado-2026-10-18.md), [plan de implementación](docs/planificacion/ejecucion-2026-10-18.md) y [modelo objetivo de Firestore](firebase/modelo-objetivo.md). Los OpenAPI 2.0.0 son el contrato objetivo pendiente de implementar; el flujo anterior de `participantCode` y `operator` sigue en el código. La planificación del primer avance que aparece más abajo es antecedente histórico.
+
 **Sistema académico IoT para visualizar y almacenar frecuencia cardíaca, saturación de oxígeno estimada y temperatura superficial mediante una API y una plataforma web.**
 
 - **Repositorio:** https://github.com/codsebas/PulsoLink
 - **Inicio de planificación:** 16 de octubre de 2026.
 - **Primer avance:** sábado 17 de octubre de 2026, horario de Guatemala.
-- **Estado actual:** base web/API y capa de persistencia Firestore implementadas. La persistencia se valida en emuladores; la integración de rutas, autenticación, simulador y nube sigue pendiente. Las secciones de planificación inferiores describen el objetivo del proyecto, no funcionalidades ya verificadas.
+- **Estado observado al 19 de octubre de 2026:** autenticación, ingestión, persistencia y rutas de sesiones/dispositivos del contrato anterior están implementadas en `main`. Pacientes, asignaciones, historial por paciente, rol `viewer` y auditoría del nuevo alcance siguen pendientes. Las secciones de planificación inferiores describen el primer avance, no el estado actual de la nueva arquitectura.
 - **Responsable del dispositivo y coordinación técnica:** `@codsebas`.
 - **Base de datos acordada:** Cloud Firestore, de Firebase.
 

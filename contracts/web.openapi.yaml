@@ -1,67 +1,143 @@
 openapi: 3.1.0
 info:
-  title: 'PulsoLink — Contrato B: Frontend Web ↔ Backend API'
-  version: 1.0.0
-  description: >
-    Especificación de la API para la plataforma web de monitoreo de signos vitales.
-    Utiliza cookies de sesión HttpOnly y verificación de token CSRF para mutaciones.
+  title: "PulsoLink — Contrato B: frontend web"
+  version: 2.0.0
+  description: "Objetivo aprobado 18-10-2026, pendiente de implementación coordinada. Auth actual conserva
+    operator; rutas de dispositivos/sesiones implementan el contrato anterior; pacientes/asignaciones/usuarios/auditoría aún no
+    existen. Versionar documento como 2.0.0 no crea /api/v2. Roles admin|viewer: viewer solo consulta; todo
+    cambio administrativo y consulta de auditoría exige admin. Excepción funcional: viewer puede registrar su
+    propia apertura de expediente. Mutaciones, login y logout requieren cookie CSRF, cabecera X-CSRF-Token y
+    origen permitido. Cookies HttpOnly, SameSite=Lax, Path=/, Secure en HTTPS; no localStorage. Frontend solo
+    consume esta API. Fechas UTC; IDs opacos. No devolver secretos ni hashes. Prototipo académico no clínico."
 servers:
   - url: http://localhost:3001/api/v1
-    description: Servidor de desarrollo local
-
+    description: Solo desarrollo local; HTTPS con verificación del servidor en despliegue.
+x-contract-status: approved-target-pending-implementation
+security:
+  - SessionCookie: []
 paths:
   /health:
     get:
+      operationId: getWebApiHealth
       summary: Salud del proceso API
-      description: Estado del proceso backend. [IMPLEMENTADO EN ESQUELETO]
-      operationId: getHealth
+      description: Endpoint público; comprueba el proceso, no conectividad con Firebase.
+      x-implementation-status: existing-change-pending
       responses:
-        '200':
-          description: Proceso activo
-
-  /auth/csrf:
-    get:
-      summary: Obtención de token CSRF
-      description: >
-        Entrega un token CSRF para autorizar mutaciones web y garantiza la cookie
-        pulsolink_csrf (HttpOnly; SameSite=Lax; Path=/; Secure en HTTPS).
-        [IMPLEMENTADO - Issue #10 (@Mar-03)]
-      operationId: getCsrfToken
-      responses:
-        '200':
-          description: Token CSRF generado
-          headers:
-            Set-Cookie:
-              description: Cookie pulsolink_csrf con el secreto de double-submit.
-              schema:
-                type: string
+        "200":
+          description: Operación completada
           content:
             application/json:
               schema:
                 type: object
-                required: [data]
+                additionalProperties: false
+                required:
+                  - status
+                  - service
+                  - timestamp
+                properties:
+                  status:
+                    type: string
+                  service:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: Fecha ISO 8601 UTC normalizada por backend.
+                    pattern: Z$
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      security: []
+  /auth/csrf:
+    get:
+      operationId: getCsrfToken
+      summary: Obtener token CSRF
+      description: Genera cookie pulsolink_csrf HttpOnly/SameSite=Lax/Path=/, Secure en HTTPS. No exige sesión.
+      x-implementation-status: existing-change-pending
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
                 properties:
                   data:
                     type: object
-                    required: [csrfToken]
+                    additionalProperties: false
+                    required:
+                      - csrfToken
                     properties:
                       csrfToken:
                         type: string
-
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      security: []
   /auth/login:
     post:
-      summary: Inicio de sesión con correo y contraseña
-      description: >
-        Verifica credenciales con Firebase Auth, exige la cookie y el token CSRF,
-        y crea la cookie de sesión pulsolink_session. [IMPLEMENTADO - Issue #10 (@Mar-03)]
       operationId: postLogin
+      summary: Iniciar sesión
+      description: Verifica correo/contraseña mediante Firebase Auth, perfil habilitado y rol. Cookie/token CSRF y
+        origen obligatorios. Establece pulsolink_session (TTL inicial 8 horas), rota CSRF. Audita auth.login
+        con resultado, sin contraseñas/tokens. Rol viewer y auditoría pendientes.
+      x-implementation-status: existing-change-pending
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AuthUser"
+          headers:
+            Set-Cookie:
+              description: pulsolink_session HttpOnly; SameSite=Lax; Path=/; Secure en HTTPS. Rota pulsolink_csrf.
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       parameters:
         - name: X-CSRF-Token
           in: header
           required: true
-          description: Token devuelto por /auth/csrf; la cabecera Origin/Referer debe estar permitida.
           schema:
             type: string
+            minLength: 1
       requestBody:
         required: true
         content:
@@ -69,7 +145,9 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [email, password]
+              required:
+                - email
+                - password
               properties:
                 email:
                   type: string
@@ -78,193 +156,189 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 128
+      security: []
+  /auth/me:
+    get:
+      operationId: getMe
+      summary: Perfil autenticado
+      description: Consulta para admin y viewer.
+      x-implementation-status: existing-change-pending
+      x-roles:
+        - admin
+        - viewer
       responses:
-        '200':
-          description: >
-            Sesión iniciada; establece pulsolink_session (HttpOnly) y rota pulsolink_csrf.
-          headers:
-            Set-Cookie:
-              description: pulsolink_session (HttpOnly; SameSite=Lax; Path=/; Secure en HTTPS; Max-Age = SESSION_TTL_HOURS).
-              schema:
-                type: string
+        "200":
+          description: Operación completada
           content:
             application/json:
               schema:
                 type: object
-                required: [data]
+                additionalProperties: false
+                required:
+                  - data
                 properties:
                   data:
-                    type: object
-                    required: [id, displayName, role]
-                    properties:
-                      id:
-                        type: string
-                      displayName:
-                        type: string
-                      role:
-                        type: string
-                        enum: [admin, operator]
-        '400':
-          description: Cuerpo inválido o JSON malformado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Credenciales inválidas (correo inexistente o contraseña incorrecta).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: CSRF/origen inválido o cuenta deshabilitada.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '413':
-          description: Cuerpo mayor al límite permitido (8 KiB).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '429':
-          description: Demasiados intentos; incluye cabecera Retry-After (segundos).
-          headers:
-            Retry-After:
-              schema:
-                type: integer
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '503':
-          description: Servicio de autenticación no disponible (Firebase sin configurar o 5xx).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
+                    $ref: "#/components/schemas/AuthUser"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /auth/logout:
     post:
-      summary: Cierre de sesión y eliminación de cookie
-      description: >
-        Elimina la cookie de sesión y rota pulsolink_csrf. Es idempotente: responde
-        204 aunque no haya sesión. Exige token CSRF y origen permitido.
-        [IMPLEMENTADO - Issue #10 (@Mar-03)]
       operationId: postLogout
+      summary: Cerrar sesión
+      description: Idempotente incluso sin sesión; exige CSRF/origen. No revoca por sí solo todas las sesiones del
+        usuario.
+      x-implementation-status: existing-change-pending
+      responses:
+        "204":
+          description: Sin cuerpo. Elimina cookie de sesión, rota CSRF; frontend borra caché.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       parameters:
         - name: X-CSRF-Token
           in: header
           required: true
           schema:
             type: string
-      responses:
-        '204':
-          description: Sesión cerrada (sin cuerpo).
-        '403':
-          description: CSRF/origen inválido.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /auth/me:
+            minLength: 1
+      security: []
+  /patients:
     get:
-      summary: Datos del usuario autenticado
-      description: >
-        Devuelve el perfil del usuario de la cookie de sesión.
-        [IMPLEMENTADO - Issue #10 (@Mar-03)]
-      operationId: getMe
+      operationId: listPatients
+      summary: Listado paginado de patients
+      description: Admin y viewer consultan pacientes/placas; solo admin consulta usuarios. Por defecto habilitados;
+        filtro enabled admite deshabilitados para admin. Orden createdAt DESC/ID DESC para pacientes y
+        usuarios; dispositivos ID DESC.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
       responses:
-        '200':
-          description: Perfil del usuario
+        "200":
+          description: Página; from inclusivo, to exclusivo si se admiten filtros temporales.
           content:
             application/json:
               schema:
                 type: object
-                required: [data]
-                properties:
-                  data:
-                    type: object
-                    required: [id, displayName, role]
-                    properties:
-                      id:
-                        type: string
-                      displayName:
-                        type: string
-                      role:
-                        type: string
-                        enum: [admin, operator]
-        '401':
-          description: Sin sesión, cookie inválida/vencida o usuario sin documento.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /devices:
-    get:
-      summary: Lista paginada de dispositivos habilitados
-      description: 'Solo devuelve datos públicos de dispositivos habilitados. [IMPLEMENTADO - Issue #5]'
-      operationId: getDevices
-      security:
-        - sessionCookie: []
-      parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Cursor'
-      responses:
-        '200':
-          description: Dispositivos habilitados
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [data, pagination]
+                additionalProperties: false
+                required:
+                  - data
+                  - pagination
                 properties:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Device'
+                      $ref: "#/components/schemas/Patient"
                   pagination:
-                    $ref: '#/components/schemas/Pagination'
-
-  /sessions:
-    get:
-      summary: Lista paginada de sesiones
-      description: 'Operadores ven solo sus sesiones; administradores pueden ver todas. [IMPLEMENTADO - Issue #5]'
-      operationId: getSessions
-      security:
-        - sessionCookie: []
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - nextCursor
+                      - hasMore
+                    properties:
+                      nextCursor:
+                        type:
+                          - string
+                          - "null"
+                      hasMore:
+                        type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Cursor'
-        - name: status
+        - name: limit
           in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
           schema:
             type: string
-            enum: [created, active, finished]
-        - name: deviceId
+            description: Cursor opaco ligado a filtros y orden.
+        - name: enabled
           in: query
+          required: false
           schema:
-            type: string
-        - $ref: '#/components/parameters/From'
-        - $ref: '#/components/parameters/To'
+            type: boolean
+    post:
+      operationId: createPatient
+      summary: Crear patients
+      description: Solo admin. Fechas/actor generados por servidor; auditar cambio. Sin secretos en respuesta.  Se
+        crea habilitado; enabled y fechas los fija el servidor.
+      x-implementation-status: planned
+      x-roles:
+        - admin
       responses:
-        '200':
-          description: Listado de sesiones
+        "201":
+          description: Operación completada
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionListResponse'
-    post:
-      summary: Creación de sesión de medición
-      description: 'El propietario procede de la cookie autenticada. [IMPLEMENTADO - Issue #5]'
-      operationId: createSession
-      security:
-        - sessionCookie: []
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Patient"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       parameters:
-        - $ref: '#/components/parameters/CsrfToken'
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
       requestBody:
         required: true
         content:
@@ -272,272 +346,1758 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [participantCode, deviceId]
+              required:
+                - code
+                - displayName
               properties:
-                participantCode:
+                code:
                   type: string
-                  pattern: '^[A-Za-z0-9_-]{1,32}$'
-                deviceId:
+                  minLength: 1
+                  maxLength: 32
+                displayName:
                   type: string
-      responses:
-        '201':
-          description: Sesión creada en estado created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionResponse'
-
-  /sessions/{id}:
+                  minLength: 1
+                  maxLength: 120
+  /patients/{id}:
     get:
-      summary: Detalle de sesión propia o visible para un administrador
-      description: 'Devuelve 404 para una sesión inexistente o ajena. [IMPLEMENTADO - Issue #5]'
-      operationId: getSession
-      security:
-        - sessionCookie: []
-      parameters:
-        - $ref: '#/components/parameters/SessionId'
+      operationId: getPatient
+      summary: Consultar patients
+      description: Consulta para admin y viewer.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
       responses:
-        '200':
-          description: Detalle de sesión
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionResponse'
-        '404':
-          description: Sesión inexistente o no visible
-
-  /sessions/{id}/start:
-    post:
-      summary: Iniciar sesión de medición
-      description: 'Reserva el dispositivo; repetir el inicio conserva las fechas. [IMPLEMENTADO - Issue #5]'
-      operationId: startSession
-      security:
-        - sessionCookie: []
-      parameters:
-        - $ref: '#/components/parameters/SessionId'
-        - $ref: '#/components/parameters/CsrfToken'
-      responses:
-        '200':
-          description: Sesión activa
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionResponse'
-        '409':
-          description: Dispositivo ocupado o transición no permitida
-
-  /sessions/{id}/finish:
-    post:
-      summary: Finalizar sesión de medición
-      description: 'Libera el dispositivo; repetir el cierre conserva las fechas. [IMPLEMENTADO - Issue #5]'
-      operationId: finishSession
-      security:
-        - sessionCookie: []
-      parameters:
-        - $ref: '#/components/parameters/SessionId'
-        - $ref: '#/components/parameters/CsrfToken'
-      responses:
-        '200':
-          description: Sesión finalizada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionResponse'
-        '409':
-          description: Sesión aún no iniciada o transición no permitida
-
-  /sessions/{id}/latest:
-    get:
-      summary: Consulta de la última lectura y metadatos de calidad
-      description: 'Consulta periódica cada 2 segundos para el dashboard. [IMPLEMENTADO - Issue #5]'
-      operationId: getLatestMeasurement
-      security:
-        - sessionCookie: []
-      parameters:
-        - $ref: '#/components/parameters/SessionId'
-      responses:
-        '200':
-          description: Última lectura o null con meta (stale, ageMs, deviceOnline)
+        "200":
+          description: Operación completada
           content:
             application/json:
               schema:
                 type: object
-                required: [data, meta]
+                additionalProperties: false
+                required:
+                  - data
                 properties:
                   data:
-                    oneOf:
-                      - $ref: '#/components/schemas/Measurement'
-                      - type: 'null'
-                  meta:
-                    $ref: '#/components/schemas/LatestMeta'
-
-  /sessions/{id}/measurements:
-    get:
-      summary: Historial de mediciones de la sesión con paginación
-      description: 'Lecturas en orden de recepción descendente, accesibles solo al propietario o al administrador. [IMPLEMENTADO - Issue #5]'
-      operationId: getSessionMeasurements
-      security:
-        - sessionCookie: []
+                    $ref: "#/components/schemas/Patient"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
       parameters:
-        - $ref: '#/components/parameters/SessionId'
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/From'
-        - $ref: '#/components/parameters/To'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+    patch:
+      operationId: updatePatient
+      summary: Editar o deshabilitar patients
+      description: Solo admin; auditar cambio. No borrar historia. Con asignación activa, deshabilitar devuelve 409
+        ASSIGNMENT_IN_USE.
+      x-implementation-status: planned
+      x-roles:
+        - admin
       responses:
-        '200':
-          description: Lista paginada de mediciones
+        "200":
+          description: Operación completada
           content:
             application/json:
               schema:
                 type: object
-                required: [data, pagination]
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Patient"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: []
+              properties:
+                code:
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+                displayName:
+                  type: string
+                  minLength: 1
+                  maxLength: 120
+                enabled:
+                  type: boolean
+              minProperties: 1
+  /devices:
+    get:
+      operationId: listDevices
+      summary: Listado paginado de devices
+      description: Admin y viewer consultan pacientes/placas; solo admin consulta usuarios. Por defecto habilitados;
+        filtro enabled admite deshabilitados para admin. Orden createdAt DESC/ID DESC para pacientes y
+        usuarios; dispositivos ID DESC.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
+      responses:
+        "200":
+          description: Página; from inclusivo, to exclusivo si se admiten filtros temporales.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                  - pagination
                 properties:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Measurement'
+                      $ref: "#/components/schemas/Device"
                   pagination:
-                    $ref: '#/components/schemas/Pagination'
-
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - nextCursor
+                      - hasMore
+                    properties:
+                      nextCursor:
+                        type:
+                          - string
+                          - "null"
+                      hasMore:
+                        type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Cursor opaco ligado a filtros y orden.
+        - name: enabled
+          in: query
+          required: false
+          schema:
+            type: boolean
+    post:
+      operationId: createDevice
+      summary: Crear devices
+      description: Solo admin. Fechas/actor generados por servidor; auditar cambio. Sin secretos en respuesta.  Se
+        crea habilitado; enabled y fechas los fija el servidor.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "201":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Device"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - code
+                - source
+              properties:
+                code:
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+                hardwareId:
+                  type: string
+                  minLength: 1
+                  maxLength: 128
+                source:
+                  type: string
+                  enum:
+                    - real
+                    - simulated
+  /devices/{id}:
+    get:
+      operationId: getDevice
+      summary: Consultar devices
+      description: Consulta para admin y viewer.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Device"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+    patch:
+      operationId: updateDevice
+      summary: Editar o deshabilitar devices
+      description: Solo admin; auditar cambio. No borrar historia. Con asignación activa, deshabilitar devuelve 409
+        ASSIGNMENT_IN_USE.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Device"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: []
+              properties:
+                code:
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+                hardwareId:
+                  type: string
+                  minLength: 1
+                  maxLength: 128
+                enabled:
+                  type: boolean
+              minProperties: 1
+  /users:
+    get:
+      operationId: listUsers
+      summary: Listado paginado de users
+      description: Admin y viewer consultan pacientes/placas; solo admin consulta usuarios. Por defecto habilitados;
+        filtro enabled admite deshabilitados para admin. Orden createdAt DESC/ID DESC para pacientes y
+        usuarios; dispositivos ID DESC.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "200":
+          description: Página; from inclusivo, to exclusivo si se admiten filtros temporales.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                  - pagination
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  pagination:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - nextCursor
+                      - hasMore
+                    properties:
+                      nextCursor:
+                        type:
+                          - string
+                          - "null"
+                      hasMore:
+                        type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Cursor opaco ligado a filtros y orden.
+        - name: enabled
+          in: query
+          required: false
+          schema:
+            type: boolean
+    post:
+      operationId: createUser
+      summary: Crear users
+      description: Solo admin. Fechas/actor generados por servidor; auditar cambio. Sin secretos en respuesta. Crear
+        identidad Firebase Auth y perfil por UID con recuperación idempotente entre servicios; nunca devolver
+        password. Se crea habilitado; enabled y fechas los fija el servidor.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "201":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - email
+                - password
+                - displayName
+                - role
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                  maxLength: 128
+                  writeOnly: true
+                displayName:
+                  type: string
+                  minLength: 1
+                  maxLength: 120
+                role:
+                  type: string
+                  enum:
+                    - admin
+                    - viewer
+  /users/{id}:
+    get:
+      operationId: getUser
+      summary: Consultar users
+      description: Solo admin.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+    patch:
+      operationId: updateUser
+      summary: Editar o deshabilitar users
+      description: Solo admin; auditar cambio. No borrar historia. Aplicar cambio de rol/habilitación y revocar
+        sesiones; no permitir que un perfil viejo conserve privilegios.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: []
+              properties:
+                displayName:
+                  type: string
+                  minLength: 1
+                  maxLength: 120
+                role:
+                  type: string
+                  enum:
+                    - admin
+                    - viewer
+                enabled:
+                  type: boolean
+              minProperties: 1
+  /assignments:
+    get:
+      operationId: listAssignments
+      summary: Historial de asignaciones
+      description: Consulta admin/viewer. Orden startedAt DESC, ID DESC. status=active implica endedAt:null; closed
+        exige endedAt no nulo.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
+      responses:
+        "200":
+          description: Página; from inclusivo, to exclusivo si se admiten filtros temporales.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                  - pagination
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Assignment"
+                  pagination:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - nextCursor
+                      - hasMore
+                    properties:
+                      nextCursor:
+                        type:
+                          - string
+                          - "null"
+                      hasMore:
+                        type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Cursor opaco ligado a filtros y orden.
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            description: Fecha ISO 8601 UTC normalizada por backend.
+            pattern: Z$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            description: Fecha ISO 8601 UTC normalizada por backend.
+            pattern: Z$
+        - name: patientId
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: deviceId
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - active
+              - closed
+    post:
+      operationId: createAssignment
+      summary: Asignar placa a paciente
+      description: Solo admin; paciente/placa habilitados. Reserva paciente y placa en una transacción; a lo sumo
+        una asignación activa por cada uno. 409 ASSIGNMENT_CONFLICT si alguno está ocupado. Actor/fechas del
+        servidor; auditar.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "201":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Assignment"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - patientId
+                - deviceId
+              properties:
+                patientId:
+                  type: string
+                  minLength: 1
+                  maxLength: 128
+                  pattern: ^[^/]+$
+                deviceId:
+                  type: string
+                  minLength: 1
+                  maxLength: 128
+                  pattern: ^[^/]+$
+  /assignments/{id}:
+    get:
+      operationId: getAssignment
+      summary: Consultar asignación
+      description: Consulta para admin y viewer.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Assignment"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+  /assignments/{id}/close:
+    post:
+      operationId: closeAssignment
+      summary: Cerrar asignación
+      description: "Solo admin; finalizar sesiones antes de cerrar (409 ASSIGNMENT_IN_USE). Liberar ambas reservas
+        en transacción. Idempotente: conserva endedAt/endedBy originales. No reescribir lecturas; auditar."
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Assignment"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+  /sessions:
+    get:
+      operationId: getSessions
+      summary: Listado paginado de sesiones
+      description: Consulta admin/viewer. Orden createdAt DESC, ID DESC; filtros temporales sobre createdAt.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
+      responses:
+        "200":
+          description: Página; from inclusivo, to exclusivo si se admiten filtros temporales.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                  - pagination
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Session"
+                  pagination:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - nextCursor
+                      - hasMore
+                    properties:
+                      nextCursor:
+                        type:
+                          - string
+                          - "null"
+                      hasMore:
+                        type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Cursor opaco ligado a filtros y orden.
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            description: Fecha ISO 8601 UTC normalizada por backend.
+            pattern: Z$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            description: Fecha ISO 8601 UTC normalizada por backend.
+            pattern: Z$
+        - name: patientId
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: deviceId
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: assignmentId
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - created
+              - active
+              - finished
+    post:
+      operationId: createSession
+      summary: Crear sesión desde asignación activa
+      description: Solo admin. Recibe assignmentId; resuelve patientId/deviceId/source en servidor; no acepta
+        participantCode como identidad. Estado created. Paciente/placa habilitados; reservar sesión abierta en
+        asignación para impedir cierres incompatibles. Auditar.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "201":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Session"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - assignmentId
+              properties:
+                assignmentId:
+                  type: string
+                  minLength: 1
+                  maxLength: 128
+                  pattern: ^[^/]+$
+  /sessions/{id}:
+    get:
+      operationId: getSession
+      summary: Detalle de sesión
+      description: Consulta para admin y viewer.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Session"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+  /sessions/{id}/start:
+    post:
+      operationId: startSession
+      summary: Iniciar sesión
+      description: Solo admin. Transacción valida asignación activa y paciente/placa habilitados, activa y reserva
+        dispositivo. 409 DEVICE_BUSY, SESSION_NOT_ACTIVE o ASSIGNMENT_NOT_ACTIVE si hay conflicto. Repetir
+        activa conserva fechas; finalizada no se reabre. Auditar transición.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Session"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+  /sessions/{id}/finish:
+    post:
+      operationId: finishSession
+      summary: Finalizar sesión
+      description: Solo admin. Transacción libera reservas de sesión sin cerrar asignación. Repetir finalizada
+        conserva fechas; creada sin iniciar devuelve 409. Auditar transición.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Session"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+  /sessions/{id}/latest:
+    get:
+      operationId: getLatestMeasurement
+      summary: Última muestra y estado de conexión/calidad
+      description: "Admin/viewer. Sin muestras data:null y stale:true. deviceOnline si lastSeenAt tiene edad <=45000
+        ms; stale si no hay muestra o edad >10000 ms. connectionState: disconnected si no online;
+        connected_without_valid_reading si stale o ninguna magnitud valid; connected_with_recent_reading en
+        otro caso. Cada magnitud conserva calidad propia. Polling cada 2 s solo visible/activo; no genera
+        auditoría patient.view. Sesión finalizada muestra historia, no dato en vivo."
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    oneOf:
+                      - $ref: "#/components/schemas/Measurement"
+                      - type: "null"
+                  meta:
+                    $ref: "#/components/schemas/MonitoringMeta"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+  /patients/{id}/latest:
+    get:
+      operationId: getPatientLatest
+      summary: Última muestra del paciente y conexión actual
+      description: "Admin/viewer. Sin muestras data:null y stale:true. deviceOnline si lastSeenAt tiene edad <=45000
+        ms; stale si no hay muestra o edad >10000 ms. connectionState: disconnected si no online;
+        connected_without_valid_reading si stale o ninguna magnitud valid; connected_with_recent_reading en
+        otro caso. Cada magnitud conserva calidad propia. Polling cada 2 s solo visible/activo; no genera
+        auditoría patient.view. Sesión finalizada muestra historia, no dato en vivo. Usar solo la última
+        muestra de la sesión activa de la asignación actual. Sin sesión activa data:null, ageMs:null y
+        stale:true; sin asignación activa también deviceOnline:false. Nunca usar una lectura histórica de otra
+        placa para acreditar calidad de la actual; el historial completo se consulta en
+        /patients/{id}/measurements."
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
+      responses:
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    oneOf:
+                      - $ref: "#/components/schemas/Measurement"
+                      - type: "null"
+                  meta:
+                    $ref: "#/components/schemas/MonitoringMeta"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+  /sessions/{id}/measurements:
+    get:
+      operationId: getSessionMeasurements
+      summary: Historial paginado de sesión
+      description: Admin/viewer. Orden receivedAt DESC, ID DESC. Filtros from inclusivo/to exclusivo. Autorizar
+        sesión padre; no auditar cada página/refresco.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
+      responses:
+        "200":
+          description: Página; from inclusivo, to exclusivo si se admiten filtros temporales.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                  - pagination
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Measurement"
+                  pagination:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - nextCursor
+                      - hasMore
+                    properties:
+                      nextCursor:
+                        type:
+                          - string
+                          - "null"
+                      hasMore:
+                        type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Cursor opaco ligado a filtros y orden.
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            description: Fecha ISO 8601 UTC normalizada por backend.
+            pattern: Z$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            description: Fecha ISO 8601 UTC normalizada por backend.
+            pattern: Z$
+  /patients/{id}/measurements:
+    get:
+      operationId: getPatientMeasurements
+      summary: Historial del paciente entre sesiones y placas
+      description: Admin/viewer. Consulta de grupo measurements por patientId; IDs históricos inmutables. Orden
+        receivedAt DESC, ruta completa DESC para desempate. Cursor ligado al paciente/filtros/orden. No usar
+        deviceId como sustituto de paciente. La gráfica reordena cronológicamente y muestra huecos sin
+        rellenar desconexiones; no descarga todo cada 2 s. No auditar cada página.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
+      responses:
+        "200":
+          description: Página; from inclusivo, to exclusivo si se admiten filtros temporales.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                  - pagination
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Measurement"
+                  pagination:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - nextCursor
+                      - hasMore
+                    properties:
+                      nextCursor:
+                        type:
+                          - string
+                          - "null"
+                      hasMore:
+                        type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Cursor opaco ligado a filtros y orden.
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            description: Fecha ISO 8601 UTC normalizada por backend.
+            pattern: Z$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            description: Fecha ISO 8601 UTC normalizada por backend.
+            pattern: Z$
+  /patients/{id}/access:
+    post:
+      operationId: recordPatientAccess
+      summary: Registrar apertura de expediente
+      description: Admin/viewer. Registrar patient.view una vez al abrir expediente, antes de mostrar contenido.
+        viewId UUID nuevo por apertura; deduplicar por actor/paciente/viewId. Reintento idéntico devuelve 200
+        con mismo eventId y duplicate:true. Polling no invoca esta operación. No modifica expediente; es la
+        única mutación funcional permitida al viewer además de auth.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+        - viewer
+      responses:
+        "200":
+          description: Acceso ya registrado; duplicate:true.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - eventId
+                      - duplicate
+                    properties:
+                      eventId:
+                        type: string
+                        minLength: 1
+                        maxLength: 128
+                        pattern: ^[^/]+$
+                      duplicate:
+                        type: boolean
+        "201":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - eventId
+                      - duplicate
+                    properties:
+                      eventId:
+                        type: string
+                        minLength: 1
+                        maxLength: 128
+                        pattern: ^[^/]+$
+                      duplicate:
+                        type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - viewId
+              properties:
+                viewId:
+                  type: string
+                  format: uuid
+  /audit-logs:
+    get:
+      operationId: listAuditLogs
+      summary: Consultar auditoría inmutable
+      description: Solo admin. Orden occurredAt DESC, ID DESC. Filtros temporales sobre occurredAt. Sin endpoints de
+        edición/borrado. Nunca copiar secretos ni lecturas al contexto.
+      x-implementation-status: planned
+      x-roles:
+        - admin
+      responses:
+        "200":
+          description: Página; from inclusivo, to exclusivo si se admiten filtros temporales.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                  - pagination
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AuditLog"
+                  pagination:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - nextCursor
+                      - hasMore
+                    properties:
+                      nextCursor:
+                        type:
+                          - string
+                          - "null"
+                      hasMore:
+                        type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Cursor opaco ligado a filtros y orden.
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            description: Fecha ISO 8601 UTC normalizada por backend.
+            pattern: Z$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            description: Fecha ISO 8601 UTC normalizada por backend.
+            pattern: Z$
+        - name: actorId
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
+        - name: action
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: targetType
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: targetId
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[^/]+$
 components:
-  securitySchemes:
-    sessionCookie:
-      type: apiKey
-      in: cookie
-      name: pulsolink_session
-  parameters:
-    SessionId:
-      name: id
-      in: path
-      required: true
-      schema:
-        type: string
-    CsrfToken:
-      name: X-CSRF-Token
-      in: header
-      required: true
-      description: El origen Origin/Referer también debe estar permitido.
-      schema:
-        type: string
-    Limit:
-      name: limit
-      in: query
-      description: Predeterminado 50; máximo 100.
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 50
-    Cursor:
-      name: cursor
-      in: query
-      schema:
-        type: string
-    From:
-      name: from
-      in: query
-      description: Inicio inclusivo sobre createdAt (sesiones) o receivedAt (mediciones).
-      schema:
-        type: string
-        format: date-time
-    To:
-      name: to
-      in: query
-      description: Fin exclusivo sobre createdAt (sesiones) o receivedAt (mediciones).
-      schema:
-        type: string
-        format: date-time
   schemas:
-    Pagination:
-      type: object
-      required: [nextCursor, hasMore]
-      properties:
-        nextCursor:
-          type: [string, 'null']
-        hasMore:
-          type: boolean
-    Device:
-      type: object
-      required: [id, code, board, source, activeSessionId, lastSeenAt]
-      properties:
-        id: { type: string }
-        code: { type: string }
-        board: { type: string }
-        source: { type: string, enum: [real, simulated] }
-        activeSessionId: { type: [string, 'null'] }
-        lastSeenAt: { type: [string, 'null'], format: date-time }
-    Session:
-      type: object
-      required: [id, participantCode, operatorId, deviceId, source, status, createdAt, startedAt, finishedAt]
-      properties:
-        id: { type: string }
-        participantCode: { type: string }
-        operatorId: { type: string }
-        deviceId: { type: string }
-        source: { type: string, enum: [real, simulated] }
-        status: { type: string, enum: [created, active, finished] }
-        createdAt: { type: string, format: date-time }
-        startedAt: { type: [string, 'null'], format: date-time }
-        finishedAt: { type: [string, 'null'], format: date-time }
-    SessionResponse:
-      type: object
-      required: [data]
-      properties:
-        data:
-          $ref: '#/components/schemas/Session'
-    SessionListResponse:
-      type: object
-      required: [data, pagination]
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Session'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-    Vital:
-      type: object
-      required: [value, unit, status]
-      properties:
-        value: { type: [number, 'null'] }
-        unit: { type: string, enum: [bpm, '%', C] }
-        status: { type: string, enum: [valid, no_contact, invalid, unavailable] }
-    Measurement:
-      type: object
-      required: [id, sessionId, deviceId, source, bootId, sequence, capturedAt, receivedAt, measurements]
-      properties:
-        id: { type: string }
-        sessionId: { type: string }
-        deviceId: { type: string }
-        source: { type: string, enum: [real, simulated] }
-        bootId: { type: string, format: uuid }
-        sequence: { type: integer, minimum: 0, maximum: 4294967295 }
-        capturedAt: { type: [string, 'null'], format: date-time }
-        receivedAt: { type: string, format: date-time }
-        measurements:
-          type: object
-          required: [heartRate, spo2, skinTemperature]
-          properties:
-            heartRate: { $ref: '#/components/schemas/Vital' }
-            spo2: { $ref: '#/components/schemas/Vital' }
-            skinTemperature: { $ref: '#/components/schemas/Vital' }
-    LatestMeta:
-      type: object
-      required: [serverTime, lastSeenAt, deviceOnline, ageMs, stale]
-      properties:
-        serverTime: { type: string, format: date-time }
-        lastSeenAt: { type: [string, 'null'], format: date-time }
-        deviceOnline: { type: boolean }
-        ageMs: { type: [integer, 'null'], minimum: 0 }
-        stale: { type: boolean }
     ErrorResponse:
       type: object
-      required: [error]
+      additionalProperties: false
+      required:
+        - error
       properties:
         error:
           type: object
-          required: [code, message, requestId]
+          additionalProperties: false
+          required:
+            - code
+            - message
+            - requestId
           properties:
             code:
               type: string
@@ -545,4 +2105,589 @@ components:
               type: string
             requestId:
               type: string
-            details: {}
+    User:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - displayName
+        - role
+        - enabled
+        - createdAt
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        role:
+          type: string
+          enum:
+            - admin
+            - viewer
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+    AuthUser:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - displayName
+        - role
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        displayName:
+          type: string
+        role:
+          type: string
+          enum:
+            - admin
+            - viewer
+    Patient:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - code
+        - displayName
+        - enabled
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        code:
+          type: string
+          minLength: 1
+          maxLength: 32
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 120
+          description: Alias seudónimo; no requerir datos clínicos reales.
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        updatedAt:
+          type: string
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+    Device:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - code
+        - source
+        - enabled
+        - activeSessionId
+        - lastSeenAt
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        code:
+          type: string
+          minLength: 1
+          maxLength: 32
+        hardwareId:
+          type: string
+          maxLength: 128
+        source:
+          type: string
+          enum:
+            - real
+            - simulated
+        enabled:
+          type: boolean
+        activeSessionId:
+          type:
+            - string
+            - "null"
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        lastSeenAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+    Assignment:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - patientId
+        - deviceId
+        - startedAt
+        - endedAt
+        - assignedBy
+        - endedBy
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        patientId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        deviceId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        startedAt:
+          type: string
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        endedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        assignedBy:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        endedBy:
+          type:
+            - string
+            - "null"
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+    Measurements:
+      type: object
+      additionalProperties: false
+      required:
+        - heartRate
+        - spo2
+        - skinTemperature
+      properties:
+        heartRate:
+          oneOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: number
+                  maximum: 300
+                  exclusiveMinimum: 0
+                unit:
+                  type: string
+                  const: bpm
+                status:
+                  type: string
+                  const: valid
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: "null"
+                unit:
+                  type: string
+                  const: bpm
+                status:
+                  type: string
+                  enum:
+                    - no_contact
+                    - invalid
+                    - unavailable
+          description: Calidad técnica independiente; no implica validez clínica. Si no es valid, value es null.
+        spo2:
+          oneOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: number
+                  maximum: 100
+                  minimum: 0
+                unit:
+                  type: string
+                  const: "%"
+                status:
+                  type: string
+                  const: valid
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: "null"
+                unit:
+                  type: string
+                  const: "%"
+                status:
+                  type: string
+                  enum:
+                    - no_contact
+                    - invalid
+                    - unavailable
+          description: Calidad técnica independiente; no implica validez clínica. Si no es valid, value es null.
+        skinTemperature:
+          oneOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: number
+                  maximum: 125
+                  minimum: -55
+                unit:
+                  type: string
+                  const: C
+                status:
+                  type: string
+                  const: valid
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: "null"
+                unit:
+                  type: string
+                  const: C
+                status:
+                  type: string
+                  enum:
+                    - no_contact
+                    - invalid
+                    - unavailable
+          description: Calidad técnica independiente; no implica validez clínica. Si no es valid, value es null.
+    Measurement:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - patientId
+        - deviceId
+        - assignmentId
+        - sessionId
+        - receivedAt
+        - capturedAt
+        - bootId
+        - sequence
+        - measurements
+        - source
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        patientId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        deviceId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        assignmentId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        sessionId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        receivedAt:
+          type: string
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        capturedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        bootId:
+          type: string
+          format: uuid
+        sequence:
+          type: integer
+          minimum: 0
+          maximum: 4294967295
+        measurements:
+          $ref: "#/components/schemas/Measurements"
+        source:
+          type: string
+          enum:
+            - real
+            - simulated
+    Session:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - patientId
+        - deviceId
+        - assignmentId
+        - source
+        - status
+        - createdAt
+        - startedAt
+        - finishedAt
+        - latestMeasurement
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        patientId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        deviceId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        assignmentId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        source:
+          type: string
+          enum:
+            - real
+            - simulated
+        status:
+          type: string
+          enum:
+            - created
+            - active
+            - finished
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        startedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        finishedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        latestMeasurement:
+          oneOf:
+            - $ref: "#/components/schemas/Measurement"
+            - type: "null"
+    MonitoringMeta:
+      type: object
+      additionalProperties: false
+      required:
+        - serverTime
+        - lastSeenAt
+        - deviceOnline
+        - ageMs
+        - stale
+        - connectionState
+      properties:
+        serverTime:
+          type: string
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        lastSeenAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        deviceOnline:
+          type: boolean
+        ageMs:
+          type:
+            - integer
+            - "null"
+          minimum: 0
+        stale:
+          type: boolean
+        connectionState:
+          type: string
+          enum:
+            - disconnected
+            - connected_without_valid_reading
+            - connected_with_recent_reading
+    AuditLog:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - actorId
+        - action
+        - targetType
+        - targetId
+        - occurredAt
+        - result
+        - context
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        actorId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        action:
+          type: string
+        targetType:
+          type: string
+        targetId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        occurredAt:
+          type: string
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        result:
+          type: string
+          enum:
+            - success
+            - failure
+        context:
+          type: object
+          description: Contexto mínimo definido por acción; sin secretos ni lecturas.
+  securitySchemes:
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: pulsolink_session
+      description: Sesión HttpOnly; verificar revocación, perfil habilitado y rol en cada operación. SameSite=Lax,
+        Path=/, Secure en HTTPS.
+  responses:
+    BadRequest:
+      description: "VALIDATION_ERROR: JSON, campos, filtros o cursor inválidos."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "UNAUTHENTICATED: credencial o sesión ausente, inválida o vencida."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "FORBIDDEN: rol insuficiente, usuario/dispositivo deshabilitado, CSRF u origen inválidos."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "NOT_FOUND: recurso no encontrado."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Conflict:
+      description: Conflicto de estado o idempotencia.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    PayloadTooLarge:
+      description: "PAYLOAD_TOO_LARGE: límite de cuerpo 8 KiB."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    TooManyRequests:
+      description: "RATE_LIMITED: demasiadas solicitudes; respetar Retry-After."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+      headers:
+        Retry-After:
+          description: Espera en segundos.
+          schema:
+            type: integer
+            minimum: 1
+    ServiceUnavailable:
+      description: "SERVICE_UNAVAILABLE: dependencia no disponible; sin detalles internos."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"

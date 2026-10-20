@@ -43,3 +43,4 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 - [AV1-02: recepción autenticada de mediciones por API](dispositivo-av1-02.md): verificación de endpoints del Contrato A (`/device/config`, `/device/heartbeat`, `/device/measurements`), autenticación Bearer, validación Zod e idempotencia.
 - [AV1-04: persistencia Firestore](firestore-av1-04.md): ejecución histórica de repositorios con emuladores; no acredita el flujo HTTP o web integrado.
 - [AV1-09: arranque e integración inicial](integracion-av1-09.md): comprobaciones locales de scripts y estado de dependencias para la rama de integración.
+- [PL2-08: línea base de la API antes del contrato 2.0.0](pl2-08-linea-base.md): suite de la API con emuladores (106/106) sobre el contrato anterior; no acredita el contrato 2.0.0.

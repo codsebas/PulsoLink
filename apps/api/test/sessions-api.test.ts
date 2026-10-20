@@ -43,8 +43,8 @@ const measurement: StoredMeasurement = {
 function setup(real?: { deps: SessionsDependencies; devices: DevicesRepository }) {
   const identityProvider = new InMemoryIdentityProvider({ users: [operator, other, admin] });
   const userRepository = new InMemoryUserRepository();
-  userRepository.set({ id: operator.uid, displayName: 'Operador', role: 'operator', enabled: true });
-  userRepository.set({ id: other.uid, displayName: 'Otro', role: 'operator', enabled: true });
+  userRepository.set({ id: operator.uid, displayName: 'Operador', role: 'viewer', enabled: true });
+  userRepository.set({ id: other.uid, displayName: 'Otro', role: 'viewer', enabled: true });
   userRepository.set({ id: admin.uid, displayName: 'Admin', role: 'admin', enabled: true });
   const config = {
     firebaseWebApiKey: 'test', appOrigins: [origin], csrfSecret: 'test-csrf-secret-value-0123456789abcdef',
@@ -74,7 +74,8 @@ function setup(real?: { deps: SessionsDependencies; devices: DevicesRepository }
   };
   const app = express();
   app.use(express.json({ limit: '8kb' }), cookieParser());
-  app.use('/api/v1/auth', createAuthRouter({ config, identityProvider, userRepository }));
+  const auditRepository = { append: vi.fn(async () => ({}) as never) };
+  app.use('/api/v1/auth', createAuthRouter({ config, identityProvider, userRepository, auditRepository }));
   const { requireUser } = createAuthMiddleware({ identityProvider, userRepository });
   const { csrfProtection } = createCsrf({ secret: config.csrfSecret, secure: false, origins: [origin] });
   app.use('/api/v1/devices', requireUser, createDevicesRouter(real?.devices ?? { list: listDevices }));
@@ -108,47 +109,46 @@ describe('Contrato B: dispositivos y sesiones', () => {
     expect(create).not.toHaveBeenCalled();
   });
 
-  it('solo lista las sesiones del operador; el administrador puede consultar todas', async () => {
+  it('viewer y administrador consultan todas las sesiones sin filtro de propietario', async () => {
     const { login, list } = setup();
-    const operatorAgent = await login(operator);
-    const response = await operatorAgent.agent.get('/api/v1/sessions?limit=20&status=created');
+    const viewerAgent = await login(operator);
+    const response = await viewerAgent.agent.get('/api/v1/sessions?limit=20&status=created');
     expect(response.status).toBe(200);
     expect(response.body.pagination).toEqual({ nextCursor: null, hasMore: false });
     expect(response.body.data[0]).toHaveProperty('id', 'session-1');
     expect(response.body.data[0]).not.toHaveProperty('latestMeasurement');
-    expect(list).toHaveBeenCalledWith({ operatorId: operator.uid, limit: 20, status: 'created' });
+    expect(list).toHaveBeenCalledWith({ limit: 20, status: 'created' });
     const adminAgent = await login(admin);
     expect((await adminAgent.agent.get('/api/v1/sessions')).status).toBe(200);
     expect(list).toHaveBeenLastCalledWith({});
   });
 
-  it('oculta detalles, transiciones, última lectura e historial ajenos sin leer las mediciones', async () => {
+  it('viewer consulta sesiones ajenas pero no puede iniciar ni finalizar', async () => {
     const { login, start, finish, getLatest, listMeasurements } = setup();
     const { agent, csrf } = await login(other);
     for (const route of ['/session-1', '/session-1/latest', '/session-1/measurements']) {
-      const response = await agent.get(`/api/v1/sessions${route}`);
-      expect(response.status).toBe(404);
-      expect(response.body.error.code).toBe('SESSION_NOT_FOUND');
+      expect((await agent.get(`/api/v1/sessions${route}`)).status).toBe(200);
     }
     for (const action of ['start', 'finish']) {
       const response = await agent.post(`/api/v1/sessions/session-1/${action}`)
         .set('Origin', origin).set('X-CSRF-Token', csrf);
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(403);
+      expect(response.body.error.code).toBe('FORBIDDEN');
     }
     expect(start).not.toHaveBeenCalled();
     expect(finish).not.toHaveBeenCalled();
-    expect(getLatest).not.toHaveBeenCalled();
-    expect(listMeasurements).not.toHaveBeenCalled();
+    expect(getLatest).toHaveBeenCalled();
+    expect(listMeasurements).toHaveBeenCalled();
   });
 
-  it('crea sesiones con el operador autenticado y traduce conflictos de dispositivo', async () => {
+  it('crea sesiones con el administrador autenticado y traduce conflictos de dispositivo', async () => {
     const { login, create, start } = setup();
-    const { agent, csrf } = await login(operator);
+    const { agent, csrf } = await login(admin);
     const response = await agent.post('/api/v1/sessions').set('Origin', origin).set('X-CSRF-Token', csrf)
       .send({ participantCode: 'P-001', deviceId: 'device-1' });
     expect(response.status).toBe(201);
-    expect(response.body.data).toMatchObject({ id: 'session-1', operatorId: operator.uid, status: 'created' });
-    expect(create).toHaveBeenCalledWith({ participantCode: 'P-001', operatorId: operator.uid, deviceId: 'device-1' });
+    expect(response.body.data).toMatchObject({ id: 'session-1', operatorId: admin.uid, status: 'created' });
+    expect(create).toHaveBeenCalledWith({ participantCode: 'P-001', operatorId: admin.uid, deviceId: 'device-1' });
     create.mockRejectedValueOnce(new PersistenceError('DEVICE_DISABLED', 'Dispositivo no habilitado.'));
     const disabled = await agent.post('/api/v1/sessions').set('Origin', origin).set('X-CSRF-Token', csrf)
       .send({ participantCode: 'P-001', deviceId: 'device-1' });
@@ -217,13 +217,13 @@ describe.skipIf(!emulatorEnabled)('Contrato B con Firestore Emulator', () => {
       const sessions = new SessionsRepository(() => db);
       const measurements = new MeasurementsRepository(() => db);
       const { login } = setup({ deps: { devices, sessions, measurements }, devices });
-      const { agent, csrf } = await login(operator);
+      const { agent, csrf } = await login(admin);
 
       const created = await agent.post('/api/v1/sessions').set('Origin', origin).set('X-CSRF-Token', csrf)
         .send({ participantCode: 'P-001', deviceId });
       expect(created.status).toBe(201);
       const id = created.body.data.id as string;
-      expect((await agent.get('/api/v1/sessions')).body.data).toEqual([created.body.data]);
+      expect((await agent.get(`/api/v1/sessions?deviceId=${deviceId}`)).body.data).toEqual([created.body.data]);
 
       const started = await agent.post(`/api/v1/sessions/${id}/start`).set('Origin', origin).set('X-CSRF-Token', csrf);
       expect(started.status).toBe(200);
@@ -249,7 +249,9 @@ describe.skipIf(!emulatorEnabled)('Contrato B con Firestore Emulator', () => {
       expect((await devices.getById(deviceId))?.activeSessionId).toBeNull();
 
       const outsider = await login(other);
-      expect((await outsider.agent.get(`/api/v1/sessions/${id}/measurements`)).status).toBe(404);
+      expect((await outsider.agent.get(`/api/v1/sessions/${id}/measurements`)).status).toBe(200);
+      expect((await outsider.agent.post(`/api/v1/sessions/${id}/start`)
+        .set('Origin', origin).set('X-CSRF-Token', outsider.csrf)).status).toBe(403);
       const administrator = await login(admin);
       expect((await administrator.agent.get(`/api/v1/sessions/${id}`)).status).toBe(200);
     } finally {

@@ -3,16 +3,10 @@ import type { AuthUser } from './auth.types.js';
 /**
  * Determina si un usuario puede acceder a una sesión de medición.
  *
- * - `admin` accede a cualquier sesión.
- * - `operator` solo accede a las sesiones que le pertenecen.
- *
- * Cuando devuelve `false`, el endpoint de sesiones debe responder 404 (no 403),
- * para no revelar la existencia de recursos ajenos. Así lo exige el README en
- * la sección 7 ("Recurso inexistente o no visible para ese usuario").
+ * En el modelo objetivo tanto `admin` como `viewer` pueden consultar cualquier
+ * sesión autorizada; `viewer` no puede mutarla (lo valida el servicio). El rol
+ * legado `operator` se proyecta a `viewer` antes de llegar aquí.
  */
-export function canAccessSession(user: AuthUser, session: { operatorId: string }): boolean {
-  if (user.role === 'admin' || user.role === 'viewer') {
-    return true;
-  }
-  return session.operatorId === user.id;
+export function canAccessSession(_user: AuthUser, _session: { operatorId: string }): boolean {
+  return true;
 }

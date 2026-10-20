@@ -1,7 +1,13 @@
 import { getAuth } from '../../../config/firebase.js';
 import { AuthError } from '../auth.errors.js';
 import type { AuthConfig } from '../auth.config.js';
-import type { IdentityProvider, VerifiedCredentials } from '../auth.types.js';
+import type {
+  CreateIdentityInput,
+  IdentityProvider,
+  IdentityUser,
+  UpdateIdentityInput,
+  VerifiedCredentials,
+} from '../auth.types.js';
 
 const IDENTITY_BASE_URL = 'https://identitytoolkit.googleapis.com';
 const EMULATOR_BASE_PATH = '/identitytoolkit.googleapis.com';
@@ -146,6 +152,76 @@ export class FirebaseIdentityProvider implements IdentityProvider {
       throw new AuthError(401, 'UNAUTHENTICATED', 'La sesión no es válida o venció.');
     }
   }
+
+  async createIdentity(input: CreateIdentityInput): Promise<void> {
+    try {
+      await getAuth().createUser({
+        uid: input.uid,
+        email: input.email,
+        password: input.password,
+        displayName: input.displayName,
+        disabled: false,
+      });
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      if (code === 'auth/email-already-exists' || code === 'auth/uid-already-exists') {
+        throw new AuthError(409, 'USER_CREATE_CONFLICT', 'La identidad ya existe.');
+      }
+      throw unavailable();
+    }
+  }
+
+  async findIdentityByEmail(email: string): Promise<IdentityUser | null> {
+    try {
+      return identityDto(await getAuth().getUserByEmail(email));
+    } catch (error) {
+      if ((error as { code?: string }).code === 'auth/user-not-found') return null;
+      throw unavailable();
+    }
+  }
+
+  async getIdentity(uid: string): Promise<IdentityUser | null> {
+    try {
+      return identityDto(await getAuth().getUser(uid));
+    } catch (error) {
+      if ((error as { code?: string }).code === 'auth/user-not-found') return null;
+      throw unavailable();
+    }
+  }
+
+  async updateIdentity(uid: string, input: UpdateIdentityInput): Promise<void> {
+    try {
+      await getAuth().updateUser(uid, {
+        ...(input.displayName !== undefined ? { displayName: input.displayName } : {}),
+        ...(input.disabled !== undefined ? { disabled: input.disabled } : {}),
+      });
+      if (input.role !== undefined) {
+        await getAuth().setCustomUserClaims(uid, { role: input.role });
+      }
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      if (code === 'auth/user-not-found') {
+        throw new AuthError(503, 'AUTH_SYNC_PENDING', 'La identidad aún no está disponible.');
+      }
+      throw unavailable();
+    }
+  }
+
+  async revokeSessions(uid: string): Promise<void> {
+    try {
+      await getAuth().revokeRefreshTokens(uid);
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      if (code === 'auth/user-not-found') {
+        throw new AuthError(503, 'AUTH_SYNC_PENDING', 'La identidad aún no está disponible.');
+      }
+      throw unavailable();
+    }
+  }
+}
+
+function identityDto(user: { uid: string; email?: string; disabled: boolean }): IdentityUser {
+  return { uid: user.uid, email: user.email ?? null, disabled: user.disabled };
 }
 
 /**

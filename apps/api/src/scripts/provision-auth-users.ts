@@ -29,13 +29,13 @@ interface Target {
   emailVariable: string;
   passwordVariable: string;
   nameVariable: string;
-  role: 'admin' | 'operator';
+  role: 'admin' | 'viewer';
 }
 
 interface ProvisionedProfile {
   uid: string;
   displayName: string;
-  role: 'admin' | 'operator';
+  role: 'admin' | 'viewer';
 }
 
 const TARGETS: Target[] = [
@@ -51,7 +51,7 @@ const TARGETS: Target[] = [
     emailVariable: 'PROVISION_OPERATOR_EMAIL',
     passwordVariable: 'PROVISION_OPERATOR_PASSWORD',
     nameVariable: 'PROVISION_OPERATOR_NAME',
-    role: 'operator',
+    role: 'viewer',
   },
 ];
 

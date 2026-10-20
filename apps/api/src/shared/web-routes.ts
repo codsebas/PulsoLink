@@ -5,7 +5,7 @@ import { PersistenceError, dateTime, documentId } from './persistence.js';
 
 const limit = z.string().regex(/^[0-9]+$/).transform(Number).pipe(z.number().int().min(1).max(100));
 
-const pageQueryFields = {
+export const pageQueryFields = {
   limit: limit.optional(),
   cursor: z.string().min(1).max(4096).optional(),
   from: dateTime.optional(),

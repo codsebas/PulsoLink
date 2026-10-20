@@ -58,6 +58,10 @@ export function errorHandler(
       ASSIGNMENT_IN_USE: 409,
       ASSIGNMENT_NOT_ACTIVE: 409,
       VALIDATION_ERROR: 400,
+      USER_NOT_FOUND: 404,
+      USER_OPERATION_NOT_FOUND: 404,
+      AUTH_SYNC_PENDING: 503,
+      NO_CHANGES: 400,
     };
     const statusCode = statusMap[err.code] ?? 400;
     sendError(res, err.code, err.message, statusCode, requestId);

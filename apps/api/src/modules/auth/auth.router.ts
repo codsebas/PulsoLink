@@ -1,6 +1,8 @@
 import express, { type RequestHandler, type Router } from 'express';
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { sendSuccess } from '../../shared/response.js';
+import { AuditRepository } from '../audit/audit.repository.js';
 import type { AuthConfig } from './auth.config.js';
 import { AuthError } from './auth.errors.js';
 import {
@@ -16,6 +18,7 @@ export interface AuthRouterDeps {
   config: AuthConfig;
   identityProvider: IdentityProvider;
   userRepository: UserRepository;
+  auditRepository?: Pick<AuditRepository, 'append'>;
 }
 
 const loginSchema = z
@@ -37,6 +40,7 @@ type LoginBody = z.infer<typeof loginSchema>;
  */
 export function createAuthRouter(deps: AuthRouterDeps): Router {
   const { config, identityProvider, userRepository } = deps;
+  const auditRepository = deps.auditRepository ?? new AuditRepository();
 
   const router = express.Router();
   const csrf = createCsrf({
@@ -46,6 +50,12 @@ export function createAuthRouter(deps: AuthRouterDeps): Router {
   });
   const { requireUser } = createAuthMiddleware({ identityProvider, userRepository });
   const loginRateLimiter = createLoginRateLimiter(config.loginRateLimit);
+
+  const recordLogin = (actorId: string, result: 'success' | 'failure') =>
+    auditRepository.append(
+      { actorId, action: 'auth.login', targetType: 'auth', targetId: actorId, result },
+      randomUUID(),
+    );
 
   const validateLoginBody: RequestHandler = (req, res, next) => {
     const parsed = loginSchema.safeParse(req.body);
@@ -63,10 +73,12 @@ export function createAuthRouter(deps: AuthRouterDeps): Router {
   });
 
   router.post('/login', csrf.csrfProtection, loginRateLimiter, validateLoginBody, async (req, res, next) => {
+    let verifiedUid: string | null = null;
     try {
       const { email, password } = res.locals.loginBody as LoginBody;
 
       const { uid, idToken } = await identityProvider.verifyPassword(email, password);
+      verifiedUid = uid;
       const user = await userRepository.findById(uid);
       if (!user) {
         throw new AuthError(401, 'UNAUTHENTICATED', 'La sesión no es válida.');
@@ -76,6 +88,15 @@ export function createAuthRouter(deps: AuthRouterDeps): Router {
       }
 
       const sessionCookie = await identityProvider.createSessionCookie(idToken, config.sessionTtlMs);
+      try {
+        await recordLogin(uid, 'success');
+      } catch {
+        throw new AuthError(
+          503,
+          'AUDIT_UNAVAILABLE',
+          'No se pudo registrar el inicio de sesión; no se entregó la sesión.',
+        );
+      }
       res.cookie(
         SESSION_COOKIE_NAME,
         sessionCookie,
@@ -85,6 +106,9 @@ export function createAuthRouter(deps: AuthRouterDeps): Router {
 
       sendSuccess(res, { id: user.id, displayName: user.displayName, role: user.role });
     } catch (error) {
+      if (!(error instanceof AuthError && error.code === 'AUDIT_UNAVAILABLE')) {
+        await recordLogin(verifiedUid ?? 'anonymous', 'failure').catch(() => undefined);
+      }
       next(error);
     }
   });

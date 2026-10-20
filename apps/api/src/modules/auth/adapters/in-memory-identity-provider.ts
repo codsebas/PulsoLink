@@ -1,5 +1,11 @@
 import { AuthError } from '../auth.errors.js';
-import type { IdentityProvider, VerifiedCredentials } from '../auth.types.js';
+import type {
+  CreateIdentityInput,
+  IdentityProvider,
+  IdentityUser,
+  UpdateIdentityInput,
+  VerifiedCredentials,
+} from '../auth.types.js';
 
 export interface InMemoryUserSeed {
   email: string;
@@ -22,6 +28,7 @@ export interface InMemoryIdentityProviderOptions {
  */
 export class InMemoryIdentityProvider implements IdentityProvider {
   private readonly usersByEmail = new Map<string, InMemoryUserSeed>();
+  private readonly identities = new Map<string, IdentityUser & { displayName: string }>();
   private readonly revokedUids = new Set<string>();
   private readonly sessions = new Map<string, string>();
 
@@ -30,7 +37,9 @@ export class InMemoryIdentityProvider implements IdentityProvider {
 
   constructor(options: InMemoryIdentityProviderOptions) {
     for (const user of options.users) {
-      this.usersByEmail.set(user.email.trim().toLowerCase(), user);
+      const email = user.email.trim().toLowerCase();
+      this.usersByEmail.set(email, user);
+      this.identities.set(user.uid, { uid: user.uid, email, disabled: false, displayName: user.uid });
     }
     this.forceUnavailable = options.forceUnavailable ?? false;
     this.forceTooManyAttempts = options.forceTooManyAttempts ?? false;
@@ -78,6 +87,41 @@ export class InMemoryIdentityProvider implements IdentityProvider {
       throw new AuthError(401, 'UNAUTHENTICATED', 'La sesión no es válida o venció.');
     }
     return { uid };
+  }
+
+  async createIdentity(input: CreateIdentityInput): Promise<void> {
+    if (this.identities.has(input.uid)) {
+      throw new AuthError(409, 'USER_CREATE_CONFLICT', 'La identidad ya existe.');
+    }
+    const email = input.email.trim().toLowerCase();
+    if (this.usersByEmail.has(email)) {
+      throw new AuthError(409, 'USER_CREATE_CONFLICT', 'El correo ya está registrado.');
+    }
+    this.usersByEmail.set(email, { email, password: input.password, uid: input.uid });
+    this.identities.set(input.uid, { uid: input.uid, email, disabled: false, displayName: input.displayName });
+  }
+
+  async findIdentityByEmail(email: string): Promise<IdentityUser | null> {
+    const seed = this.usersByEmail.get(email.trim().toLowerCase());
+    return seed ? this.identities.get(seed.uid) ?? null : null;
+  }
+
+  async getIdentity(uid: string): Promise<IdentityUser | null> {
+    return this.identities.get(uid) ?? null;
+  }
+
+  async updateIdentity(uid: string, input: UpdateIdentityInput): Promise<void> {
+    const identity = this.identities.get(uid);
+    if (!identity) throw new AuthError(503, 'AUTH_SYNC_PENDING', 'La identidad aún no está disponible.');
+    this.identities.set(uid, {
+      ...identity,
+      disabled: input.disabled ?? identity.disabled,
+      displayName: input.displayName ?? identity.displayName,
+    });
+  }
+
+  async revokeSessions(uid: string): Promise<void> {
+    this.revoke(uid);
   }
 
   /** Simula la revocación global de las sesiones de un usuario. */

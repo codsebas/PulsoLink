@@ -1,4 +1,4 @@
-> **Estado y versión:** este documento describe los repositorios existentes con `operator` y `participantCode`. El [modelo objetivo](modelo-objetivo.md) y el [plan vigente](../docs/planificacion/ejecucion-2026-10-18.md) especifican la migración aprobada a pacientes, asignaciones, `viewer` y auditoría. No implica que esos cambios ya estén implementados; los comandos de aprovisionamiento siguientes siguen siendo los del código actual.
+> **Estado y versión:** las secciones inferiores conservan las firmas y comandos del avance anterior. La entrega PL2 añade [pacientes, asignaciones, historial, auditoría e interfaces de integración](../docs/arquitectura/persistencia-pl2-integracion.md) y una [semilla admin/viewer para emuladores](../docs/setup/firebase-pl2.md). El runtime de legado se conserva durante la ventana documentada; no ejecutar sus scripts antiguos como sustituto del procedimiento nuevo. El [modelo objetivo](modelo-objetivo.md) y el [plan vigente](../docs/planificacion/ejecucion-2026-10-18.md) siguen definiendo los pendientes de integración del equipo.
 
 # PulsoLink — Configuración de Firebase y Persistencia
 

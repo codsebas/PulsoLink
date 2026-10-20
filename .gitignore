@@ -11,6 +11,8 @@ out/
 .turbo/
 .cache/
 *.tsbuildinfo
+.playwright-cli/
+.playwright/
 
 # Variables de entorno y secretos locales
 .env

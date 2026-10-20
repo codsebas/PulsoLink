@@ -8,7 +8,7 @@ import type { DeviceDocument } from '../modules/devices/devices.repository.js';
 import type { DeviceCredentialDocument } from '../modules/devices/device-credentials.repository.js';
 
 export const demoConfigSchema = z.object({
-  profiles: z.array(z.object({ uid: documentId, displayName: z.string().trim().min(1).max(100), role: z.enum(['admin', 'operator']) }).strict()).min(1).max(20)
+  profiles: z.array(z.object({ uid: documentId, displayName: z.string().trim().min(1).max(100), role: z.enum(['admin', 'viewer', 'operator']) }).strict()).min(1).max(20)
     .refine((profiles) => new Set(profiles.map((profile) => profile.uid)).size === profiles.length, 'UID repetido'),
   deviceId: documentId,
   credentialId: documentId.refine((id) => !id.includes('.'), 'ID de credencial inválido'),

@@ -20,12 +20,15 @@ export const sessionDependencies = (): SessionsDependencies => ({
 
 export function sessionDto(session: SessionDocument) {
   const { sessionId, participantCode, operatorId, deviceId, source, status, createdAt, startedAt, finishedAt } = session;
+  if (session.patientId && session.assignmentId) return { id: sessionId, patientId: session.patientId, assignmentId: session.assignmentId,
+    deviceId, source, status, createdAt, startedAt, finishedAt, latestMeasurement: session.latestMeasurement };
   return { id: sessionId, participantCode, operatorId, deviceId, source, status, createdAt, startedAt, finishedAt };
 }
 
 export function measurementDto(measurement: StoredMeasurement) {
   const { id, sessionId, deviceId, source, bootId, sequence, capturedAt, receivedAt, measurements } = measurement;
-  return { id, sessionId, deviceId, source, bootId, sequence, capturedAt, receivedAt, measurements };
+  return { id, sessionId, deviceId, source, bootId, sequence, capturedAt, receivedAt, measurements,
+    ...(measurement.patientId && measurement.assignmentId ? { patientId: measurement.patientId, assignmentId: measurement.assignmentId } : {}) };
 }
 
 export class SessionsService {
@@ -40,6 +43,7 @@ export class SessionsService {
   }
 
   async create(input: { participantCode: string; deviceId: string }, user: AuthUser) {
+    if (user.role === 'viewer') throw new AppError('FORBIDDEN', 'El rol viewer solo puede consultar.', 403);
     return sessionDto(await this.deps.sessions.create({ ...input, operatorId: user.id }));
   }
 
@@ -53,8 +57,9 @@ export class SessionsService {
   }
 
   async transition(sessionId: string, user: AuthUser, target: 'active' | 'finished') {
+    if (user.role === 'viewer') throw new AppError('FORBIDDEN', 'El rol viewer solo puede consultar.', 403);
     await this.authorized(sessionId, user);
-    return sessionDto(await (target === 'active' ? this.deps.sessions.start(sessionId) : this.deps.sessions.finish(sessionId)));
+    return sessionDto(await (target === 'active' ? this.deps.sessions.start(sessionId, user.id) : this.deps.sessions.finish(sessionId, user.id)));
   }
 
   async latest(sessionId: string, user: AuthUser) {

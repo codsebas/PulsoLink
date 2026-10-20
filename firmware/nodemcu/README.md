@@ -1,5 +1,7 @@
 # PulsoLink — Firmware NodeMCU ESP8266
 
+> **Alcance objetivo:** El [contrato aprobado](../../docs/arquitectura/contrato-aprobado-2026-10-18.md) y el [plan vigente](../../docs/planificacion/ejecucion-2026-10-18.md) definen el objetivo de firmware: JSON del Contrato A 2.0.0, nuevas muestras sin cola offline, `deviceId` contrastado por la API y HTTPS verificado para despliegue. El sketch integrado probado fuera del repositorio y la ruta temporal de prueba no forman parte de esta rama documental.
+
 Código fuente, cabeceras y ejemplos de configuración para el dispositivo telemétrico físico.
 
 - **Responsable exclusivo:** `@codsebas` (Issue #12 / AV1-10).

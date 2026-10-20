@@ -1,11 +1,54 @@
 # PulsoLink
 
+> **Alcance aprobado:** [contrato de arquitectura de PulsoLink](docs/arquitectura/contrato-aprobado-2026-10-18.md), [plan de implementación](docs/planificacion/ejecucion-2026-10-18.md) y [modelo objetivo de Firestore](firebase/modelo-objetivo.md). Los OpenAPI 2.0.0 son el contrato objetivo pendiente de implementar; el flujo anterior de `participantCode` y `operator` sigue en el código. La planificación del primer avance que aparece más abajo es antecedente histórico.
+
+## Archivos de referencia para implementar el alcance aprobado
+
+Esta guía aplica a **todo PulsoLink**, no solo al módulo de pacientes. La rama documental entrega las decisiones para su revisión e integración; la fuente de verdad son los archivos aprobados y versionados, no el nombre de la rama. Que una función esté definida en un contrato no significa que ya esté implementada o probada.
+
+### Qué define cada archivo
+
+| Archivo | Autoridad y uso |
+| --- | --- |
+| [AGENTS.md](AGENTS.md) | Reglas de trabajo, stack, seguridad, secretos y verificación honesta. Leer antes de editar. |
+| [Contrato de arquitectura aprobado](docs/arquitectura/contrato-aprobado-2026-10-18.md) | Alcance funcional de todo el proyecto, decisiones cerradas, relaciones paciente–placa–asignación–sesión, permisos y criterios finales. |
+| [Contrato A: dispositivo y simulador](contracts/device.openapi.yaml) | Estructura HTTP/JSON de configuración, heartbeat y mediciones; autenticación, campos, unidades, calidad, límites y respuestas. Para preparar el JSON de la placa, partir de `MeasurementInput`. |
+| [Contrato B: web y API](contracts/web.openapi.yaml) | Endpoints, cuerpos y respuestas para pacientes, dispositivos, asignaciones, sesiones, usuarios, historial y auditoría; cookies, CSRF y roles. |
+| [Modelo objetivo de Firestore](firebase/modelo-objetivo.md) | Colecciones, campos históricos, reservas, transacciones, índices, consulta por paciente y tratamiento del legado. |
+| [Plan de ejecución vigente](docs/planificacion/ejecucion-2026-10-18.md) | Paquetes P0–P7, orden y dependencias, migración, diferencias con el código e hitos de aceptación. Las personas mencionadas no equivalen a una nueva reasignación automática. |
+
+El contrato de arquitectura fija las decisiones comunes; los OpenAPI concretan el intercambio HTTP y el modelo de Firestore concreta la persistencia. El plan organiza cómo implementarlos. Leer estas fuentes en conjunto: si discrepan entre sí, coordinar y resolver el cambio mediante PR antes de implementar una interpretación distinta. El código anterior, los ejemplos históricos y las pruebas temporales de conectividad no sustituyen el contrato objetivo.
+
+### Fuentes por fase y módulo
+
+Los identificadores P0–P7 corresponden a los paquetes del plan vigente, no a fechas ni a módulos ya terminados.
+
+| Fase / paquete | Módulos o trabajo | Archivos que rigen la entrega | Resultado a verificar |
+| --- | --- | --- | --- |
+| **P0 — Acuerdos y entorno** | Contratos compartidos, compatibilidad y preparación | [AGENTS.md](AGENTS.md), [arquitectura aprobada](docs/arquitectura/contrato-aprobado-2026-10-18.md), [plan vigente](docs/planificacion/ejecucion-2026-10-18.md), [OpenAPI A](contracts/device.openapi.yaml) y [B](contracts/web.openapi.yaml) | Acordar campos e interfaces, ventana de migración y entorno Node.js 24 LTS antes de implementar. |
+| **P1 — Persistencia** | Pacientes, dispositivos, asignaciones, sesiones, mediciones e historial duradero | [Modelo objetivo de Firestore](firebase/modelo-objetivo.md), [arquitectura aprobada](docs/arquitectura/contrato-aprobado-2026-10-18.md) y DTO del [contrato B](contracts/web.openapi.yaml) | Exclusividad transaccional por paciente/placa, IDs históricos inmutables, deduplicación e historial de un paciente con dos placas. |
+| **P2 — API de negocio e ingestión** | Validación de lecturas, CRUD administrativos, asignaciones, sesiones y consultas | [Contrato A](contracts/device.openapi.yaml), [contrato B](contracts/web.openapi.yaml), [modelo de Firestore](firebase/modelo-objetivo.md) y [plan de migración](docs/planificacion/ejecucion-2026-10-18.md) | Contrastar identidad de placa y relaciones activas; implementar permisos, respuestas y conflictos en el servidor existente. |
+| **P3 — Autenticación y auditoría** | Acceso, usuarios, roles, sesiones web y logs | [Contrato B](contracts/web.openapi.yaml), [modelo de Firestore](firebase/modelo-objetivo.md) y [arquitectura aprobada](docs/arquitectura/contrato-aprobado-2026-10-18.md) | Migrar `operator → viewer` explícitamente; solo admin administra/consulta auditoría; auditar login y apertura de expediente sin registrar cada refresco. |
+| **P4 — CRUD y navegación web** | Pantallas de pacientes, placas, asignaciones y personal | [Contrato B](contracts/web.openapi.yaml), [arquitectura aprobada](docs/arquitectura/contrato-aprobado-2026-10-18.md) y [plan vigente](docs/planificacion/ejecucion-2026-10-18.md) | Formularios y navegación con carga, validación, errores y permisos visibles, conectados a la API. |
+| **P5 — Monitoreo e historial web** | Dashboard, calidad, conexión y tendencias por paciente | [Contrato B](contracts/web.openapi.yaml), [arquitectura aprobada](docs/arquitectura/contrato-aprobado-2026-10-18.md) y consulta histórica del [modelo de Firestore](firebase/modelo-objetivo.md) | Distinguir conexión de calidad; representar `null` sin cero, huecos reales y ambos tramos al cambiar de placa. |
+| **P6 — Simulador y calidad** | Emisor simulado y pruebas de integración | [Contrato A](contracts/device.openapi.yaml), [contrato B](contracts/web.openapi.yaml) y recorrido de aceptación del [plan vigente](docs/planificacion/ejecucion-2026-10-18.md) | Probar duplicados/conflictos, credenciales, permisos, reasignación, falta de contacto y reconexión sin cola; conservar evidencia reproducible. |
+| **P7 — Firmware e integración física** | NodeMCU ESP8266, sensores y comunicación por Wi-Fi | [Contrato A](contracts/device.openapi.yaml), decisiones de dispositivo de la [arquitectura aprobada](docs/arquitectura/contrato-aprobado-2026-10-18.md) y criterios del [plan vigente](docs/planificacion/ejecucion-2026-10-18.md) | Incorporar el sketch integrado, verificar HTTPS y el recorrido real placa → API → web; enviar muestras nuevas y descartar los intervalos sin red. |
+
+**Orden de integración:** P0 → P1 junto con la base de P3 → P2/P3 → P4/P5/P6 → validación integral P6/P7. Los paquetes pueden avanzar en paralelo con interfaces acordadas; completar una pantalla o un esquema no acredita las dependencias ni la demostración final.
+
+### Documentación de apoyo y antecedentes
+
+- [Firebase actual](firebase/README.md), [autenticación actual](docs/auth.md), [firmware](firmware/nodemcu/README.md), [hardware](docs/hardware/README.md) y [simulador](tools/device-simulator/README.md) ayudan a integrar lo existente. Sus firmas o roles anteriores deben migrarse conforme a las fuentes aprobadas.
+- [Desarrollo local](docs/setup/desarrollo-local.md) explica la ejecución; [evidencias](docs/evidencias/README.md) y [validación documental](docs/evidencias/contratos-2026-10-18.md) describen lo que se comprobó y sus límites. Una validación OpenAPI no demuestra funcionamiento del sistema.
+- El [plan del primer avance](docs/planificacion/avance-2026-10-17.md) y las secciones 2–17 de este README conservan el contexto original. Ante diferencias como `operator`, `participantCode`, fechas del avance o campos del JSON antiguo, usar los archivos vigentes indicados arriba para desarrollar el nuevo alcance.
+- Antes de cada tarea, contrastar estos archivos con el checkout, los issues y los PR vigentes. Entregar un PR con comandos y evidencia breve; no marcar un módulo como terminado por estar descrito en esta guía.
+
 **Sistema académico IoT para visualizar y almacenar frecuencia cardíaca, saturación de oxígeno estimada y temperatura superficial mediante una API y una plataforma web.**
 
 - **Repositorio:** https://github.com/codsebas/PulsoLink
 - **Inicio de planificación:** 16 de octubre de 2026.
 - **Primer avance:** sábado 17 de octubre de 2026, horario de Guatemala.
-- **Estado actual:** base web/API y capa de persistencia Firestore implementadas. La persistencia se valida en emuladores; la integración de rutas, autenticación, simulador y nube sigue pendiente. Las secciones de planificación inferiores describen el objetivo del proyecto, no funcionalidades ya verificadas.
+- **Estado observado al 19 de octubre de 2026:** autenticación, ingestión, persistencia y rutas de sesiones/dispositivos del contrato anterior están implementadas en `main`. Pacientes, asignaciones, historial por paciente, rol `viewer` y auditoría del nuevo alcance siguen pendientes. Las secciones de planificación inferiores describen el primer avance, no el estado actual de la nueva arquitectura.
 - **Responsable del dispositivo y coordinación técnica:** `@codsebas`.
 - **Base de datos acordada:** Cloud Firestore, de Firebase.
 

@@ -1,5 +1,7 @@
 # PulsoLink — Guía de Contratos de API REST
 
+> **Versión objetivo:** [contrato aprobado](../arquitectura/contrato-aprobado-2026-10-18.md), [plan vigente](../planificacion/ejecucion-2026-10-18.md) y OpenAPI [A](../../contracts/device.openapi.yaml) / [B](../../contracts/web.openapi.yaml) 2.0.0. La guía detallada que sigue documenta la API del primer avance; hoy las rutas de sesiones y dispositivos ya están implementadas bajo su contrato anterior. Los módulos de pacientes, asignaciones y auditoría aún no están programados.
+
 Este documento consolida la arquitectura de comunicación, los contratos formales y el estado de implementación de la API de **PulsoLink**.
 
 ---

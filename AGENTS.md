@@ -2,6 +2,8 @@
 
 Instrucciones operativas para agentes de inteligencia artificial y desarrolladores que colaboren en el repositorio **PulsoLink**.
 
+**Alcance vigente (revisado el 19 de octubre de 2026):** leer el [contrato aprobado](docs/arquitectura/contrato-aprobado-2026-10-18.md) y el [plan de ejecución](docs/planificacion/ejecucion-2026-10-18.md) antes de modificar contratos o código. Los OpenAPI 2.0.0 describen el objetivo pendiente de implementación bajo `/api/v1`; el código anterior aún conserva `operator` y `participantCode`. En el modelo objetivo, el historial pertenece al paciente y cada lectura conserva `patientId`, `deviceId`, `assignmentId` y `sessionId` fijados por el backend. El rol objetivo `viewer` solo consulta; administración y auditoría exigen `admin`. Migrar `operator` explícitamente, sin elevarlo a admin. Firmware y simulador deberán descartar muestras producidas sin conexión, sin cola de reenvío.
+
 ---
 
 ## 1. Stack y Arquitectura Central

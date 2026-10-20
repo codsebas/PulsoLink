@@ -4,10 +4,15 @@ import { getDb } from '../../config/firebase.js';
 import { documentId, pagination, PersistenceError, type PageOptions } from '../../shared/persistence.js';
 import type { StoredMeasurement } from '../measurements/measurements.repository.js';
 import type { DeviceDocument } from '../devices/devices.repository.js';
+import type { AssignmentDocument } from '../assignments/assignments.repository.js';
+import type { PatientDocument } from '../patients/patients.repository.js';
+import { writeAudit } from '../audit/audit.repository.js';
 
 export interface SessionDocument {
   sessionId: string;
-  participantCode: string;
+  participantCode?: string;
+  patientId?: string;
+  assignmentId?: string;
   operatorId: string;
   deviceId: string;
   source: 'real' | 'simulated';
@@ -18,7 +23,7 @@ export interface SessionDocument {
   latestMeasurement: StoredMeasurement | null;
 }
 export interface SessionListOptions extends PageOptions {
-  operatorId?: string; status?: SessionDocument['status']; deviceId?: string;
+  operatorId?: string; status?: SessionDocument['status']; deviceId?: string; patientId?: string; assignmentId?: string;
 }
 
 export class SessionsRepository {
@@ -36,6 +41,7 @@ export class SessionsRepository {
     return db.runTransaction(async (tx) => {
       const device = await tx.get(db.collection('devices').doc(data.deviceId));
       if (!device.exists || !device.data()?.enabled) throw new PersistenceError('DEVICE_DISABLED', 'Dispositivo no habilitado.');
+      if (device.data()?.activeAssignmentId) throw new PersistenceError('ASSIGNMENT_CONFLICT', 'Use la asignación activa para crear la sesión.');
       const session: SessionDocument = { ...data, sessionId: ref.id, source: (device.data() as DeviceDocument).source,
         status: 'created', createdAt: new Date().toISOString(), startedAt: null, finishedAt: null, latestMeasurement: null };
       tx.create(ref, session);
@@ -43,10 +49,35 @@ export class SessionsRepository {
     });
   }
 
-  async start(sessionId: string): Promise<SessionDocument> { return this.transition(sessionId, 'active'); }
-  async finish(sessionId: string): Promise<SessionDocument> { return this.transition(sessionId, 'finished'); }
+  async createForAssignment(assignmentId: string, actorId: string): Promise<SessionDocument> {
+    documentId.parse(actorId);
+    const db = this.db();
+    const assignmentRef = db.collection('assignments').doc(documentId.parse(assignmentId));
+    const ref = db.collection('sessions').doc();
+    return db.runTransaction(async (tx) => {
+      const assignment = (await tx.get(assignmentRef)).data() as AssignmentDocument | undefined;
+      if (!assignment || assignment.endedAt) throw new PersistenceError('ASSIGNMENT_NOT_ACTIVE', 'Asignación no activa.');
+      const [p, d] = await tx.getAll(db.collection('patients').doc(assignment.patientId), db.collection('devices').doc(assignment.deviceId));
+      const patient = p.data() as PatientDocument | undefined;
+      const device = d.data() as DeviceDocument | undefined;
+      if (!patient?.enabled || !device?.enabled) throw new PersistenceError('RESOURCE_DISABLED', 'Paciente o placa deshabilitados.');
+      if (patient.activeAssignmentId !== assignmentId || device.activeAssignmentId !== assignmentId) throw new PersistenceError('ASSIGNMENT_CONFLICT', 'Reservas inconsistentes.');
+      if (assignment.openSessionId || device.activeSessionId) throw new PersistenceError('ASSIGNMENT_IN_USE', 'Ya existe una sesión abierta.');
+      const session: SessionDocument = { sessionId: ref.id, patientId: assignment.patientId, assignmentId,
+        deviceId: assignment.deviceId, operatorId: actorId, source: device.source, status: 'created',
+        createdAt: new Date().toISOString(), startedAt: null, finishedAt: null, latestMeasurement: null };
+      tx.create(ref, session);
+      tx.update(assignmentRef, { openSessionId: ref.id });
+      writeAudit(tx, db, { actorId, action: 'session.create', targetType: 'session', targetId: ref.id });
+      return session;
+    });
+  }
 
-  private async transition(sessionId: string, target: 'active' | 'finished'): Promise<SessionDocument> {
+  async start(sessionId: string, actorId?: string): Promise<SessionDocument> { return this.transition(sessionId, 'active', actorId); }
+  async finish(sessionId: string, actorId?: string): Promise<SessionDocument> { return this.transition(sessionId, 'finished', actorId); }
+
+  private async transition(sessionId: string, target: 'active' | 'finished', actorId?: string): Promise<SessionDocument> {
+    if (actorId) documentId.parse(actorId);
     const db = this.db();
     const sessionRef = db.collection('sessions').doc(documentId.parse(sessionId));
     return db.runTransaction(async (tx) => {
@@ -60,6 +91,20 @@ export class SessionsRepository {
       const deviceRef = db.collection('devices').doc(session.deviceId);
       const device = (await tx.get(deviceRef)).data() as DeviceDocument | undefined;
       if (!device) throw new PersistenceError('DEVICE_NOT_FOUND', 'Dispositivo no encontrado.');
+      let assignmentRef;
+      if (session.assignmentId && session.patientId) {
+        if (!actorId) throw new PersistenceError('ACTOR_REQUIRED', 'Se requiere el actor autenticado de la operación.');
+        assignmentRef = db.collection('assignments').doc(session.assignmentId);
+        const [a, p] = await tx.getAll(assignmentRef, db.collection('patients').doc(session.patientId));
+        const assignment = a.data() as AssignmentDocument | undefined;
+        if (!assignment || assignment.endedAt || assignment.patientId !== session.patientId || assignment.deviceId !== session.deviceId ||
+          assignment.openSessionId !== sessionId || p.data()?.activeAssignmentId !== session.assignmentId || device.activeAssignmentId !== session.assignmentId) {
+          throw new PersistenceError('ASSIGNMENT_NOT_ACTIVE', 'La sesión no corresponde a una asignación activa.');
+        }
+        if (target === 'active' && !p.data()?.enabled) throw new PersistenceError('RESOURCE_DISABLED', 'Paciente deshabilitado.');
+      } else if (device.activeAssignmentId) {
+        throw new PersistenceError('ASSIGNMENT_CONFLICT', 'La placa ya pertenece al modelo por paciente.');
+      }
       if (target === 'active') {
         if (!device.enabled) throw new PersistenceError('DEVICE_DISABLED', 'Dispositivo no habilitado.');
         if (device.activeSessionId) throw new PersistenceError('DEVICE_BUSY', 'El dispositivo ya está reservado.');
@@ -71,6 +116,8 @@ export class SessionsRepository {
       const changes = { status: target, ...(target === 'active' ? { startedAt: now } : { finishedAt: now }) };
       tx.update(sessionRef, changes);
       tx.update(deviceRef, { activeSessionId: target === 'active' ? sessionId : null });
+      if (assignmentRef && target === 'finished') tx.update(assignmentRef, { openSessionId: null });
+      if (assignmentRef) writeAudit(tx, db, { actorId: actorId!, action: target === 'active' ? 'session.start' : 'session.finish', targetType: 'session', targetId: sessionId });
       return { ...session, ...changes };
     });
   }
@@ -80,12 +127,16 @@ export class SessionsRepository {
     const operatorId = options.operatorId === undefined ? undefined : documentId.parse(options.operatorId);
     const deviceId = options.deviceId === undefined ? undefined : documentId.parse(options.deviceId);
     const status = z.enum(['created', 'active', 'finished']).optional().parse(options.status);
+    const patientId = documentId.optional().parse(options.patientId);
+    const assignmentId = documentId.optional().parse(options.assignmentId);
     const page = pagination(options, { collection: 'sessions', operatorId: operatorId ?? null,
-      deviceId: deviceId ?? null, status: status ?? null, order: 'createdAt:desc,id:desc' });
+      deviceId: deviceId ?? null, status: status ?? null, patientId: patientId ?? null, assignmentId: assignmentId ?? null, order: 'createdAt:desc,id:desc' });
     let query: Query = this.db().collection('sessions');
     if (operatorId) query = query.where('operatorId', '==', operatorId);
     if (deviceId) query = query.where('deviceId', '==', deviceId);
     if (status) query = query.where('status', '==', status);
+    if (patientId) query = query.where('patientId', '==', patientId);
+    if (assignmentId) query = query.where('assignmentId', '==', assignmentId);
     if (page.from) query = query.where('createdAt', '>=', page.from);
     if (page.to) query = query.where('createdAt', '<', page.to);
     query = query.orderBy('createdAt', 'desc').orderBy(FieldPath.documentId(), 'desc').limit(page.limit + 1);

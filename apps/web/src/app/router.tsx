@@ -37,6 +37,14 @@ export const router = createBrowserRouter([
             element: <ProtectedRoute />,
             children: [
               {
+                path: 'monitoring',
+                lazy: async () => ({ Component: (await import('../features/patient-monitoring/PatientMonitoringPage')).PatientMonitoringIndex }),
+              },
+              {
+                path: 'monitoring/:patientId',
+                lazy: async () => ({ Component: (await import('../features/patient-monitoring/PatientMonitoringPage')).PatientMonitoringPage }),
+              },
+              {
                 path: 'sessions',
                 element: <SessionsPage />,
               },

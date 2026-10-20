@@ -50,6 +50,14 @@ export function errorHandler(
       DEVICE_DISABLED: 401,
       INVALID_CURSOR: 400,
       AUTH_USER_DISABLED: 403,
+      RESOURCE_DISABLED: 403,
+      DEVICE_ID_MISMATCH: 403,
+      PATIENT_NOT_FOUND: 404,
+      ASSIGNMENT_NOT_FOUND: 404,
+      ASSIGNMENT_CONFLICT: 409,
+      ASSIGNMENT_IN_USE: 409,
+      ASSIGNMENT_NOT_ACTIVE: 409,
+      VALIDATION_ERROR: 400,
     };
     const statusCode = statusMap[err.code] ?? 400;
     sendError(res, err.code, err.message, statusCode, requestId);

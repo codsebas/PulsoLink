@@ -5,7 +5,7 @@ import { UsersRepository } from '../../users/users.repository.js';
 const profileSchema = z.object({
   uid: z.string().min(1),
   displayName: z.string(),
-  role: z.enum(['admin', 'operator']),
+  role: z.enum(['admin', 'viewer', 'operator']),
   enabled: z.boolean(),
 });
 

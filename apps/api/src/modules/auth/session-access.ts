@@ -11,7 +11,7 @@ import type { AuthUser } from './auth.types.js';
  * la sección 7 ("Recurso inexistente o no visible para ese usuario").
  */
 export function canAccessSession(user: AuthUser, session: { operatorId: string }): boolean {
-  if (user.role === 'admin') {
+  if (user.role === 'admin' || user.role === 'viewer') {
     return true;
   }
   return session.operatorId === user.id;

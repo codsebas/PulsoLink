@@ -53,6 +53,19 @@ export const AssignmentsPage: React.FC = () => {
   const [reassignPatientId, setReassignPatientId] = useState('');
   const [reassignDeviceId, setReassignDeviceId] = useState('');
   const [reassignStep, setReassignStep] = useState<'idle' | 'closing' | 'creating'>('idle');
+  const [reassignPartialFailure, setReassignPartialFailure] = useState(false);
+
+  // Consultas propias del diálogo de reasignación: no dependen de los filtros
+  // ni de la paginación de la tabla (revisión del PR #38).
+  const reassignQueryEnabled = reassignOpen && Boolean(reassignPatientId);
+  const activeForPatientQuery = useAssignments(
+    { patientId: reassignPatientId, status: 'active' },
+    { enabled: reassignQueryEnabled },
+  );
+  const activeForDeviceQuery = useAssignments(
+    { deviceId: reassignDeviceId, status: 'active' },
+    { enabled: reassignOpen && Boolean(reassignDeviceId) },
+  );
 
   const [closeTarget, setCloseTarget] = useState<Assignment | null>(null);
   const closeMutation = useCloseAssignment();
@@ -70,10 +83,33 @@ export const AssignmentsPage: React.FC = () => {
     [deviceCodes],
   );
 
-  const activeForReassignedPatient = useMemo(
-    () => rows.find((a) => a.patientId === reassignPatientId && a.endedAt === null),
-    [rows, reassignPatientId],
-  );
+  // Origen de verdad propio del diálogo: primera página del filtro activo del
+  // paciente, sin depender de los filtros ni del cursor de la tabla.
+  const activeForReassignedPatient = activeForPatientQuery.data?.pages[0]?.data[0];
+  const reassignLookupLoading =
+    activeForPatientQuery.isLoading ||
+    (Boolean(reassignDeviceId) && activeForDeviceQuery.isLoading);
+
+  // Asignación activa que ya usa la placa elegida; si es de otro paciente, no
+  // se puede crear la nueva asignación.
+  const deviceActiveAssignment = activeForDeviceQuery.data?.pages[0]?.data[0];
+  const deviceOccupiedByOther =
+    Boolean(deviceActiveAssignment) && deviceActiveAssignment?.patientId !== reassignPatientId;
+  const reassignBlocked = reassignLookupLoading || deviceOccupiedByOther;
+
+  const openReassignDialog = () => {
+    createMutation.reset();
+    closeMutation.reset();
+    setReassignPartialFailure(false);
+    setReassignPatientId('');
+    setReassignDeviceId('');
+    setReassignOpen(true);
+  };
+
+  const closeReassignDialog = () => {
+    setReassignOpen(false);
+    setReassignPartialFailure(false);
+  };
 
   const handleCreate = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -90,22 +126,27 @@ export const AssignmentsPage: React.FC = () => {
   };
 
   const handleReassign = async () => {
-    if (!reassignPatientId || !reassignDeviceId) return;
+    if (!reassignPatientId || !reassignDeviceId || reassignBlocked) return;
+    createMutation.reset();
+    closeMutation.reset();
+    setReassignPartialFailure(false);
+    let closedPrevious = false;
     try {
       if (activeForReassignedPatient) {
         setReassignStep('closing');
         await closeMutation.mutateAsync(activeForReassignedPatient.id);
+        closedPrevious = true;
       }
       setReassignStep('creating');
       await createMutation.mutateAsync({
         patientId: reassignPatientId,
         deviceId: reassignDeviceId,
       });
-      setReassignOpen(false);
-      setReassignPatientId('');
-      setReassignDeviceId('');
+      closeReassignDialog();
     } catch {
-      // El error queda expuesto en mutation.error y se muestra en el diálogo.
+      // El cierre no es atómico con la creación: si ya se cerró, avisar que la
+      // paciente queda sin asignación activa (revisión del PR #38).
+      setReassignPartialFailure(closedPrevious);
     } finally {
       setReassignStep('idle');
     }
@@ -202,11 +243,7 @@ export const AssignmentsPage: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => {
-                createMutation.reset();
-                closeMutation.reset();
-                setReassignOpen(true);
-              }}
+              onClick={openReassignDialog}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold transition-colors"
             >
               <ArrowRightLeft className="w-4 h-4" aria-hidden="true" />
@@ -298,28 +335,46 @@ export const AssignmentsPage: React.FC = () => {
       <FormDialog
         open={reassignOpen}
         title="Reasignar placa"
-        onClose={() => setReassignOpen(false)}
+        onClose={closeReassignDialog}
         onSubmit={(event) => {
           event.preventDefault();
           void handleReassign();
         }}
         submitLabel="Reasignar"
-        isSubmitting={reassignStep !== 'idle' || createMutation.isPending || closeMutation.isPending}
+        isSubmitting={
+          reassignStep !== 'idle' || createMutation.isPending || closeMutation.isPending
+        }
         error={createMutation.error ?? closeMutation.error}
         footer={
           <button
             type="submit"
-            disabled={reassignStep !== 'idle' || createMutation.isPending || closeMutation.isPending}
+            disabled={
+              reassignBlocked ||
+              reassignStep !== 'idle' ||
+              createMutation.isPending ||
+              closeMutation.isPending
+            }
             className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
           >
-            {reassignStep === 'closing'
-              ? 'Cerrando asignación…'
-              : reassignStep === 'creating'
-                ? 'Creando asignación…'
-                : 'Reasignar'}
+            {reassignLookupLoading
+              ? 'Consultando asignaciones…'
+              : reassignStep === 'closing'
+                ? 'Cerrando asignación…'
+                : reassignStep === 'creating'
+                  ? 'Creando asignación…'
+                  : 'Reasignar'}
           </button>
         }
       >
+        {reassignPartialFailure && (
+          <div
+            role="alert"
+            className="p-3 bg-amber-50 border border-amber-300 rounded-lg text-xs text-amber-900"
+          >
+            La asignación anterior ya se cerró; la nueva no se pudo crear. La paciente queda sin
+            asignación activa. Reintenta con una placa disponible.
+          </div>
+        )}
         <SelectField
           id="reassign-patient"
           label="Paciente"
@@ -330,12 +385,15 @@ export const AssignmentsPage: React.FC = () => {
         />
         {reassignPatientId && (
           <p className="p-3 bg-sky-50 border border-sky-200 rounded-lg text-xs text-sky-800">
-            {activeForReassignedPatient ? (
+            {activeForPatientQuery.isLoading ? (
+              'Consultando la asignación activa de la paciente…'
+            ) : activeForReassignedPatient ? (
               <>
                 Se cerrará la asignación activa actual (placa{' '}
                 <strong className="font-mono">
-                  {deviceCodes.get(activeForReassignedPatient.deviceId) ?? activeForReassignedPatient.deviceId}
-                </strong>{' '}
+                  {deviceCodes.get(activeForReassignedPatient.deviceId) ??
+                    activeForReassignedPatient.deviceId}
+                </strong>
                 ) y se creará una nueva. El historial previo del paciente se conserva.
               </>
             ) : (
@@ -351,6 +409,19 @@ export const AssignmentsPage: React.FC = () => {
           onChange={(event) => setReassignDeviceId(event.target.value)}
           options={[{ value: '', label: 'Selecciona una placa…' }, ...deviceOptions]}
         />
+        {reassignDeviceId && activeForDeviceQuery.isLoading && (
+          <p className="text-xs text-slate-500">Consultando la asignación activa de la placa…</p>
+        )}
+        {deviceOccupiedByOther && deviceActiveAssignment && (
+          <div
+            role="alert"
+            className="p-3 bg-rose-50 border border-rose-300 rounded-lg text-xs text-rose-800"
+          >
+            Esta placa ya tiene una asignación activa con{' '}
+            <strong>{patientNames.get(deviceActiveAssignment.patientId) ?? 'otro paciente'}</strong>
+            . Elige otra placa.
+          </div>
+        )}
       </FormDialog>
 
       <ConfirmDialog

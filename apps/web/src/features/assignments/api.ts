@@ -9,7 +9,10 @@ export interface AssignmentFilters {
   deviceId?: string;
 }
 
-export function useAssignments(filters: AssignmentFilters = {}) {
+export function useAssignments(
+  filters: AssignmentFilters = {},
+  options: { enabled?: boolean } = {},
+) {
   return useCursorList<Assignment>({
     queryKey: ['assignments', filters],
     endpoint: '/assignments',
@@ -18,6 +21,7 @@ export function useAssignments(filters: AssignmentFilters = {}) {
       patientId: filters.patientId,
       deviceId: filters.deviceId,
     },
+    enabled: options.enabled ?? true,
   });
 }
 

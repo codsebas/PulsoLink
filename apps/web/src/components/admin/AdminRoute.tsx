@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 import { LoadingState } from '../feedback/LoadingState';
+import { ErrorState } from '../feedback/ErrorState';
 import { useSessionUser } from '../../features/auth/useSessionUser';
 
 interface AdminRouteProps {
@@ -14,13 +15,18 @@ interface AdminRouteProps {
  * este guard solo evita mostrar pantallas que el rol no puede usar.
  */
 export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
-  const { data: user, isLoading, isError } = useSessionUser();
+  const { data: user, isLoading, isError, error, refetch } = useSessionUser();
 
   if (isLoading) {
     return <LoadingState label="Verificando acceso…" />;
   }
 
-  if (isError || !user) {
+  // Un fallo de red o del servidor no significa "sin sesión": se ofrece reintentar.
+  if (isError) {
+    return <ErrorState error={error} title="No se pudo verificar tu sesión" onRetry={() => void refetch()} />;
+  }
+
+  if (!user) {
     return (
       <div className="bg-white border border-slate-200 rounded-xl p-8 text-center space-y-3">
         <ShieldAlert className="w-10 h-10 text-amber-500 mx-auto" aria-hidden="true" />

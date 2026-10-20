@@ -6,6 +6,7 @@ import { FormDialog } from '../../components/admin/FormDialog';
 import { ConfirmDialog } from '../../components/admin/ConfirmDialog';
 import { SelectField } from '../../components/admin/FormFields';
 import { Badge, sessionStatusTone, sourceTone } from '../../components/admin/Badge';
+import { formatApiError } from '../../components/admin/api-error';
 import { useSessionUser } from '../auth/useSessionUser';
 import {
   useSessions,
@@ -98,10 +99,11 @@ export const SessionsPage: React.FC = () => {
   };
 
   const handleStart = async (id: string) => {
+    startMutation.reset();
     try {
       await startMutation.mutateAsync(id);
     } catch {
-      // El fallo se refleja en la lista al reintentar; mostrar en toast futuro.
+      // El error queda expuesto en startMutation.error y se muestra bajo el listado.
     }
   };
 
@@ -267,6 +269,22 @@ export const SessionsPage: React.FC = () => {
         emptyMessage="No hay sesiones registradas."
         emptyHint="Crea una sesión desde una asignación activa para que la placa pueda enviar mediciones."
       />
+
+      {startMutation.error && (
+        <div
+          role="alert"
+          className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800 flex items-start justify-between gap-3"
+        >
+          <span>No se pudo iniciar la sesión: {formatApiError(startMutation.error)}</span>
+          <button
+            type="button"
+            onClick={() => startMutation.reset()}
+            className="font-semibold text-rose-700 hover:underline flex-shrink-0"
+          >
+            Descartar
+          </button>
+        </div>
+      )}
 
       <FormDialog
         open={createOpen}

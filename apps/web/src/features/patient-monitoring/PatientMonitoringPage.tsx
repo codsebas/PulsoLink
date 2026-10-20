@@ -60,11 +60,20 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
   const [range, setRange] = useState<{ from?: string; to?: string }>({});
   const [rangeError, setRangeError] = useState('');
   const cursor = cursors[cursors.length - 1];
-  const user = useQuery({ queryKey: ['auth', 'me'], queryFn: ({ signal }) => apiClient<{ id: string; role: string }>('/auth/me', { signal }) });
-  const authorized = user.data?.data.role === 'admin' || user.data?.data.role === 'viewer';
+  // Same cache shape as PL2-06 useSessionUser: profile directly, or null on 401.
+  // All consumers of ['auth', 'me'] must agree; an API envelope breaks the menu.
+  const user = useQuery({ queryKey: ['auth', 'me'], queryFn: async ({ signal }) => {
+    try {
+      return (await apiClient<{ id: string; displayName: string; role: 'admin' | 'viewer' }>('/auth/me', { signal })).data;
+    } catch (error) {
+      if (error instanceof ApiClientError && error.statusCode === 401) return null;
+      throw error;
+    }
+  }, retry: false, staleTime: 60_000 });
+  const authorized = user.data?.role === 'admin' || user.data?.role === 'viewer';
   // This POST is idempotent by viewId. The gate must succeed before any patient
   // detail/history is shown; polling never repeats the access operation.
-  const access = useQuery({ queryKey: ['patient-access', user.data?.data.id, patientId, viewId],
+  const access = useQuery({ queryKey: ['patient-access', user.data?.id, patientId, viewId],
     queryFn: () => apiClient<{ eventId: string; duplicate: boolean }>(`/patients/${encodeURIComponent(patientId)}/access`, { json: { viewId } }),
     enabled: authorized && Boolean(patientId), staleTime: Infinity, gcTime: 0, retry: 1, refetchOnWindowFocus: false, refetchOnReconnect: false,
   });
@@ -83,7 +92,8 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
     queryFn: ({ signal }) => apiList<PatientMeasurement>(`/patients/${encodeURIComponent(patientId)}/measurements`, { signal, params: { ...range, cursor, limit: 100 } }),
     refetchInterval: visible && activeSession && !cursor ? 10000 : false,
   });
-  if (user.error instanceof ApiClientError && user.error.statusCode === 401) return <Navigate to="/login" replace />;
+  if (user.data === null || [user.error, access.error, patient.error, active.error, latest.error, history.error]
+    .some((error) => error instanceof ApiClientError && error.statusCode === 401)) return <Navigate to="/login" replace />;
   if (user.isPending || (authorized && access.isPending)) return <p role="status">Preparando acceso al expediente…</p>;
   if (user.isError || access.isError) return <ErrorMessage error={user.error ?? access.error} retry={() => void (user.isError ? user.refetch() : access.refetch())} />;
   if (!authorized) return <p role="alert" className="rounded-xl bg-amber-50 p-4 text-amber-900">Tu perfil requiere autorización de consulta. Contacta con administración.</p>;

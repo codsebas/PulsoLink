@@ -59,6 +59,17 @@ module.exports = async function reviewDashboard(page) {
   await page.route('**/api/v1/patients/demo-patient-a/access', (route) => route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: { code: 'FORBIDDEN', message: 'Fixture de permisos' } }) }));
   await page.goto('http://localhost:5173/monitoring/demo-patient-a');
   await page.getByRole('alert').filter({ hasText: 'No tienes permiso' }).waitFor();
+  await page.unroute('**/api/v1/patients/demo-patient-a/access');
+  await page.route('**/api/v1/patients/demo-patient-a/latest', (route) => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ error: { code: 'UNAUTHENTICATED', message: 'Sesión vencida' } }) }));
+  await page.goto('http://localhost:5173/monitoring/demo-patient-a');
+  await page.waitForURL('**/login');
+  await page.getByRole('heading', { name: patient.displayName, exact: true }).waitFor({ state: 'hidden' });
+  await page.route('**/api/v1/auth/me', (route) => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ error: { code: 'UNAUTHENTICATED', message: 'Sin sesión' } }) }));
+  const beforeAnonymous = calls.access;
+  await page.goto('http://localhost:5173/monitoring/demo-patient-a');
+  await page.waitForURL('**/login');
+  if (calls.access !== beforeAnonymous) throw new Error('Se auditó un expediente sin sesión.');
   return { fixture: true, desktop: '1280x900', mobile: '375x812', noHorizontalOverflow: true,
-    pagination: true, accessOnce: true, pollingStoppedOnExit: true, permissionError: true };
+    pagination: true, accessOnce: true, pollingStoppedOnExit: true, permissionError: true,
+    expiredSessionRedirect: true, anonymousRedirect: true };
 };

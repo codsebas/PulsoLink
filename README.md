@@ -570,6 +570,10 @@ npm run dev --workspace=tools/device-simulator  # Simulador IoT
 npm run typecheck   # Validación de tipos TypeScript en todos los workspaces
 npm run build       # Compilación de producción
 npm run lint        # Verificación de linters
+
+# 5. Pruebas automatizadas (sin emuladores; las de integración se omiten)
+npm run test --workspace=apps/api
+npm run test --workspace=apps/web
 ```
 
 ### Enlaces a la documentación del sistema:
@@ -580,4 +584,5 @@ npm run lint        # Verificación de linters
 - **Firmware NodeMCU:** [firmware/nodemcu/README.md](firmware/nodemcu/README.md)
 - **Documentación de hardware:** [docs/hardware/README.md](docs/hardware/README.md)
 - **Planificación de entrega:** [docs/planificacion/avance-2026-10-17.md](docs/planificacion/avance-2026-10-17.md)
+- **Capa de datos de monitoreo e historial:** [docs/diseno/capa-datos-monitoreo-pl2-07.md](docs/diseno/capa-datos-monitoreo-pl2-07.md) y [evidencia](docs/evidencias/monitoreo-pl2-07.md)
 

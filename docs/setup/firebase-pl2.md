@@ -28,7 +28,11 @@ Pop-Location
 
 El script solo acepta hosts locales y proyecto `demo-`; crea `demo-admin` y `demo-viewer` (correos `demo-admin@example.invalid` y `demo-viewer@example.invalid`), sus perfiles y `demo-device-1`/`demo-credential-1`. No imprime contraseñas, secretos ni tokens. Las identidades existentes conservan contraseña, nombre y habilitación. Los perfiles/documentos existentes no se sobrescriben. Volver a ejecutar en la misma terminal conserva los valores; no regenerar el secreto para una credencial existente.
 
-También prepara dos pacientes seudónimos y 48 lecturas simuladas del paciente A: 24 con la placa 1 y 24 con la placa 2, separados por un hueco. El paciente B comienza sin lecturas. El conjunto se crea en una sola transacción con un marcador: repetir la semilla no cambia reservas ni fechas. Si los IDs de demostración ya tienen otros datos, se rechaza el conflicto. No usar esta semilla para cargar datos reales.
+También prepara dos pacientes seudónimos y 48 lecturas simuladas del paciente A: 24 con la placa 1 y 24 con la placa 2, separados por un hueco. El paciente B comienza sin lecturas.
+
+Además prepara un tercer paciente seudónimo de monitoreo (`monitor-patient`) con dos placas y dos sesiones: 240 lecturas con tres lecturas por milisegundo (empate temporal), una desconexión de quince segundos entre placas y lecturas sin contacto óptico. Con el límite de página de 100 el historial exige tres páginas; sirve para probar la paginación del frontend (#31).
+
+Cada conjunto se crea en una sola transacción con un marcador: repetir la semilla no cambia reservas ni fechas. Si los IDs de demostración ya tienen otros datos, se rechaza el conflicto. No usar esta semilla para cargar datos reales.
 
 Auth y Firestore no comparten transacción. Si Auth se crea y falla Firestore, las identidades se conservan: corregir el conflicto y repetir con los mismos valores completa solo lo faltante. No borrar ni reactivar cuentas automáticamente. El anterior `provision-auth-users.ts` es legado: actualiza cuentas existentes y no debe usarse como sustituto de esta semilla repetible.
 

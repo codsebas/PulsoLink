@@ -1,9 +1,11 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { Activity, Heart, Thermometer } from 'lucide-react';
 import { apiClient, apiList, ApiClientError } from '../../lib/api-client';
 import { VitalCard } from '../monitoring/VitalCard';
+import { pollingPlan, useDocumentVisible, usePatientAccess, usePatientHistory, usePatientLatest } from './hooks';
+import type { HistoryRange } from './api';
 import type { Patient, PatientMeasurement, PatientMonitoringMeta, PatientSession } from './patient-monitoring.types';
 import { guatemalaDate, rangeFromLocal, formatVital } from './trends';
 
@@ -20,11 +22,6 @@ function ErrorMessage({ error, retry }: { error: unknown; retry?: () => void }) 
     : 'No fue posible cargar los datos. Comprueba la conexión e inténtalo de nuevo.';
   return <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">{message}
     {retry ? <button type="button" onClick={retry} className="ml-3 rounded border border-rose-300 px-3 py-1 font-semibold focus-visible:outline focus-visible:outline-2">Reintentar</button> : null}</div>;
-}
-function useVisible() {
-  const [visible, setVisible] = useState(() => !document.hidden);
-  useEffect(() => { const update = () => setVisible(!document.hidden); document.addEventListener('visibilitychange', update); return () => document.removeEventListener('visibilitychange', update); }, []);
-  return visible;
 }
 
 export function PatientMonitoringIndex() {
@@ -53,13 +50,11 @@ export function PatientMonitoringPage() {
 }
 
 function PatientMonitoring({ patientId }: { patientId: string }) {
-  const visible = useVisible();
   const [viewId] = useState(() => crypto.randomUUID());
-  const [cursors, setCursors] = useState<Array<string | undefined>>([undefined]);
   const [dates, setDates] = useState({ from: '', to: '' });
-  const [range, setRange] = useState<{ from?: string; to?: string }>({});
+  const [range, setRange] = useState<HistoryRange>({});
   const [rangeError, setRangeError] = useState('');
-  const cursor = cursors[cursors.length - 1];
+  const visible = useDocumentVisible();
   // Same cache shape as PL2-06 useSessionUser: profile directly, or null on 401.
   // All consumers of ['auth', 'me'] must agree; an API envelope breaks the menu.
   const user = useQuery({ queryKey: ['auth', 'me'], queryFn: async ({ signal }) => {
@@ -73,25 +68,19 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
   const authorized = user.data?.role === 'admin' || user.data?.role === 'viewer';
   // This POST is idempotent by viewId. The gate must succeed before any patient
   // detail/history is shown; polling never repeats the access operation.
-  const access = useQuery({ queryKey: ['patient-access', user.data?.id, patientId, viewId],
-    queryFn: () => apiClient<{ eventId: string; duplicate: boolean }>(`/patients/${encodeURIComponent(patientId)}/access`, { json: { viewId } }),
-    enabled: authorized && Boolean(patientId), staleTime: Infinity, gcTime: 0, retry: 1, refetchOnWindowFocus: false, refetchOnReconnect: false,
-  });
+  const access = usePatientAccess(patientId, viewId, authorized);
   const ready = authorized && access.isSuccess;
   const patient = useQuery({ queryKey: ['patient', patientId], queryFn: ({ signal }) => apiClient<Patient>(`/patients/${encodeURIComponent(patientId)}`, { signal }), enabled: ready });
   const active = useQuery({ queryKey: ['patient', patientId, 'active-session'], enabled: ready && patient.isSuccess,
     queryFn: ({ signal }) => apiList<PatientSession>('/sessions', { signal, params: { patientId, status: 'active', limit: 1 } }),
-    refetchInterval: (query) => visible && query.state.data?.data[0]?.status === 'active' ? 2000 : false,
+    refetchInterval: (query) => (visible && query.state.data?.data[0]?.status === 'active' ? 2000 : false),
   });
   const activeSession = active.data?.data[0];
-  const latest = useQuery({ queryKey: ['patient', patientId, 'latest', activeSession?.id ?? 'inactive'],
-    queryFn: ({ signal }) => apiClient<PatientMeasurement | null>(`/patients/${encodeURIComponent(patientId)}/latest`, { signal }),
-    enabled: ready && patient.isSuccess && active.isSuccess, refetchInterval: visible && activeSession ? 2000 : false,
-  });
-  const history = useQuery({ queryKey: ['patient', patientId, 'history', range, cursor], enabled: ready && patient.isSuccess,
-    queryFn: ({ signal }) => apiList<PatientMeasurement>(`/patients/${encodeURIComponent(patientId)}/measurements`, { signal, params: { ...range, cursor, limit: 100 } }),
-    refetchInterval: visible && activeSession && !cursor ? 10000 : false,
-  });
+  // Solo hay sesión activa mientras la placa transmite: el polling se detiene solo
+  // y nunca vuelve a bajar las páginas ya acumuladas del historial.
+  const plan = pollingPlan({ visible, sessionActive: Boolean(activeSession) });
+  const latest = usePatientLatest(patientId, { enabled: ready && patient.isSuccess && active.isSuccess, poll: plan.latest !== false });
+  const history = usePatientHistory(patientId, range, { enabled: ready && patient.isSuccess, poll: plan.history !== false });
   if (user.data === null || [user.error, access.error, patient.error, active.error, latest.error, history.error]
     .some((error) => error instanceof ApiClientError && error.statusCode === 401)) return <Navigate to="/login" replace />;
   if (user.isPending || (authorized && access.isPending)) return <p role="status">Preparando acceso al expediente…</p>;
@@ -100,11 +89,10 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
   if (patient.isPending) return <p role="status">Cargando paciente…</p>;
   if (patient.isError) return <ErrorMessage error={patient.error} retry={() => void patient.refetch()} />;
   const row = latest.data?.data;
-  const meta = latest.data?.meta as PatientMonitoringMeta | undefined;
-  const readings = history.data?.data ?? [];
-  const newest = readings[0]?.receivedAt;
-  const oldest = readings[readings.length - 1]?.receivedAt;
-  const refresh = () => { void active.refetch(); void latest.refetch(); void history.refetch(); };
+  const meta = latest.data?.meta;
+  const readings = history.readings;
+  const coverage = history.coverage;
+  const refresh = () => { void active.refetch(); void latest.refetch(); history.refresh(); };
   return <main className="space-y-6">
     <Link to="/monitoring" className="text-sm font-medium text-sky-700 hover:underline">← Pacientes</Link>
     <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold text-sky-700">{patient.data.data.code}</p>
@@ -124,15 +112,16 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
     <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-500"><p>Última lectura: {guatemalaDate(row?.receivedAt)}</p><p>Última comunicación: {guatemalaDate(meta?.lastSeenAt)}</p>{meta?.stale ? <p>Sin lectura reciente; consulta el historial para ver datos anteriores.</p> : null}</div>
     <section className="space-y-5 border-t border-slate-200 pt-6" aria-labelledby="history-title">
       <div><h2 id="history-title" className="text-xl font-semibold text-slate-900">Evolución e historial</h2><p className="mt-1 text-sm text-slate-600">Valores puntuales, sin interpretación clínica. Los huecos conservan desconexiones, cambios de sesión y datos ausentes.</p></div>
-      <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => { event.preventDefault(); try { setRange(rangeFromLocal(dates.from, dates.to)); setCursors([undefined]); setRangeError(''); } catch (error) { setRangeError(error instanceof Error ? error.message : 'Rango inválido'); } }}>
+      <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => { event.preventDefault(); try { setRange(rangeFromLocal(dates.from, dates.to)); setRangeError(''); } catch (error) { setRangeError(error instanceof Error ? error.message : 'Rango inválido'); } }}>
         <label className="text-sm text-slate-700">Desde (Guatemala)<input type="datetime-local" value={dates.from} onChange={(event) => setDates({ ...dates, from: event.target.value })} className="mt-1 block rounded-lg border border-slate-300 bg-white p-2" /></label>
         <label className="text-sm text-slate-700">Hasta, sin incluir (Guatemala)<input type="datetime-local" value={dates.to} onChange={(event) => setDates({ ...dates, to: event.target.value })} className="mt-1 block rounded-lg border border-slate-300 bg-white p-2" /></label>
         <button className="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white" type="submit">Aplicar rango</button>
-        <button className="rounded-lg border px-4 py-2 text-sm" type="button" onClick={() => { setDates({ from: '', to: '' }); setRange({}); setCursors([undefined]); setRangeError(''); }}>Desde el inicio registrado</button>
+        <button className="rounded-lg border px-4 py-2 text-sm" type="button" onClick={() => { setDates({ from: '', to: '' }); setRange({}); setRangeError(''); }}>Desde el inicio registrado</button>
       </form>
       {rangeError ? <p role="alert" className="text-sm text-rose-700">{rangeError}</p> : null}
-      {history.isPending ? <p role="status">Cargando historial…</p> : history.isError ? <ErrorMessage error={history.error} retry={() => void history.refetch()} /> : readings.length === 0 ? <p className="rounded-xl border bg-white p-6 text-sm">No hay lecturas en este intervalo.</p> : <>
-        <p className="text-sm text-slate-600">Página {cursors.length} · {readings.length} lecturas cargadas: {guatemalaDate(oldest)} — {guatemalaDate(newest)}. {history.data?.pagination.hasMore ? 'Hay datos más antiguos.' : 'Alcanzaste el inicio del intervalo consultado.'}</p>
+      {history.isPending ? <p role="status">Cargando historial…</p> : history.isError ? <ErrorMessage error={history.error} retry={refresh} /> : readings.length === 0 ? <p className="rounded-xl border bg-white p-6 text-sm">No hay lecturas en este intervalo.</p> : <>
+        <p className="text-sm text-slate-600">{coverage.loaded} lecturas cargadas en {coverage.pagesLoaded} {coverage.pagesLoaded === 1 ? 'página' : 'páginas'}: {guatemalaDate(coverage.oldestReceivedAt)} — {guatemalaDate(coverage.newestReceivedAt)}. {coverage.hasMore ? 'Hay datos más antiguos por cargar.' : 'Alcanzaste el inicio del intervalo consultado.'}</p>
+        {coverage.truncated ? <p className="text-xs font-semibold text-amber-800">Se conservaron las {coverage.loaded} lecturas más recientes; {coverage.dropped} más antiguas quedaron fuera de memoria y de la gráfica.</p> : null}
         {readings.some((reading) => reading.source === 'simulated') ? <p className="text-xs font-semibold text-violet-800">Este intervalo contiene datos simulados.</p> : null}
         <Suspense fallback={<p role="status">Preparando gráficas…</p>}><PatientTrends readings={readings} /></Suspense>
         <div className="overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[720px] bg-white text-left text-sm"><caption className="sr-only">Valores y calidad por lectura del intervalo cargado</caption>
@@ -141,8 +130,8 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
             {keys.map((key) => <td className="p-3" key={key}>{reading.measurements[key].status === 'valid' ? formatVital(reading.measurements[key].value) : '—'}<span className="mt-1 block text-xs text-slate-500">{quality[reading.measurements[key].status]}</span></td>)}<td className="p-3">{reading.source === 'simulated' ? 'Simulado' : 'Dispositivo real'}</td></tr>)}</tbody>
         </table></div>
       </>}
-      <div className="flex flex-wrap gap-3"><button type="button" disabled={cursors.length === 1 || history.isFetching} onClick={() => setCursors((value) => value.slice(0, -1))} className="rounded-lg border bg-white px-4 py-2 text-sm disabled:opacity-40">Más recientes</button>
-        <button type="button" disabled={!history.data?.pagination.hasMore || history.isFetching} onClick={() => setCursors((value) => [...value, history.data!.pagination.nextCursor!])} className="rounded-lg border bg-white px-4 py-2 text-sm disabled:opacity-40">Más antiguas</button></div>
+      <div className="flex flex-wrap gap-3"><button type="button" disabled={!history.hasMore || history.isFetching} onClick={history.loadMore} className="rounded-lg border bg-white px-4 py-2 text-sm disabled:opacity-40">Cargar más antiguas</button>
+        <button type="button" disabled={history.isFetching} onClick={history.refresh} className="rounded-lg border bg-white px-4 py-2 text-sm disabled:opacity-40">Refrescar lecturas recientes</button></div>
     </section>
     <p className="text-xs text-slate-500">Prototipo académico, no clínico. SpO₂ estimada sujeta a contacto y calibración; temperatura superficial, no temperatura corporal central. Las tendencias no son ECG ni ondas PPG.</p>
   </main>;

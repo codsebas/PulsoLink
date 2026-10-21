@@ -100,6 +100,8 @@ Resultados efectivamente obtenidos: [JSON HTTP](../evidencias/hugo-pl2-http.json
 
 No se declara corregido ningún defecto externo. Los seis puntos P-01–P-06 de Axel mantienen su proceso de coordinación; esta entrega no decide cambios de contrato ni modifica sus resultados históricos.
 
+Seguimiento publicado: [#45 — H-01/H-02, ingestión y autenticación](https://github.com/codsebas/PulsoLink/issues/45), [#46 — H-03, rutas CRUD](https://github.com/codsebas/PulsoLink/issues/46). Entrega para revisión: [PR #47](https://github.com/codsebas/PulsoLink/pull/47).
+
 ## Apoyo físico #35
 
 El mismo payload y los escenarios normal/no_contact/unavailable/invalid/corte sirven como referencia a NodeMCU. Antes de aceptar hardware: registrar modelo/librerías, compilación/carga real, HTTPS verificado, sesión/asignación activas y lectura física persistida visible en el paciente correcto; temperatura superficial y SpO₂ estimada. No hubo placa conectada en esta ejecución, por lo que esos criterios siguen pendientes de Sebastián.

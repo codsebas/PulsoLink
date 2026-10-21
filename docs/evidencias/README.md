@@ -40,6 +40,9 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 
 ## Evidencias disponibles
 
+- [PL2 de Gerson: Auth y monitoreo juntos en emuladores](gerson-integracion-auth-monitoreo.md): combinación solo local de #41/#42, API autenticada, historial de dos placas, semilla repetible y navegador; incluye procedimiento y pendientes, sin declarar esos PR integrados en main.
+- [PL2 de Gerson: seguimiento de aceptación](../planificacion/aceptacion-gerson-pl2-2026-10-20.md): relaciona criterios de #25/#26/#29/#34 con evidencias, commits y pendientes; distingue las 127 pruebas de #39 de las 148 de la revisión del PR abierto #41.
+- [PL2 de Gerson: ejecución original](gerson-pl2.md): Firebase, persistencia y propuesta de dashboard con resultados de emuladores y límites de las capturas simuladas.
 - [AV1-02: recepción autenticada de mediciones por API](dispositivo-av1-02.md): verificación de endpoints del Contrato A (`/device/config`, `/device/heartbeat`, `/device/measurements`), autenticación Bearer, validación Zod e idempotencia.
 - [AV1-04: persistencia Firestore](firestore-av1-04.md): ejecución histórica de repositorios con emuladores; no acredita el flujo HTTP o web integrado.
 - [AV1-09: arranque e integración inicial](integracion-av1-09.md): comprobaciones locales de scripts y estado de dependencias para la rama de integración.

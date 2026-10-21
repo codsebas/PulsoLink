@@ -13,6 +13,8 @@ import { InMemoryIdentityProvider } from '../src/modules/auth/adapters/in-memory
 import { InMemoryUserRepository } from '../src/modules/auth/adapters/in-memory-user-repository.js';
 import { createDevicesRouter } from '../src/modules/devices/devices.routes.js';
 import { DevicesRepository } from '../src/modules/devices/devices.repository.js';
+import { PatientsRepository } from '../src/modules/patients/patients.repository.js';
+import { AssignmentsRepository } from '../src/modules/assignments/assignments.repository.js';
 import { createSessionsRouter } from '../src/modules/sessions/sessions.routes.js';
 import { SessionsService, type SessionsDependencies } from '../src/modules/sessions/sessions.service.js';
 import { SessionsRepository, type SessionDocument } from '../src/modules/sessions/sessions.repository.js';
@@ -51,8 +53,8 @@ function setup(real?: { deps: SessionsDependencies; devices: DevicesRepository }
     cookieSecure: false, sessionTtlMs: 8 * 60 * 60 * 1000, loginRateLimit: { max: 100, windowMs: 900_000 },
   };
   const getById = vi.fn(async (id: string) => id === ownSession.sessionId ? ownSession : null);
-  const create = vi.fn(async (input: { participantCode: string; operatorId: string; deviceId: string }) => ({
-    ...ownSession, ...input,
+  const create = vi.fn(async (assignmentId: string, actorId: string) => ({
+    ...ownSession, patientId: 'patient-1', assignmentId, operatorId: actorId, participantCode: undefined,
   }));
   const start = vi.fn(async () => ({ ...ownSession, status: 'active' as const, startedAt: new Date().toISOString() }));
   const finish = vi.fn(async () => ({ ...ownSession, status: 'finished' as const, finishedAt: new Date().toISOString() }));
@@ -68,7 +70,7 @@ function setup(real?: { deps: SessionsDependencies; devices: DevicesRepository }
     enabled: true, activeSessionId: null, lastSeenAt: new Date().toISOString(),
   }));
   const deps: SessionsDependencies = {
-    sessions: { getById, create, start, finish, list },
+    sessions: { getById, createForAssignment: create, start, finish, list },
     measurements: { getLatest, list: listMeasurements },
     devices: { getById: getDevice },
   };
@@ -103,7 +105,7 @@ describe('Contrato B: dispositivos y sesiones', () => {
     expect((await request(app).get('/api/v1/sessions')).status).toBe(401);
     const { agent } = await login(operator);
     const denied = await agent.post('/api/v1/sessions').set('Origin', origin)
-      .send({ participantCode: 'P-001', deviceId: 'device-1' });
+      .send({ assignmentId: 'assignment-1' });
     expect(denied.status).toBe(403);
     expect(denied.body.error.code).toBe('CSRF_INVALID');
     expect(create).not.toHaveBeenCalled();
@@ -141,18 +143,20 @@ describe('Contrato B: dispositivos y sesiones', () => {
     expect(listMeasurements).toHaveBeenCalled();
   });
 
-  it('crea sesiones con el administrador autenticado y traduce conflictos de dispositivo', async () => {
+  it('crea sesiones desde la asignación con el administrador autenticado y traduce conflictos', async () => {
     const { login, create, start } = setup();
     const { agent, csrf } = await login(admin);
     const response = await agent.post('/api/v1/sessions').set('Origin', origin).set('X-CSRF-Token', csrf)
-      .send({ participantCode: 'P-001', deviceId: 'device-1' });
+      .send({ assignmentId: 'assignment-1' });
     expect(response.status).toBe(201);
-    expect(response.body.data).toMatchObject({ id: 'session-1', operatorId: admin.uid, status: 'created' });
-    expect(create).toHaveBeenCalledWith({ participantCode: 'P-001', operatorId: admin.uid, deviceId: 'device-1' });
-    create.mockRejectedValueOnce(new PersistenceError('DEVICE_DISABLED', 'Dispositivo no habilitado.'));
+    expect(response.body.data).toMatchObject({ id: 'session-1', patientId: 'patient-1', assignmentId: 'assignment-1', status: 'created' });
+    expect(create).toHaveBeenCalledWith('assignment-1', admin.uid);
+    create.mockRejectedValueOnce(new PersistenceError('RESOURCE_DISABLED', 'Paciente o placa deshabilitados.'));
     const disabled = await agent.post('/api/v1/sessions').set('Origin', origin).set('X-CSRF-Token', csrf)
-      .send({ participantCode: 'P-001', deviceId: 'device-1' });
+      .send({ assignmentId: 'assignment-1' });
     expect(disabled.status).toBe(403);
+    expect((await agent.post('/api/v1/sessions').set('Origin', origin).set('X-CSRF-Token', csrf)
+      .send({ participantCode: 'P-001', deviceId: 'device-1' })).status).toBe(400);
     start.mockRejectedValueOnce(new PersistenceError('DEVICE_BUSY', 'El dispositivo ya está reservado.'));
     const busy = await agent.post('/api/v1/sessions/session-1/start').set('Origin', origin).set('X-CSRF-Token', csrf);
     expect(busy.status).toBe(409);
@@ -214,13 +218,17 @@ describe.skipIf(!emulatorEnabled)('Contrato B con Firestore Emulator', () => {
         activeSessionId: null, lastSeenAt: null,
       });
       const devices = new DevicesRepository(() => db);
+      const patients = new PatientsRepository(() => db);
+      const assignments = new AssignmentsRepository(() => db);
       const sessions = new SessionsRepository(() => db);
       const measurements = new MeasurementsRepository(() => db);
       const { login } = setup({ deps: { devices, sessions, measurements }, devices });
       const { agent, csrf } = await login(admin);
+      const patient = await patients.create({ code: 'P-001', displayName: 'Alias de prueba' }, admin.uid);
+      const assignment = await assignments.create({ patientId: patient.id, deviceId }, admin.uid);
 
       const created = await agent.post('/api/v1/sessions').set('Origin', origin).set('X-CSRF-Token', csrf)
-        .send({ participantCode: 'P-001', deviceId });
+        .send({ assignmentId: assignment.id });
       expect(created.status).toBe(201);
       const id = created.body.data.id as string;
       expect((await agent.get(`/api/v1/sessions?deviceId=${deviceId}`)).body.data).toEqual([created.body.data]);
@@ -233,7 +241,7 @@ describe.skipIf(!emulatorEnabled)('Contrato B con Firestore Emulator', () => {
 
       // Esta prueba del Contrato B escribe mediante el repositorio compartido con el Contrato A.
       await measurements.ingest(deviceId, {
-        sessionId: id, bootId: randomUUID(), sequence: 1, measurements: measurement.measurements,
+        deviceId, capturedAt: null, sessionId: id, bootId: randomUUID(), sequence: 1, measurements: measurement.measurements,
       });
       const latest = await agent.get(`/api/v1/sessions/${id}/latest`);
       expect(latest.status).toBe(200);

@@ -2,8 +2,8 @@ openapi: 3.1.0
 info:
   title: "PulsoLink — Contrato A: dispositivo / simulador"
   version: 2.0.0
-  description: "Objetivo aprobado 18-10-2026, pendiente de implementación coordinada. La API actual no exige
-    deviceId en cuerpos ni relaciones paciente/asignación. Versión incompatible 2.0.0 del documento; se
+  description: "Objetivo aprobado 18-10-2026. La API exige deviceId en los cuerpos y comprueba las relaciones
+    paciente/asignación mediante repositorios; el emisor y la validación de nube quedan por integrar. Se
     mantiene /api/v1. Un único endpoint de ingestión. No hay lotes ni cola offline: descartar muestras del
     corte y enviar solo nuevas al reconectar; solo reintento inmediato limitado de la petición en curso.
     Prototipo académico no clínico. receivedAt es autoritativo; no enviar patientId, assignmentId ni source.
@@ -109,9 +109,9 @@ paths:
     post:
       operationId: postDeviceHeartbeat
       summary: Presencia independiente del contacto óptico
-      description: "Cambio pendiente: deviceId obligatorio y contrastado con credencial; discrepancia 403
+      description: "deviceId obligatorio y contrastado con credencial; discrepancia 403
         DEVICE_ID_MISMATCH. Actualiza lastSeenAt del servidor, no genera una medición."
-      x-implementation-status: change-pending
+      x-implementation-status: implemented-emulator-verified
       requestBody:
         required: true
         content:
@@ -185,7 +185,7 @@ paths:
         IDEMPOTENCY_CONFLICT. Nueva muestra con relación inactiva da 409 SESSION_NOT_ACTIVE o
         ASSIGNMENT_NOT_ACTIVE. capturedAt obligatorio UTC o null. Temperatura superficial; SpO2 académica;
         valores valid no son validación clínica.
-      x-implementation-status: change-pending
+      x-implementation-status: implemented-emulator-verified
       requestBody:
         required: true
         content:

@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-10-21T04:58:55.640Z",
+  "browser": "155.0.4283.62",
+  "fixture": "seed-simulator-qa; synthetic persisted history",
+  "results": [
+    {
+      "id": "UI-H01-login-viewer",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H02-partial-coverage",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H03-complete-two-boards",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H04-null-not-zero",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H05-stale-and-simulated",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H06-width-360",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H06-width-768",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H06-width-1440",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H07-keyboard-controls",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H08-history-after-reload",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H09-empty-patient",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H10-viewer-no-create",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-H11-web-suite-real-api",
+      "state": "PASS"
+    }
+  ]
+}

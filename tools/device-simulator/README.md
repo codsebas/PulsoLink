@@ -1,25 +1,77 @@
-# PulsoLink — Simulador IoT de Dispositivo
+# PulsoLink — simulador IoT (Contrato A 2.0.0)
 
-> **Alcance objetivo:** El [contrato aprobado](../../docs/arquitectura/contrato-aprobado-2026-10-18.md) y el [plan vigente](../../docs/planificacion/ejecucion-2026-10-18.md) definen el objetivo del simulador bajo Contrato A 2.0.0. El código actual es un esqueleto; debe adaptarse al contrato nuevo y descartar muestras producidas sin conexión.
+Responsables: HugoX2024 y codsebas, issue #44. Node.js 24.15.0 + TypeScript; solo HTTP REST, sin SDK de Firebase ni acceso directo a Firestore.
 
-Herramienta en Node.js y TypeScript para simular la transmisión periódica de mediciones telemétricas de signos vitales hacia el backend de PulsoLink, conforme a las especificaciones del **Contrato A**.
+Implementa config, heartbeat y mediciones serializadas. El backend fija paciente, asignación y origen; registrar la placa como `simulated`. La API de main `ad4dede` todavía rechaza el campo obligatorio `deviceId`: la integración depende de #27. El simulador se detiene ante esa incompatibilidad; no elimina campos para volver al contrato anterior.
 
-- **Responsable asignado:** `@HugoX2024` (Issue #7).
-- **Ubicación:** `tools/device-simulator/`.
+## Ejecutar
 
----
+Desde raíz PowerShell:
 
-## 1. Responsabilidades del Módulo
+```powershell
+npm ci
+Copy-Item tools/device-simulator/.env.example tools/device-simulator/.env
+# Completar .env con la credencial de prueba aprovisionada por el backend.
+npm run dev --workspace=tools/device-simulator
+```
 
-1. Consultar periódicamente `GET /api/v1/device/config` con la cabecera `Authorization: Bearer <credentialId>.<secret>`.
-2. Enviar heartbeat periódico mediante `POST /api/v1/device/heartbeat`.
-3. Cuando exista una sesión activa asignada al dispositivo (`activeSessionId` no nulo), transmitir las 3 magnitudes cada 2 segundos mediante `POST /api/v1/device/measurements`:
-   - Frecuencia cardíaca (`heartRate`: bpm).
-   - SpO₂ estimada (`spo2`: %).
-   - Temperatura superficial (`skinTemperature`: °C).
-4. Generar un `bootId` único por arranque y número de secuencia monotónicamente creciente para garantizar idempotencia.
-5. Permitir alternar escenarios:
-   - **Normal:** mediciones con status `valid`.
-   - **Sin contacto óptico:** `heartRate` y `spo2` con status `no_contact` y valor `null`, conservando `skinTemperature` disponible.
-   - **Desconexión:** suspender transmisión y heartbeat para evidenciar estado `stale` en la API.
-6. Sin credenciales de administración de Firebase ni acceso directo a la base de datos (todo pasa por la API de Express).
+Alternativa compilada:
+
+```powershell
+npm run build --workspace=tools/device-simulator
+npm start --workspace=tools/device-simulator
+```
+
+También se pueden ejecutar `npm run dev` y `npm start` dentro de `tools/device-simulator/`. `.env` se busca en el directorio de ejecución; npm workspace usa la carpeta del simulador. Las variables ya definidas en el entorno tienen prioridad. Ctrl+C/SIGTERM aborta la petición en curso y detiene todos los envíos.
+
+## Variables
+
+| Variable | Uso / valor predeterminado |
+| --- | --- |
+| API_BASE_URL | http://localhost:3001/api/v1; usar HTTPS fuera del entorno local/LAN documentado |
+| DEVICE_ID | Obligatoria; identidad registrada de la placa simulada |
+| DEVICE_CREDENTIAL_ID | Obligatoria; ID de credencial, sin puntos/espacios |
+| DEVICE_SECRET | Obligatoria; solo cabecera Bearer, nunca logs |
+| SIMULATOR_MODE | normal, no_contact, unavailable, invalid o random_disconnect; normal por defecto |
+| SIMULATOR_SEED | 42; números y cortes posteriores reproducibles para la misma ejecución |
+| REQUEST_TIMEOUT_MS | 5000; límite de cada petición |
+| CONFIG_INTERVAL_MS | 2000; refresco de sesión incluso si no hay sesión activa |
+| RECONNECT_INTERVAL_MS | 2000; espera mínima entre reconexiones |
+| DISCONNECT_EVERY_MS | 60000; primer corte; siguientes intervalos entre 0.5 y 1.5 veces este valor |
+| DISCONNECT_DURATION_MS | 50000; supera el umbral de desconexión de 45 s |
+
+No versionar `.env`, tokens, cuentas de servicio ni contraseñas. `.env.example` solo contiene marcadores. El cliente rechaza URL con usuario/contraseña/query/fragmento y no sigue redirecciones que podrían trasladar credenciales.
+
+## Operación y escenarios
+
+1. GET `/device/config`: comprueba identidad y obtiene activeSessionId e intervalos. Sin sesión, únicamente config/heartbeat.
+2. POST `/device/heartbeat`: deviceId, bootId UUID por arranque, uptimeMs y firmwareVersion. Cadencia del servidor, normalmente 15 s.
+3. POST `/device/measurements`: una muestra por petición, normalmente cada 2 s; sequence desde 1, capturedAt:null. Nunca envía patientId, assignmentId ni source.
+4. Si una operación tarda, no hay ráfaga para recuperar intervalos perdidos. Las tres peticiones se serializan.
+
+```powershell
+$env:SIMULATOR_MODE='no_contact'
+npm run dev --workspace=tools/device-simulator
+# Detener con Ctrl+C antes de elegir otro modo.
+```
+
+- `normal`: pulso 60–100 bpm, SpO2 estimada 95–100 %, temperatura superficial 25–35 C.
+- `no_contact`: ópticos null/no_contact; temperatura sigue válida e independiente.
+- `unavailable` / `invalid`: las tres magnitudes null con su estado correspondiente.
+- `random_disconnect`: suspende toda comunicación durante el corte. Descarta las muestras; al regresar consulta config y envía una nueva, sin cola ni reenvío histórico.
+
+Un fallo real de red, timeout o 5xx también descarta la petición de medición y fuerza nueva config tras la espera. No se reintenta la muestra anterior: el contrato permite, pero no obliga, un reintento inmediato. Así nunca se confunde un corte con una cola de reenvío. Si el servidor guardó una petición cuya respuesta se perdió, la muestra siguiente usa otra secuencia. La deduplicación se verifica expresamente mediante la colección QA.
+
+201 exige duplicate:false; 200 exige duplicate:true con referencia y fecha. 409 SESSION_NOT_ACTIVE/ASSIGNMENT_NOT_ACTIVE suspende mediciones y vuelve a config. 429 respeta Retry-After en segundos para todo el tráfico. 400/401/403, otros 409 y respuestas incompatibles detienen el proceso con salida 1. DEVICE_ID_MISMATCH se registra sin secretos. No se inventa validez clínica ni se transforma null en cero.
+
+## Pruebas y QA
+
+```powershell
+npm test --workspace=tools/device-simulator
+npm run typecheck --workspace=tools/device-simulator
+npm run build --workspace=tools/device-simulator
+```
+
+[Procedimiento y matriz HTTP #32](../../docs/qa/pl2-08-hugo.md): `npm run qa --workspace=tools/device-simulator` verifica credenciales, identidad, calidades, duplicados, conflictos, concurrencia, permisos e historia; exige QA_ALLOW_WRITES=true y un fixture desechable. El fixture se prepara con un script del backend protegido para emuladores; el cliente QA nunca accede a Firebase directamente.
+
+[Resultados y límites](../../docs/evidencias/hugo-pl2-2026-10-20.md). Pasar pruebas aisladas del emisor no acredita la API objetivo, la nube ni el hardware. La demostración oficial exige resolver #27 y repetir el recorrido completo.

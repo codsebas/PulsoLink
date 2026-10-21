@@ -1,0 +1,157 @@
+{
+  "contract": "2.0.0",
+  "generatedAt": "2026-10-21T04:59:15.247Z",
+  "environment": "Windows PowerShell; Node 24.15.0; API main ad4dede; Auth/Firestore locales; demo-pulsolink-hugo",
+  "results": [
+    {
+      "id": "A-01",
+      "expected": "401 UNAUTHENTICATED sin credencial",
+      "actual": "HTTP 401 UNAUTHORIZED",
+      "state": "FAIL"
+    },
+    {
+      "id": "A-02",
+      "expected": "401 UNAUTHENTICATED con credencial incorrecta",
+      "actual": "HTTP 401 UNAUTHORIZED",
+      "state": "FAIL"
+    },
+    {
+      "id": "A-03",
+      "expected": "200 config: identidad, sesión e intervalos",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "A-04",
+      "expected": "403 DEVICE_ID_MISMATCH heartbeat",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792558754971",
+      "state": "FAIL"
+    },
+    {
+      "id": "A-05",
+      "expected": "200 heartbeat, solo data.serverTime",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792558754989",
+      "state": "FAIL"
+    },
+    {
+      "id": "A-06",
+      "expected": "403 DEVICE_ID_MISMATCH medición",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792558754995",
+      "state": "FAIL"
+    },
+    {
+      "id": "A-07",
+      "expected": "201 medición nueva, duplicate=false",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792558755007",
+      "state": "FAIL"
+    },
+    {
+      "id": "A-08",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "A-07 no acepta el payload oficial; corregir ingestión #27 antes de probar este caso.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "A-09",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "A-07 no acepta el payload oficial; corregir ingestión #27 antes de probar este caso.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "A-10",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "A-07 no acepta el payload oficial; corregir ingestión #27 antes de probar este caso.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "A-11",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "A-07 no acepta el payload oficial; corregir ingestión #27 antes de probar este caso.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "A-12",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "A-07 no acepta el payload oficial; corregir ingestión #27 antes de probar este caso.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "A-13",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "A-07 no acepta el payload oficial; corregir ingestión #27 antes de probar este caso.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "A-14",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "A-07 no acepta el payload oficial; corregir ingestión #27 antes de probar este caso.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "A-15",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "A-07 no acepta el payload oficial; corregir ingestión #27 antes de probar este caso.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "A-16",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "A-07 no acepta el payload oficial; corregir ingestión #27 antes de probar este caso.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "A-17",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "A-07 no acepta el payload oficial; corregir ingestión #27 antes de probar este caso.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "B-01",
+      "expected": "403 viewer no administra pacientes",
+      "actual": "HTTP 404 NOT_FOUND requestId=req-1792558755080",
+      "state": "FAIL"
+    },
+    {
+      "id": "B-02",
+      "expected": "403 viewer no consulta auditoría",
+      "actual": "HTTP 403 FORBIDDEN requestId=req-1792558755086",
+      "state": "PASS"
+    },
+    {
+      "id": "B-03",
+      "expected": "200 viewer consulta historial",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "B-04",
+      "expected": "Historial fixture: >=2 placas, IDs inmutables, sin duplicados, paginación completa",
+      "actual": "48 lecturas; 2 placas; completo=true",
+      "state": "PASS"
+    },
+    {
+      "id": "B-05",
+      "expected": "Paciente B no contiene lecturas de A",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "B-06",
+      "expected": "CRUD asignaciones disponible (precondición recorrido CON-17/CONC-08)",
+      "actual": "HTTP 404 NOT_FOUND requestId=req-1792558755246",
+      "state": "FAIL"
+    },
+    {
+      "id": "JOINT-CON-17",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "Ejecutar alta/finalización/cierre/reasignación por API cuando #27 implemente CRUD; B-04 solo verifica lectura de historia presembrada.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "JOINT-CONC-08",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "Requiere ingestión 2.0.0 y sesión/asignación creadas por API; ver protocolo conjunto en matriz.",
+      "state": "BLOCKED"
+    }
+  ]
+}

@@ -180,7 +180,7 @@ export function usePatientHistory(
     hasMore: archive.hasNextPage,
     loadMore,
     refresh,
-    isPending: live.isPending && archive.isPending,
+    isPending: live.isPending || archive.isPending,
     isFetching: live.isFetching || archive.isFetching,
     isError: live.isError || archive.isError,
     error: live.error ?? archive.error,

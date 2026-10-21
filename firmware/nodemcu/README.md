@@ -2,6 +2,8 @@
 
 Responsable: `@codsebas`, [issue #12](https://github.com/codsebas/PulsoLink/issues/12). Hardware: NodeMCU ESP8266, MAX30102 por I2C y DS18B20 TO-92 por 1-Wire; ver [hardware](../../docs/hardware/README.md).
 
+> **Alcance objetivo:** El [contrato aprobado](../../docs/arquitectura/contrato-aprobado-2026-10-18.md) y el [plan vigente](../../docs/planificacion/ejecucion-2026-10-18.md) definen el objetivo de firmware: JSON del Contrato A 2.0.0, nuevas muestras sin cola offline, `deviceId` contrastado por la API y HTTPS verificado para despliegue. El sketch incorporado aquí usa la ruta temporal; la integración oficial continúa pendiente.
+
 **Estado al 21 de octubre de 2026:** incorporados siete sketches procedentes de las pruebas locales de `@codsebas`. El ensamblaje físico está terminado según lo informado por el responsable. La versión principal es **PulsaLink v1.2**, que integra MAX30102, DS18B20 y envío HTTP por Wi-Fi. Esta incorporación conserva la lógica de los originales; únicamente extrae la configuración privada de v1.2. Los seis ejemplos conservan su contenido original. La copia al repositorio no acredita una nueva compilación, carga en placa ni prueba física.
 
 ## Sketch principal y ejemplos

@@ -1,13 +1,14 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { AuthConfig } from '../../src/modules/auth/auth.config.js';
 import { createAuthMiddleware } from '../../src/modules/auth/auth.middleware.js';
 import { createAuthRouter } from '../../src/modules/auth/auth.router.js';
 import { errorHandler } from '../../src/middleware/error-handler.js';
 import { InMemoryIdentityProvider } from '../../src/modules/auth/adapters/in-memory-identity-provider.js';
 import { InMemoryUserRepository } from '../../src/modules/auth/adapters/in-memory-user-repository.js';
+import type { AuditRepository } from '../../src/modules/audit/audit.repository.js';
 
 const ORIGIN = 'http://localhost:5173';
 const CSRF_SECRET = 'test-csrf-secret-value-0123456789abcdef';
@@ -44,11 +45,11 @@ function makeConfig(overrides: Partial<AuthConfig> = {}): AuthConfig {
 
 function seedUsers(repository: InMemoryUserRepository): void {
   repository.set({ id: ADMIN.uid, displayName: 'Admin', role: 'admin', enabled: true });
-  repository.set({ id: OPERATOR.uid, displayName: 'Operador', role: 'operator', enabled: true });
+  repository.set({ id: OPERATOR.uid, displayName: 'Operador', role: 'viewer', enabled: true });
   repository.set({
     id: DISABLED.uid,
     displayName: 'Deshabilitado',
-    role: 'operator',
+    role: 'viewer',
     enabled: false,
   });
 }
@@ -57,6 +58,7 @@ interface TestAppOptions {
   config?: AuthConfig;
   identityProvider?: InMemoryIdentityProvider;
   userRepository?: InMemoryUserRepository;
+  auditRepository?: Pick<AuditRepository, 'append'>;
 }
 
 /**
@@ -75,14 +77,15 @@ function createTestApp(options: TestAppOptions = {}) {
   const app = express();
   app.use(express.json({ limit: '8kb' }));
   app.use(cookieParser());
-  app.use('/api/v1/auth', createAuthRouter({ config, identityProvider, userRepository }));
+  const auditRepository = options.auditRepository ?? { append: vi.fn(async () => ({}) as never) };
+  app.use('/api/v1/auth', createAuthRouter({ config, identityProvider, userRepository, auditRepository }));
   const { requireUser, requireRole } = createAuthMiddleware({ identityProvider, userRepository });
   app.get('/api/v1/test/admin', requireUser, requireRole('admin'), (req, res) => {
     res.json({ data: req.user });
   });
   app.use(errorHandler);
 
-  return { app, identityProvider, userRepository, config };
+  return { app, identityProvider, userRepository, config, auditRepository };
 }
 
 function setCookies(response: request.Response): string[] {
@@ -337,6 +340,49 @@ describe('POST /login: éxito', () => {
   });
 });
 
+describe('auditoría de login', () => {
+  it('registra el éxito con el actor verificado y no expone credenciales', async () => {
+    const append = vi.fn(async () => ({}) as never);
+    const { app } = createTestApp({ auditRepository: { append } });
+    const agent = request.agent(app);
+
+    expect((await login(agent, ADMIN)).status).toBe(200);
+    expect(append).toHaveBeenCalledWith(expect.objectContaining({
+      actorId: ADMIN.uid,
+      action: 'auth.login',
+      targetType: 'auth',
+      targetId: ADMIN.uid,
+      result: 'success',
+    }), expect.any(String));
+    expect(JSON.stringify(append.mock.calls)).not.toContain(ADMIN.password);
+  });
+
+  it('registra el fallo como anonymous sin copiar el correo', async () => {
+    const append = vi.fn(async () => ({}) as never);
+    const { app } = createTestApp({ auditRepository: { append } });
+    const agent = request.agent(app);
+
+    expect((await login(agent, { ...ADMIN, password: 'Incorrecta123' })).status).toBe(401);
+    expect(append).toHaveBeenCalledWith(expect.objectContaining({
+      actorId: 'anonymous',
+      action: 'auth.login',
+      result: 'failure',
+    }), expect.any(String));
+    expect(JSON.stringify(append.mock.calls)).not.toContain(ADMIN.email);
+  });
+
+  it('no entrega la sesión si falla la auditoría obligatoria', async () => {
+    const append = vi.fn(async () => { throw new Error('audit down'); });
+    const { app } = createTestApp({ auditRepository: { append } });
+    const agent = request.agent(app);
+    const response = await login(agent, ADMIN);
+
+    expect(response.status).toBe(503);
+    expect(response.body.error.code).toBe('AUDIT_UNAVAILABLE');
+    expect(findCookie(response, 'pulsolink_session')).toBeUndefined();
+  });
+});
+
 describe('GET /me', () => {
   it('sin cookie responde 401', async () => {
     const { app } = createTestApp();
@@ -357,7 +403,7 @@ describe('GET /me', () => {
     expect(response.body.data).toEqual({
       id: OPERATOR.uid,
       displayName: 'Operador',
-      role: 'operator',
+      role: 'viewer',
     });
   });
 

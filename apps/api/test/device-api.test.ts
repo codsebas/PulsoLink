@@ -64,8 +64,9 @@ function createTestApp(deps: {
   return app;
 }
 
-function validPayload(overrides: Partial<IngestInput> = {}): IngestInput {
+function validPayload(deviceId = 'dev-001', overrides: Partial<IngestInput> = {}): IngestInput {
   return {
+    deviceId,
     sessionId: 'session-001',
     bootId: randomUUID(),
     sequence: 0,
@@ -108,7 +109,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
 
       const res = await request(app).get('/api/v1/device/config');
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
       expect(res.body.error.message).toMatch(/requerida/i);
     });
 
@@ -129,7 +130,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
         .get('/api/v1/device/config')
         .set('Authorization', 'Basic user:pass');
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
 
     it('devuelve 401 si el token no es válido o está revocado', async () => {
@@ -148,7 +149,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
         .get('/api/v1/device/config')
         .set('Authorization', 'Bearer cred-bad.secret_invalido_que_falla');
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
   });
 
@@ -223,7 +224,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
         .set('Authorization', `Bearer ${dev.credentialId}.${dev.secret}`);
 
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
   });
 
@@ -247,6 +248,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
         .post('/api/v1/device/heartbeat')
         .set('Authorization', `Bearer ${dev.credentialId}.${dev.secret}`)
         .send({
+          deviceId: dev.device.deviceId,
           bootId,
           uptimeMs: 12500,
           firmwareVersion: '1.0.0-nodemcu',
@@ -254,7 +256,6 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
 
       expect(res.status).toBe(200);
       expect(res.body.data).toEqual({
-        status: 'ok',
         serverTime: '2026-10-17T03:00:00.000Z',
       });
       expect(heartbeatSpy).toHaveBeenCalledWith(dev.device.deviceId);
@@ -278,6 +279,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
         .post('/api/v1/device/heartbeat')
         .set('Authorization', `Bearer ${dev.credentialId}.${dev.secret}`)
         .send({
+          deviceId: dev.device.deviceId,
           bootId: 'not-a-valid-uuid',
           uptimeMs: 5000,
         });
@@ -303,6 +305,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
         .post('/api/v1/device/heartbeat')
         .set('Authorization', `Bearer ${dev.credentialId}.${dev.secret}`)
         .send({
+          deviceId: dev.device.deviceId,
           bootId: randomUUID(),
           uptimeMs: -10,
         });
@@ -328,6 +331,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
         .post('/api/v1/device/heartbeat')
         .set('Authorization', `Bearer ${dev.credentialId}.${dev.secret}`)
         .send({
+          deviceId: dev.device.deviceId,
           bootId: randomUUID(),
           uptimeMs: 1000,
           injectedField: 'hack',
@@ -341,7 +345,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
   describe('POST /api/v1/device/measurements', () => {
     it('muestra válida se guarda y devuelve 201 (duplicate = false)', async () => {
       const dev = createTestDevice();
-      const payload = validPayload();
+      const payload = validPayload(dev.device.deviceId);
       const ingestSpy = vi.fn().mockResolvedValue({
         measurementId: 'meas-12345',
         receivedAt: '2026-10-17T03:00:02.000Z',
@@ -377,7 +381,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
 
     it('repetición idéntica devuelve 200 sin duplicar (duplicate = true)', async () => {
       const dev = createTestDevice();
-      const payload = validPayload();
+      const payload = validPayload(dev.device.deviceId);
       const ingestSpy = vi.fn().mockResolvedValue({
         measurementId: 'meas-12345',
         receivedAt: '2026-10-17T03:00:02.000Z',
@@ -408,7 +412,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
 
     it('misma clave (deviceId+bootId+sequence) y contenido distinto devuelve 409 IDEMPOTENCY_CONFLICT', async () => {
       const dev = createTestDevice();
-      const payload = validPayload();
+      const payload = validPayload(dev.device.deviceId);
       const app = createTestApp({
         credentialsRepo: { authenticate: async () => dev.device },
         devicesRepo: {
@@ -434,7 +438,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
 
     it('una muestra nueva para sesión finalizada o inactiva devuelve 409 SESSION_NOT_ACTIVE', async () => {
       const dev = createTestDevice();
-      const payload = validPayload();
+      const payload = validPayload(dev.device.deviceId);
       const app = createTestApp({
         credentialsRepo: { authenticate: async () => dev.device },
         devicesRepo: {
@@ -460,7 +464,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
 
     it('repetir una muestra ya guardada conserva su respuesta idempotente 200 tras finalizar la sesión', async () => {
       const dev = createTestDevice();
-      const payload = validPayload();
+      const payload = validPayload(dev.device.deviceId);
       // En el repositorio, si la clave existe con mismo hash, devuelve duplicate: true sin verificar si la sesión sigue activa.
       const app = createTestApp({
         credentialsRepo: { authenticate: async () => dev.device },
@@ -489,7 +493,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
 
     it('devuelve 400 si se envía un valor no válido para status: valid (ej. pulso null)', async () => {
       const dev = createTestDevice();
-      const payload = validPayload();
+      const payload = validPayload(dev.device.deviceId);
       // @ts-expect-error probando valor inválido
       payload.measurements.heartRate.value = null; // Incompatible con status 'valid'
 
@@ -515,7 +519,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
 
     it('devuelve 400 si status no_contact contiene un valor numérico (debe ser null)', async () => {
       const dev = createTestDevice();
-      const payload = validPayload();
+      const payload = validPayload(dev.device.deviceId);
       payload.measurements.spo2 = {
         value: 95,
         unit: '%',
@@ -544,7 +548,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
 
     it('admite lecturas con falta de contacto óptico cuando el valor es null', async () => {
       const dev = createTestDevice();
-      const payload = validPayload();
+      const payload = validPayload(dev.device.deviceId);
       payload.measurements.heartRate = {
         value: null,
         unit: 'bpm',
@@ -580,10 +584,10 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
       expect(ingestSpy).toHaveBeenCalled();
     });
 
-    it('rechaza con 400 si el cliente intenta enviar deviceId en el cuerpo', async () => {
+    it('rechaza con 403 si el deviceId declarado difiere de la credencial', async () => {
       const dev = createTestDevice();
       const payload = {
-        ...validPayload(),
+        ...validPayload(dev.device.deviceId),
         deviceId: 'hacked-device-id',
       };
 
@@ -603,8 +607,8 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
         .set('Authorization', `Bearer ${dev.credentialId}.${dev.secret}`)
         .send(payload);
 
-      expect(res.status).toBe(400);
-      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+      expect(res.status).toBe(403);
+      expect(res.body.error.code).toBe('DEVICE_ID_MISMATCH');
     });
 
     it('rechaza con 413 si la carga útil excede los 8 KiB del contrato', async () => {
@@ -635,26 +639,26 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
   describe('Integración con createApp()', () => {
     const realApp = createApp();
 
-    it('GET /api/v1/device/config responde 401 UNAUTHORIZED sin credencial', async () => {
+    it('GET /api/v1/device/config responde 401 UNAUTHENTICATED sin credencial', async () => {
       const res = await request(realApp).get('/api/v1/device/config');
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
 
-    it('POST /api/v1/device/heartbeat responde 401 UNAUTHORIZED sin credencial', async () => {
+    it('POST /api/v1/device/heartbeat responde 401 UNAUTHENTICATED sin credencial', async () => {
       const res = await request(realApp)
         .post('/api/v1/device/heartbeat')
         .send({ bootId: randomUUID(), uptimeMs: 1000 });
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
 
-    it('POST /api/v1/device/measurements responde 401 UNAUTHORIZED sin credencial', async () => {
+    it('POST /api/v1/device/measurements responde 401 UNAUTHENTICATED sin credencial', async () => {
       const res = await request(realApp)
         .post('/api/v1/device/measurements')
         .send(validPayload());
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
   });
 });

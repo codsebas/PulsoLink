@@ -1,0 +1,158 @@
+{
+  "contract": "2.0.0",
+  "generatedAt": "2026-10-21T22:08:30.768Z",
+  "environment": "Windows; Node 24.15.0; main abc4d45; Auth/Firestore emulados; demo-pulsolink-hugo",
+  "results": [
+    {
+      "id": "A-01",
+      "expected": "401 UNAUTHENTICATED sin credencial",
+      "actual": "HTTP 401 UNAUTHENTICATED",
+      "state": "PASS"
+    },
+    {
+      "id": "A-02",
+      "expected": "401 UNAUTHENTICATED con credencial incorrecta",
+      "actual": "HTTP 401 UNAUTHENTICATED",
+      "state": "PASS"
+    },
+    {
+      "id": "A-03",
+      "expected": "200 config: identidad, sesión e intervalos",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "A-04",
+      "expected": "403 DEVICE_ID_MISMATCH heartbeat",
+      "actual": "HTTP 403 DEVICE_ID_MISMATCH requestId=req-1792620483809",
+      "state": "PASS"
+    },
+    {
+      "id": "A-05",
+      "expected": "200 heartbeat, solo data.serverTime",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "A-06",
+      "expected": "403 DEVICE_ID_MISMATCH medición",
+      "actual": "HTTP 403 DEVICE_ID_MISMATCH requestId=req-1792620483905",
+      "state": "PASS"
+    },
+    {
+      "id": "A-07",
+      "expected": "201 medición nueva, duplicate=false",
+      "actual": "HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "A-08",
+      "expected": "200 duplicado, misma referencia/fecha",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "A-09",
+      "expected": "409 IDEMPOTENCY_CONFLICT",
+      "actual": "HTTP 409 IDEMPOTENCY_CONFLICT requestId=req-1792620484137",
+      "state": "PASS"
+    },
+    {
+      "id": "A-10",
+      "expected": "201 calidad no_contact con valores null",
+      "actual": "HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "A-11",
+      "expected": "201 calidad unavailable con valores null",
+      "actual": "HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "A-12",
+      "expected": "201 calidad invalid con valores null",
+      "actual": "HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "A-13",
+      "expected": "400 VALIDATION_ERROR unidades inválidas",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792620484423",
+      "state": "PASS"
+    },
+    {
+      "id": "A-14",
+      "expected": "400 VALIDATION_ERROR campos solo del servidor",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792620484455",
+      "state": "PASS"
+    },
+    {
+      "id": "A-15",
+      "expected": "400 VALIDATION_ERROR secuencia no entera",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792620484486",
+      "state": "PASS"
+    },
+    {
+      "id": "A-16",
+      "expected": "400 VALIDATION_ERROR calidad incompatible con valor",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792620484518",
+      "state": "PASS"
+    },
+    {
+      "id": "A-17",
+      "expected": "3 rondas de 5 solicitudes: 1 creación + 4 duplicados cada una",
+      "actual": "200/201/200/200/200; 200/200/200/201/200; 200/200/200/200/201",
+      "state": "PASS"
+    },
+    {
+      "id": "B-01",
+      "expected": "403 viewer no administra pacientes",
+      "actual": "HTTP 403 FORBIDDEN requestId=req-1792620498231",
+      "state": "PASS"
+    },
+    {
+      "id": "B-02",
+      "expected": "403 viewer no consulta auditoría",
+      "actual": "HTTP 403 FORBIDDEN requestId=req-1792620498246",
+      "state": "PASS"
+    },
+    {
+      "id": "B-03",
+      "expected": "200 viewer consulta historial",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "B-04",
+      "expected": "Historial fixture: >=2 placas, IDs inmutables, sin duplicados, paginación completa",
+      "actual": "62 lecturas; 2 placas; completo=true",
+      "state": "PASS"
+    },
+    {
+      "id": "B-05",
+      "expected": "Paciente B no contiene lecturas de A",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "B-06",
+      "expected": "CRUD asignaciones disponible (precondición recorrido CON-17/CONC-08)",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "JOINT-CON-17",
+      "expected": "Reasignación por HTTP: historia inmutable de dos placas, aislamiento y duplicado después del cierre",
+      "actual": "Ciclo HTTP completo; A conserva dos placas, B solo su muestra; duplicado/conflicto correctos tras reasignar D1.",
+      "state": "PASS"
+    },
+    {
+      "id": "JOINT-CONC-08",
+      "expected": "3 rondas: finalizar frente a 5 muestras, sin escrituras posteriores ni huérfanas",
+      "actual": "3 rondas de finish + 5 muestras completadas; ACK/rechazos contrastados con historia y finishedAt.",
+      "state": "PASS"
+    }
+  ],
+  "requestTimeoutMs": 30000
+}

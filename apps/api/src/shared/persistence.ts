@@ -20,13 +20,20 @@ export interface PageOptions { limit?: number; cursor?: string; from?: string; t
 export interface Page<T> { data: T[]; pagination: { nextCursor: string | null; hasMore: boolean } }
 const cursorSchema = z.object({ version: z.literal(1), scope: z.string(), date: dateTime, id: documentId }).strict();
 
-export function pagination(options: PageOptions, scope: Record<string, unknown>) {
+const measurementPath = z.string().max(2048).refine((value) => {
+  const segments = value.split('/');
+  return segments.length === 4 && segments[0] === 'sessions' && segments[2] === 'measurements' &&
+    documentId.safeParse(segments[1]).success && documentId.safeParse(segments[3]).success;
+}, 'Ruta de medición inválida');
+
+export function pagination(options: PageOptions, scope: Record<string, unknown>, kind: 'document' | 'measurement-path' = 'document') {
   const parsed = pageSchema.parse(options);
   const fingerprint = createHash('sha256').update(JSON.stringify({ ...scope, from: parsed.from ?? null, to: parsed.to ?? null })).digest('hex');
   let after: { date: string; id: string } | undefined;
   if (parsed.cursor) {
     try {
-      const decoded = cursorSchema.parse(JSON.parse(Buffer.from(parsed.cursor, 'base64url').toString('utf8')));
+      const decoded = cursorSchema.extend({ id: kind === 'measurement-path' ? measurementPath : documentId })
+        .parse(JSON.parse(Buffer.from(parsed.cursor, 'base64url').toString('utf8')));
       if (decoded.scope !== fingerprint) throw new Error();
       after = { date: decoded.date, id: decoded.id };
     } catch {

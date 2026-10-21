@@ -1,198 +1,274 @@
 openapi: 3.1.0
 info:
-  title: PulsoLink — Contrato A: Dispositivo IoT / Simulador ↔ Backend API
-  version: 1.0.0
-  description: >
-    Especificación de la API de ingestión y configuración para dispositivos telemétricos (NodeMCU ESP8266)
-    y el simulador de pruebas. Requiere autenticación mediante cabecera Authorization: Bearer <credentialId>.<secret>.
+  title: "PulsoLink — Contrato A: dispositivo / simulador"
+  version: 2.0.0
+  description: "Objetivo aprobado 18-10-2026. La API exige deviceId en los cuerpos y comprueba las relaciones
+    paciente/asignación mediante repositorios; el emisor y la validación de nube quedan por integrar. Se
+    mantiene /api/v1. Un único endpoint de ingestión. No hay lotes ni cola offline: descartar muestras del
+    corte y enviar solo nuevas al reconectar; solo reintento inmediato limitado de la petición en curso.
+    Prototipo académico no clínico. receivedAt es autoritativo; no enviar patientId, assignmentId ni source.
+    GET config toma identidad de la credencial; todos los cuerpos de dispositivo contrastan deviceId.
+    HardwareId/MAC no autentican. Muestreo físico independiente del reporte."
 servers:
   - url: http://localhost:3001/api/v1
-    description: Servidor de desarrollo local
-
+    description: Solo desarrollo local; HTTPS con verificación del servidor en despliegue.
+x-contract-status: approved-target-pending-implementation
+security:
+  - DeviceBearerAuth: []
 paths:
   /health:
     get:
-      summary: Verificación de salud del proceso API
-      description: Estado del proceso backend. [IMPLEMENTADO EN ESQUELETO]
-      operationId: getHealth
+      operationId: getDeviceApiHealth
+      summary: Salud del proceso, no de dependencias
+      security: []
+      x-implementation-status: existing
       responses:
-        '200':
-          description: Proceso activo y saludable
+        "200":
+          description: Operación completada
           content:
             application/json:
               schema:
                 type: object
+                additionalProperties: false
+                required:
+                  - status
+                  - service
+                  - timestamp
                 properties:
                   status:
                     type: string
-                    example: ok
                   service:
                     type: string
-                    example: pulsolink-api
                   timestamp:
                     type: string
                     format: date-time
-
+                    description: Fecha ISO 8601 UTC normalizada por backend.
+                    pattern: Z$
   /device/config:
     get:
-      summary: Consulta de configuración y sesión activa
-      description: >
-        Devuelve el intervalo de reporte (2000 ms), heartbeat y el activeSessionId asignado.
-        [IMPLEMENTADO - Issue #4 (@codsebas)]
       operationId: getDeviceConfig
-      security:
-        - DeviceBearerAuth: []
+      summary: Configuración del dispositivo autenticado
+      description: Sin sesión activa solo config/heartbeat. Intervalos base de reporte 2000 ms y heartbeat 15000 ms;
+        el firmware respeta los valores devueltos. No decide paciente.
+      x-implementation-status: existing-review-required
       responses:
-        '200':
-          description: Configuración obtenida correctamente
+        "200":
+          description: Operación completada
           content:
             application/json:
               schema:
                 type: object
+                additionalProperties: false
+                required:
+                  - data
                 properties:
                   data:
                     type: object
+                    additionalProperties: false
+                    required:
+                      - deviceId
+                      - activeSessionId
+                      - uploadIntervalMs
+                      - heartbeatIntervalMs
+                      - serverTime
                     properties:
                       deviceId:
                         type: string
+                        minLength: 1
+                        maxLength: 128
+                        pattern: ^[^/]+$
                       activeSessionId:
-                        type: string
-                        nullable: true
+                        type:
+                          - string
+                          - "null"
+                        minLength: 1
+                        maxLength: 128
+                        pattern: ^[^/]+$
                       uploadIntervalMs:
                         type: integer
+                        minimum: 1
                         example: 2000
                       heartbeatIntervalMs:
                         type: integer
+                        minimum: 1
                         example: 15000
                       serverTime:
                         type: string
                         format: date-time
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-
+                        description: Fecha ISO 8601 UTC normalizada por backend.
+                        pattern: Z$
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /device/heartbeat:
     post:
-      summary: Reporte periódico de presencia y tiempo de actividad
-      description: [IMPLEMENTADO - Issue #4 (@codsebas)]
       operationId: postDeviceHeartbeat
-      security:
-        - DeviceBearerAuth: []
+      summary: Presencia independiente del contacto óptico
+      description: "deviceId obligatorio y contrastado con credencial; discrepancia 403
+        DEVICE_ID_MISMATCH. Actualiza lastSeenAt del servidor, no genera una medición."
+      x-implementation-status: implemented-emulator-verified
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required:
+                - deviceId
                 - bootId
                 - uptimeMs
               properties:
+                deviceId:
+                  type: string
+                  minLength: 1
+                  maxLength: 128
+                  pattern: ^[^/]+$
                 bootId:
                   type: string
                   format: uuid
                 uptimeMs:
                   type: integer
+                  minimum: 0
                 firmwareVersion:
                   type: string
+                  minLength: 1
+                  maxLength: 64
       responses:
-        '200':
-          description: Heartbeat recibido
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-
+        "200":
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - serverTime
+                    properties:
+                      serverTime:
+                        type: string
+                        format: date-time
+                        description: Fecha ISO 8601 UTC normalizada por backend.
+                        pattern: Z$
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
   /device/measurements:
     post:
-      summary: Recepción idempotente de mediciones de signos vitales
-      description: >
-        Ingestión de pulso, SpO₂ y temperatura. Idempotencia mediante clave única deviceId + bootId + sequence.
-        [IMPLEMENTADO - Issue #4 (@codsebas)]
       operationId: postDeviceMeasurement
-      security:
-        - DeviceBearerAuth: []
+      summary: Ingestión idempotente de una muestra nueva
+      description: Autenticar y contrastar deviceId antes de escribir (403 DEVICE_ID_MISMATCH). Para una muestra
+        nueva comprobar sesión/asignación activas y paciente/placa habilitados en transacción. El servidor
+        fija patientId/deviceId/assignmentId/sessionId y source. Clave deviceId + bootId + sequence, hash de
+        contenido normalizado. Duplicado idéntico conserva referencia/fecha original incluso después de
+        finalizar/reasignar con credencial y placa aún habilitadas; distinto contenido da 409
+        IDEMPOTENCY_CONFLICT. Nueva muestra con relación inactiva da 409 SESSION_NOT_ACTIVE o
+        ASSIGNMENT_NOT_ACTIVE. capturedAt obligatorio UTC o null. Temperatura superficial; SpO2 académica;
+        valores valid no son validación clínica.
+      x-implementation-status: implemented-emulator-verified
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - sessionId
-                - bootId
-                - sequence
-                - measurements
-              properties:
-                sessionId:
-                  type: string
-                bootId:
-                  type: string
-                  format: uuid
-                sequence:
-                  type: integer
-                  minimum: 0
-                capturedAt:
-                  type: string
-                  format: date-time
-                  nullable: true
-                measurements:
-                  type: object
-                  required:
-                    - heartRate
-                    - spo2
-                    - skinTemperature
-                  properties:
-                    heartRate:
-                      $ref: '#/components/schemas/VitalMeasurement'
-                    spo2:
-                      $ref: '#/components/schemas/VitalMeasurement'
-                    skinTemperature:
-                      $ref: '#/components/schemas/VitalMeasurement'
+              $ref: "#/components/schemas/MeasurementInput"
+            example:
+              deviceId: pulsolink-001
+              sessionId: sesion-activa
+              bootId: 550e8400-e29b-41d4-a716-446655440000
+              sequence: 42
+              capturedAt: null
+              measurements:
+                heartRate:
+                  value: 78
+                  unit: bpm
+                  status: valid
+                spo2:
+                  value: null
+                  unit: "%"
+                  status: invalid
+                skinTemperature:
+                  value: 27.1
+                  unit: C
+                  status: valid
       responses:
-        '201':
-          description: Medición almacenada correctamente
-        '200':
-          description: Reintento idéntico procesado sin duplicar (duplicate = true)
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '409':
-          description: Conflicto de idempotencia o sesión no activa
-
+        "200":
+          description: Duplicado idéntico; duplicate:true, referencia y fecha originales.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/IngestionAck"
+        "201":
+          description: Medición creada; duplicate:false.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: "#/components/schemas/IngestionAck"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: IDEMPOTENCY_CONFLICT, SESSION_NOT_ACTIVE o ASSIGNMENT_NOT_ACTIVE; no se crea una medición.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 components:
-  securitySchemes:
-    DeviceBearerAuth:
-      type: http
-      scheme: bearer
-      description: Cabecera con formato Bearer <credentialId>.<secret>
-
   schemas:
-    VitalMeasurement:
+    ErrorResponse:
       type: object
-      required:
-        - value
-        - unit
-        - status
-      properties:
-        value:
-          type: number
-          nullable: true
-        unit:
-          type: string
-          enum: [bpm, '%', C]
-        status:
-          type: string
-          enum: [valid, no_contact, invalid, unavailable]
-
-    ApiError:
-      type: object
+      additionalProperties: false
       required:
         - error
       properties:
         error:
           type: object
+          additionalProperties: false
           required:
             - code
             - message
+            - requestId
           properties:
             code:
               type: string
@@ -200,17 +276,243 @@ components:
               type: string
             requestId:
               type: string
-
+    Measurements:
+      type: object
+      additionalProperties: false
+      required:
+        - heartRate
+        - spo2
+        - skinTemperature
+      properties:
+        heartRate:
+          oneOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: number
+                  maximum: 300
+                  exclusiveMinimum: 0
+                unit:
+                  type: string
+                  const: bpm
+                status:
+                  type: string
+                  const: valid
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: "null"
+                unit:
+                  type: string
+                  const: bpm
+                status:
+                  type: string
+                  enum:
+                    - no_contact
+                    - invalid
+                    - unavailable
+          description: Calidad técnica independiente; no implica validez clínica. Si no es valid, value es null.
+        spo2:
+          oneOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: number
+                  maximum: 100
+                  minimum: 0
+                unit:
+                  type: string
+                  const: "%"
+                status:
+                  type: string
+                  const: valid
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: "null"
+                unit:
+                  type: string
+                  const: "%"
+                status:
+                  type: string
+                  enum:
+                    - no_contact
+                    - invalid
+                    - unavailable
+          description: Calidad técnica independiente; no implica validez clínica. Si no es valid, value es null.
+        skinTemperature:
+          oneOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: number
+                  maximum: 125
+                  minimum: -55
+                unit:
+                  type: string
+                  const: C
+                status:
+                  type: string
+                  const: valid
+            - type: object
+              additionalProperties: false
+              required:
+                - value
+                - unit
+                - status
+              properties:
+                value:
+                  type: "null"
+                unit:
+                  type: string
+                  const: C
+                status:
+                  type: string
+                  enum:
+                    - no_contact
+                    - invalid
+                    - unavailable
+          description: Calidad técnica independiente; no implica validez clínica. Si no es valid, value es null.
+    MeasurementInput:
+      type: object
+      additionalProperties: false
+      required:
+        - deviceId
+        - sessionId
+        - bootId
+        - sequence
+        - capturedAt
+        - measurements
+      properties:
+        deviceId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        sessionId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        bootId:
+          type: string
+          format: uuid
+        sequence:
+          type: integer
+          minimum: 0
+          maximum: 4294967295
+        capturedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        measurements:
+          $ref: "#/components/schemas/Measurements"
+    IngestionAck:
+      type: object
+      additionalProperties: false
+      required:
+        - measurementId
+        - receivedAt
+        - duplicate
+      properties:
+        measurementId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^/]+$
+        receivedAt:
+          type: string
+          format: date-time
+          description: Fecha ISO 8601 UTC normalizada por backend.
+          pattern: Z$
+        duplicate:
+          type: boolean
+  securitySchemes:
+    DeviceBearerAuth:
+      type: http
+      scheme: bearer
+      description: Bearer <credentialId>.<secret>. Solo placas registradas/habilitadas y credenciales vigentes;
+        secreto exclusivamente en cabecera, nunca en logs/Git.
   responses:
-    BadRequestError:
-      description: Solicitud inválida
+    BadRequest:
+      description: "VALIDATION_ERROR: JSON, campos, filtros o cursor inválidos."
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ApiError'
-    UnauthorizedError:
-      description: Credencial inválida o ausente
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "UNAUTHENTICATED: credencial o sesión ausente, inválida o vencida."
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ApiError'
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "FORBIDDEN: rol insuficiente, usuario/dispositivo deshabilitado, CSRF u origen inválidos."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "NOT_FOUND: recurso no encontrado."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Conflict:
+      description: Conflicto de estado o idempotencia.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    PayloadTooLarge:
+      description: "PAYLOAD_TOO_LARGE: límite de cuerpo 8 KiB."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    TooManyRequests:
+      description: "RATE_LIMITED: demasiadas solicitudes; respetar Retry-After."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+      headers:
+        Retry-After:
+          description: Espera en segundos.
+          schema:
+            type: integer
+            minimum: 1
+    ServiceUnavailable:
+      description: "SERVICE_UNAVAILABLE: dependencia no disponible; sin detalles internos."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"

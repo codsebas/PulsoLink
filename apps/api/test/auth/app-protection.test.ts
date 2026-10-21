@@ -83,6 +83,14 @@ describe('protección de rutas web', () => {
     expect(response.body.error.code).toBe('UNAUTHENTICATED');
   });
 
+  it('GET /api/v1/users y /api/v1/audit-logs sin sesión responden 401 UNAUTHENTICATED', async () => {
+    for (const path of ['/api/v1/users', '/api/v1/audit-logs']) {
+      const response = await request(app).get(path).set('Origin', ORIGIN);
+      expect(response.status).toBe(401);
+      expect(response.body.error.code).toBe('UNAUTHENTICATED');
+    }
+  });
+
   it('POST /api/v1/sessions evalúa primero requireUser y responde 401 sin sesión', async () => {
     // Comportamiento documentado en docs/auth.md: requireUser precede a
     // csrfProtection, por lo que sin sesión el código es UNAUTHENTICATED (401)
@@ -106,7 +114,8 @@ describe('protección de rutas web', () => {
     // credencial de dispositivo. Se comprueba que no exige la cookie de sesión.
     expect(response.status).not.toBe(200);
     if (response.body?.error) {
-      expect(response.body.error.code).not.toBe('UNAUTHENTICATED');
+      expect(response.body.error.code).toBe('UNAUTHENTICATED');
+      expect(response.body.error.message).toMatch(/Authorization:\s*Bearer/i);
     }
   });
 });

@@ -8,10 +8,24 @@ interface ErrorStateProps {
   onRetry?: () => void;
 }
 
+const CONFLICT_MESSAGES: Record<string, string> = {
+  ASSIGNMENT_IN_USE:
+    'La asignación tiene sesiones abiertas. Finaliza las sesiones antes de cerrar o deshabilitar.',
+  ASSIGNMENT_CONFLICT:
+    'El paciente o la placa ya tienen una asignación activa. Cierra la asignación existente antes de crear otra.',
+  DEVICE_BUSY: 'La placa ya tiene una sesión activa en este momento.',
+  SESSION_NOT_ACTIVE: 'La sesión ya no está activa. Recarga el listado para ver su estado actual.',
+  ASSIGNMENT_NOT_ACTIVE: 'La asignación asociada a la sesión ya no está activa.',
+  IDEMPOTENCY_CONFLICT:
+    'La operación duplicó una clave con contenido distinto. Recarga e inténtalo de nuevo.',
+};
+
 /** Traduce el error a un mensaje para el usuario sin exponer detalles internos. */
 export function getErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.isNetworkError) return error.message;
+    const conflictMessage = CONFLICT_MESSAGES[error.code];
+    if (conflictMessage) return conflictMessage;
     switch (error.statusCode) {
       case 401:
         return 'Tu sesión no es válida o expiró. Inicia sesión de nuevo.';

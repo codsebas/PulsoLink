@@ -1,3 +1,5 @@
+> **Estado y versión:** las secciones inferiores conservan las firmas y comandos del avance anterior. La entrega PL2 añade [pacientes, asignaciones, historial, auditoría e interfaces de integración](../docs/arquitectura/persistencia-pl2-integracion.md) y una [semilla admin/viewer para emuladores](../docs/setup/firebase-pl2.md). El runtime de legado se conserva durante la ventana documentada; no ejecutar sus scripts antiguos como sustituto del procedimiento nuevo. El [modelo objetivo](modelo-objetivo.md) y el [plan vigente](../docs/planificacion/ejecucion-2026-10-18.md) siguen definiendo los pendientes de integración del equipo.
+
 # PulsoLink — Configuración de Firebase y Persistencia
 
 Directorio de versionado de reglas de seguridad, índices y directrices de persistencia para **Cloud Firestore (Edición Standard)** y **Firebase Authentication**.
@@ -23,7 +25,7 @@ Directorio de versionado de reglas de seguridad, índices y directrices de persi
 
 ## 2. Implementación disponible (AV1-04 / #6)
 
-La persistencia utiliza Firebase Admin SDK únicamente en `apps/api`. Se conservan fechas ISO UTC normalizadas con milisegundos, compatibles con las interfaces iniciales. No se han conectado todavía las rutas pendientes de #4, #5 y #10.
+La persistencia utiliza Firebase Admin SDK únicamente en `apps/api`. Se conservan fechas ISO UTC normalizadas con milisegundos, compatibles con las interfaces iniciales. Las rutas de ingestión, autenticación y sesiones del primer contrato ya están conectadas en `main`; este documento conserva las firmas del modelo anterior. Pacientes, asignaciones, historial por paciente y auditoría requieren una ampliación posterior.
 
 | Repositorio | Operaciones |
 | --- | --- |

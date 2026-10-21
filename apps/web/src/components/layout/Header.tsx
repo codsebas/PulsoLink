@@ -1,5 +1,6 @@
-import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   Activity,
   ShieldCheck,
@@ -10,8 +11,11 @@ import {
   Link2,
   UserCog,
   ScrollText,
+  LogOut,
 } from 'lucide-react';
 import { useSessionUser } from '../../features/auth/useSessionUser';
+import { AUTH_QUERY_KEY, logoutRequest } from '../../features/auth/auth.api';
+import { fetchCsrfToken } from '../../lib/api-client';
 
 interface NavItem {
   label: string;
@@ -35,10 +39,32 @@ const navItems: NavItem[] = [
 ];
 
 export const Header: React.FC = () => {
-  const { data: user } = useSessionUser();
+  const session = useSessionUser();
+  const user = session.data;
   const isAdmin = user?.role === 'admin';
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+  const visibleItems = navItems.filter((item) =>
+    (!item.adminOnly || isAdmin) && !(user && item.path === '/login'));
 
-  const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin);
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    setLogoutError(null);
+    try {
+      await logoutRequest();
+      await queryClient.cancelQueries();
+      queryClient.clear();
+      queryClient.setQueryData(AUTH_QUERY_KEY, null);
+      navigate('/login', { replace: true });
+      void fetchCsrfToken().catch(() => undefined);
+    } catch {
+      setLogoutError('No se pudo cerrar la sesión. Inténtalo de nuevo.');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
@@ -87,8 +113,35 @@ export const Header: React.FC = () => {
               </NavLink>
             );
           })}
+
+          {session.data && (
+            <div className="ml-1 flex shrink-0 items-center gap-2 border-l border-slate-200 pl-2">
+              <span className="hidden text-right sm:block">
+                <span className="block text-xs font-semibold text-slate-800">
+                  {session.data.displayName}
+                </span>
+                <span className="block text-[11px] text-slate-500">
+                  {session.data.role === 'admin' ? 'Administración' : 'Consulta'}
+                </span>
+              </span>
+              <button
+                type="button"
+                onClick={() => void handleLogout()}
+                disabled={isLoggingOut}
+                className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:text-slate-400"
+              >
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                {isLoggingOut ? 'Cerrando…' : 'Salir'}
+              </button>
+            </div>
+          )}
         </nav>
       </div>
+      {logoutError && (
+        <div role="alert" className="mx-auto max-w-6xl px-4 pb-3 text-sm text-rose-800">
+          {logoutError}
+        </div>
+      )}
     </header>
   );
 };

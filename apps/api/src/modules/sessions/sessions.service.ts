@@ -42,13 +42,17 @@ export class SessionsService {
     return session;
   }
 
+  private assertAdmin(user: AuthUser) {
+    if (user.role !== 'admin') throw new AppError('FORBIDDEN', 'Se requiere rol admin para esta operación.', 403);
+  }
+
   async create(input: { participantCode: string; deviceId: string }, user: AuthUser) {
-    if (user.role === 'viewer') throw new AppError('FORBIDDEN', 'El rol viewer solo puede consultar.', 403);
+    this.assertAdmin(user);
     return sessionDto(await this.deps.sessions.create({ ...input, operatorId: user.id }));
   }
 
-  async list(options: Omit<SessionListOptions, 'operatorId'>, user: AuthUser) {
-    const page = await this.deps.sessions.list({ ...options, ...(user.role === 'operator' ? { operatorId: user.id } : {}) });
+  async list(options: Omit<SessionListOptions, 'operatorId'>, _user: AuthUser) {
+    const page = await this.deps.sessions.list(options);
     return { data: page.data.map(sessionDto), pagination: page.pagination };
   }
 
@@ -57,7 +61,7 @@ export class SessionsService {
   }
 
   async transition(sessionId: string, user: AuthUser, target: 'active' | 'finished') {
-    if (user.role === 'viewer') throw new AppError('FORBIDDEN', 'El rol viewer solo puede consultar.', 403);
+    this.assertAdmin(user);
     await this.authorized(sessionId, user);
     return sessionDto(await (target === 'active' ? this.deps.sessions.start(sessionId, user.id) : this.deps.sessions.finish(sessionId, user.id)));
   }

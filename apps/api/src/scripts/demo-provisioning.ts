@@ -39,7 +39,15 @@ export async function provisionDemo(db: Firestore, auth: Pick<Auth, 'getUser'>, 
     let profilesCreated = 0;
     config.profiles.forEach((profile, index) => {
       if (!profiles[index].exists) {
-        const document: UserDocument = { ...profile, enabled: true, createdAt };
+        const document: UserDocument = {
+          ...profile,
+          enabled: true,
+          createdAt,
+          updatedAt: createdAt,
+          profileVersion: 1,
+          pendingOperationId: null,
+          authSyncedAt: null,
+        };
         tx.create(profileRefs[index], document);
         profilesCreated++;
       }

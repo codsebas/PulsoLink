@@ -13,6 +13,8 @@ import { devicesRouter } from './modules/devices/devices.routes.js';
 import { sessionsRouter } from './modules/sessions/sessions.routes.js';
 import { deviceMeasurementsRouter } from './modules/measurements/measurements.routes.js';
 import { createPatientReadRouter } from './modules/patients/patients.read.routes.js';
+import { usersRouter } from './modules/users/users.routes.js';
+import { auditRouter } from './modules/audit/audit.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -37,6 +39,8 @@ export function createApp(): Express {
   app.use('/api/v1/devices', requireUser, devicesRouter);
   app.use('/api/v1/patients', requireUser, createPatientReadRouter());
   app.use('/api/v1/sessions', requireUser, csrfProtection, sessionsRouter);
+  app.use('/api/v1/users', requireUser, csrfProtection, usersRouter);
+  app.use('/api/v1/audit-logs', requireUser, auditRouter);
   app.use('/api/v1/device', deviceMeasurementsRouter);
 
   // Manejador 404 para rutas no encontradas

@@ -6,8 +6,9 @@ import { documentId, pagination, PersistenceError, type PageOptions } from '../.
 
 export const auditAction = z.enum(['auth.login', 'patient.view', 'patient.create', 'patient.update', 'device.create', 'device.update',
   'assignment.create', 'assignment.close', 'session.create', 'session.start', 'session.finish', 'user.create', 'user.update']);
+export const auditTargetType = z.enum(['auth', 'patient', 'device', 'assignment', 'session', 'user']);
 const eventInput = z.object({ actorId: documentId, action: auditAction,
-  targetType: z.enum(['auth', 'patient', 'device', 'assignment', 'session', 'user']), targetId: documentId,
+  targetType: auditTargetType, targetId: documentId,
   result: z.enum(['success', 'failure']).default('success'),
   context: z.object({ viewId: z.string().uuid().optional() }).strict().default({}),
 }).strict();
@@ -55,13 +56,29 @@ export class AuditRepository {
     return { eventId: result.event.id, duplicate: result.duplicate };
   }
   // Only authorized admin services may invoke this read.
-  async list(options: PageOptions & { actorId?: string; action?: z.infer<typeof auditAction> } = {}) {
+  async list(options: PageOptions & {
+    actorId?: string;
+    action?: z.infer<typeof auditAction>;
+    targetType?: z.infer<typeof auditTargetType>;
+    targetId?: string;
+  } = {}) {
     const actorId = documentId.optional().parse(options.actorId);
     const action = auditAction.optional().parse(options.action);
-    const page = pagination(options, { collection: 'auditLogs', actorId: actorId ?? null, action: action ?? null, order: 'occurredAt:desc,id:desc' });
+    const targetType = auditTargetType.optional().parse(options.targetType);
+    const targetId = documentId.optional().parse(options.targetId);
+    const page = pagination(options, {
+      collection: 'auditLogs',
+      actorId: actorId ?? null,
+      action: action ?? null,
+      targetType: targetType ?? null,
+      targetId: targetId ?? null,
+      order: 'occurredAt:desc,id:desc',
+    });
     let query: Query = this.db().collection('auditLogs');
     if (actorId) query = query.where('actorId', '==', actorId);
     if (action) query = query.where('action', '==', action);
+    if (targetType) query = query.where('targetType', '==', targetType);
+    if (targetId) query = query.where('targetId', '==', targetId);
     if (page.from) query = query.where('occurredAt', '>=', page.from);
     if (page.to) query = query.where('occurredAt', '<', page.to);
     query = query.orderBy('occurredAt', 'desc').orderBy(FieldPath.documentId(), 'desc').limit(page.limit + 1);

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { AppUser, UserRepository } from '../auth.types.js';
 import { UsersRepository } from '../../users/users.repository.js';
+import { toEffectiveRole } from '../../../shared/types.js';
 
 const profileSchema = z.object({
   uid: z.string().min(1),
@@ -11,11 +12,8 @@ const profileSchema = z.object({
 
 /**
  * Adaptador del puerto `UserRepository` de autenticación sobre el repositorio
- * de usuarios de persistencia (`modules/users/users.repository.ts`, `@gioore`).
- *
- * No duplica acceso a Firestore: envuelve `UsersRepository`, mapea `uid`→`id` y
- * valida el documento con Zod. Si el documento no existe, o no cumple el
- * esquema, devuelve `null` y registra un aviso solo con el uid.
+ * de usuarios de persistencia. No duplica acceso a Firestore y aplica el rol
+ * efectivo: `operator` legado solo conserva permisos de `viewer`.
  */
 export class UsersRepositoryAdapter implements UserRepository {
   constructor(private readonly users: UsersRepository = new UsersRepository()) {}
@@ -32,10 +30,16 @@ export class UsersRepositoryAdapter implements UserRepository {
       return null;
     }
 
+    const role = toEffectiveRole(parsed.data.role);
+    if (!role) {
+      console.warn(`[auth] El documento users/${uid} tiene un rol inválido; se ignora.`);
+      return null;
+    }
+
     return {
       id: parsed.data.uid,
       displayName: parsed.data.displayName,
-      role: parsed.data.role,
+      role,
       enabled: parsed.data.enabled,
     };
   }

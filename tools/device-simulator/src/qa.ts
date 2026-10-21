@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 import { readSettings } from './config.js';
 import { makeSample, seededRandom } from './simulator.js';
+import { runJointCases } from './qa-joint.js';
 
 type Result = { id: string; expected: string; actual: string; state: 'PASS' | 'FAIL' | 'BLOCKED' };
 type Reply = { status: number; body: any };
@@ -108,9 +109,15 @@ async function main() {
       await check('B-06', 'CRUD asignaciones disponible (precondición recorrido CON-17/CONC-08)', () => admin('/assignments'), r => r.status === 200 && Array.isArray(r.body?.data));
     } catch { blocked('B-04', 'No se pudo completar consulta de historia.'); }
   } else ['B-04', 'B-05', 'B-06'].forEach(id => blocked(id, 'Faltan credenciales admin o login no disponible.'));
-  // These require an actual lifecycle, not merely seeded history or an isolated client test.
-  blocked('JOINT-CON-17', 'Ejecutar alta/finalización/cierre/reasignación por API cuando #27 implemente CRUD; B-04 solo verifica lectura de historia presembrada.');
-  blocked('JOINT-CONC-08', 'Requiere ingestión 2.0.0 y sesión/asignación creadas por API; ver protocolo conjunto en matriz.');
+  if (process.env.QA_JOINT_DEVICE_SECRET) {
+    results.push(...await runJointCases({ admin,
+      devices: ['qa-joint-device-1', 'qa-joint-device-2'],
+      device: (index, path, body) => device(path, body, `qa-joint-credential-${index + 1}.${process.env.QA_JOINT_DEVICE_SECRET}`),
+    }));
+  } else {
+    blocked('JOINT-CON-17', 'Falta QA_JOINT_DEVICE_SECRET del fixture dedicado; sin mutaciones conjuntas.');
+    blocked('JOINT-CONC-08', 'Falta QA_JOINT_DEVICE_SECRET del fixture dedicado; sin mutaciones conjuntas.');
+  }
   const report = { contract: '2.0.0', generatedAt: new Date().toISOString(), environment: process.env.QA_ENVIRONMENT ?? 'unspecified', results };
   if (process.env.QA_REPORT) await writeFile(process.env.QA_REPORT, JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify(report, null, 2));

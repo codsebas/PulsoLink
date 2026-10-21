@@ -94,9 +94,49 @@ for (const status of [400, 401, 403]) test(`${status} terminates instead of retr
   await assert.rejects(h.sim.step(), /HTTP/);
   assert.ok(!h.logs.join('').includes(env.DEVICE_SECRET));
 });
-test('incorrect config identity or malformed success is rejected', async () => {
+test('malformed config success is rejected', async () => {
   const h = harness(); h.intercept(() => Response.json({ data: {} }));
   await assert.rejects(h.sim.step(), /incompatible/);
+});
+test('valid config for another identity stops before heartbeat or measurements', async () => {
+  const h = harness();
+  h.intercept(() => Response.json({ data: { deviceId: 'another-device', activeSessionId: 's', uploadIntervalMs: 2000, heartbeatIntervalMs: 15000, serverTime: timestamp } }));
+  await assert.rejects(h.sim.step(), /DEVICE_ID_MISMATCH/);
+  assert.deepEqual(h.calls.map(c => c.path), ['config']);
+});
+for (const status of [500, 503]) test(`${status} discards sample, waits and reconnects with a new sequence`, async () => {
+  const h = harness();
+  h.intercept(path => path === 'measurements' ? Response.json({ error: { message: env.DEVICE_SECRET } }, { status }) : undefined);
+  await h.sim.step(); h.at(1999); await h.sim.step(); assert.equal(h.calls.length, 3);
+  h.intercept(); h.at(2000); await h.sim.step();
+  assert.deepEqual(h.calls.map(c => c.path), ['config', 'heartbeat', 'measurements', 'config', 'heartbeat', 'measurements']);
+  assert.deepEqual(h.calls.filter(c => c.path === 'measurements').map(c => c.body.sequence), [1, 2]);
+  assert.ok(!h.logs.join('').includes(env.DEVICE_SECRET));
+});
+test('real request timeout aborts stalled measurement and never resends its payload', { timeout: 8000 }, async () => {
+  const samples: any[] = []; const logs: string[] = []; let now = 0; let closed = false;
+  const server = createServer(async (req, res) => {
+    let raw = ''; for await (const chunk of req) raw += chunk;
+    res.setHeader('Content-Type', 'application/json');
+    if (req.url?.endsWith('config')) res.end(JSON.stringify({ data: { deviceId: env.DEVICE_ID, activeSessionId: 's', uploadIntervalMs: 2000, heartbeatIntervalMs: 15000, serverTime: timestamp } }));
+    else if (req.url?.endsWith('heartbeat')) res.end(JSON.stringify({ data: { serverTime: timestamp } }));
+    else {
+      samples.push(JSON.parse(raw));
+      if (samples.length === 1) { res.on('close', () => { closed = true; }); return; }
+      res.statusCode = 201; res.end(JSON.stringify({ data: { measurementId: 'm2', receivedAt: timestamp, duplicate: false } }));
+    }
+  });
+  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const sim = new Simulator(readSettings({ ...env, REQUEST_TIMEOUT_MS: '500', API_BASE_URL: `http://127.0.0.1:${(server.address() as any).port}/api/v1` }), { now: () => now, log: m => logs.push(m) });
+  try {
+    await sim.step();
+    assert.equal(samples.length, 1); assert.match(logs.join(''), /timeout/);
+    now = 1999; await sim.step(); assert.equal(samples.length, 1);
+    now = 2000; await sim.step();
+    assert.equal(closed, true);
+    assert.deepEqual(samples.map(s => s.sequence), [1, 2]);
+    assert.equal(samples[0].bootId, samples[1].bootId);
+  } finally { sim.stop(); server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
 });
 test('200 duplicate acknowledgment is accepted', async () => {
   const h = harness(); h.intercept(path => path === 'measurements' ? Response.json({ data: { measurementId: 'original', receivedAt: timestamp, duplicate: true } }) : undefined);

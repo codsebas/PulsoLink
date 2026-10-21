@@ -41,6 +41,7 @@ Arrancar API (`npm run dev:api`) con las variables anteriores en otra terminal y
 $env:DEVICE_ID='demo-device-2'
 $env:DEVICE_CREDENTIAL_ID='demo-credential-2'
 $env:DEVICE_SECRET=$env:DEMO_DEVICE_SECRET
+$env:QA_JOINT_DEVICE_SECRET=$env:DEMO_DEVICE_SECRET
 $env:QA_ALLOW_WRITES='true'
 $env:QA_ADMIN_EMAIL='demo-admin@example.invalid'
 $env:QA_VIEWER_EMAIL='demo-viewer@example.invalid'
@@ -84,9 +85,17 @@ Resultados efectivamente obtenidos: [JSON HTTP](../evidencias/hugo-pl2-http.json
 
 ## Escenarios conjuntos y pendientes explícitos
 
+Los dos casos ya están automatizados en `tools/device-simulator/src/qa-joint.ts` e integrados en `npm run qa`. El seed crea también `qa-joint-device-1/2` y `qa-joint-credential-1/2`, separados del historial presembrado. Se habilitan con QA_JOINT_DEVICE_SECRET; no se usa Firebase desde el ejecutor.
+
+Antes de cualquier mutación comprueban listado de asignaciones, identidad autenticada, placas simuladas habilitadas, ausencia de sesión y asignaciones activas. Un fallo de precondición produce BLOCKED con el HTTP observado. Una vez iniciado el ciclo, un incumplimiento produce FAIL, no un bloqueo que oculte el defecto. Solo se finalizan/cierran recursos creados por esa ejecución; se conserva la historia para inspección. Una limpieza incompleta se reporta y detiene la siguiente prueba. Las credenciales están fuera del reporte.
+
 **JOINT-CON-17:** admin crea paciente A y asigna D1, crea/inicia sesión por API; simulador emite; finalizar y cerrar asignación; asignar D2 y repetir. Consultar todas las páginas del historial; comparar IDs y fechas del primer tramo con los originales y verificar aislamiento B. Repetir A-08/A-09 después de finalizar/reasignar: referencia original/conflicto respectivamente. B-04 prueba historia presembrada, no acredita estas mutaciones. Bloqueado por CRUD #27 e ingestión 2.0.0.
 
 **JOINT-CONC-08:** con sesión nueva por cada ronda, lanzar `finish` y cinco muestras nuevas mediante `Promise.all`; tres rondas. Admitir escritura previa al cierre o 409 SESSION_NOT_ACTIVE; leer estado final e historia, verificar ninguna receivedAt posterior a finishedAt ni escritura huérfana. No ejecutar sobre sesiones de otro integrante. Bloqueado por el mismo corte HTTP. Los tests de repositorios existentes pasan este invariante, pero no sustituyen el recorrido oficial.
+
+La implementación espera las seis respuestas con `Promise.allSettled` antes de limpiar recursos. Cada ronda exige primero una ingestión válida y coteja los ACK/rechazos con las lecturas persistidas. CON-17 también reasigna D1 al paciente B y confirma que no cambia la pertenencia histórica de A. Se usan páginas de una lectura para obligar a verificar cursores. Seis pruebas con un doble deliberado comprueban el propio ejecutor: bloqueo sin mutaciones, fixture ocupado, ambos órdenes de carrera, corrupción de IDs históricos y escritura posterior a finishedAt. Esas pruebas no acreditan el backend real.
+
+Ejecución actual: [reporte ampliado](../evidencias/hugo-pl2-http-extended.json). Ambos casos detectaron GET /assignments → 404 antes de mutar. [Evidencia de ampliación y corrección de interfaz](../evidencias/hugo-pl2-ampliacion-2026-10-20.md).
 
 **Corte real:** ejecutar `random_disconnect` con 60 s online y 50 s de corte. Verificar a >10 s stale y a >45 s disconnected; después del corte solo una muestra nueva, sin ráfaga ni historia atrasada. El cliente se verificó con reloj controlado y transporte HTTP; integración de este escenario está bloqueada por A-05/A-07. También probar timeout, credencial revocada/placa deshabilitada, ausencia de sesión, comienzo y fin desde la web. El simulador se detiene con 401/403 y Ctrl+C aborta peticiones pendientes.
 

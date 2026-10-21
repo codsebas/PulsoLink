@@ -16,6 +16,10 @@ async function main() {
     profiles: [{ uid: 'demo-admin', displayName: 'Administración demo', role: 'admin' }],
     deviceId: 'demo-device-2', credentialId: 'demo-credential-2', secret,
   });
+  for (const index of [1, 2]) await provisionDemo(db, auth, {
+    profiles: [{ uid: 'demo-admin', displayName: 'Administración demo', role: 'admin' }],
+    deviceId: `qa-joint-device-${index}`, credentialId: `qa-joint-credential-${index}`, secret,
+  });
   console.log('Fixtures QA preparados: demo-device-2 / demo-session-2; pacientes A/B e historial de 240 lecturas.');
 }
 main().catch(() => { console.error('Fixture QA no preparado. Verificar emuladores demo-, variables y conflictos sin sobrescribir datos.'); process.exitCode = 1; });

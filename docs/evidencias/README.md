@@ -40,6 +40,8 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 
 ## Evidencias disponibles
 
+- [Ampliación de Hugo: escenarios conjuntos y recuperación del historial](hugo-pl2-ampliacion-2026-10-20.md): 26 pruebas del emisor/QA, 20 web, ocho casos nuevos de navegador y defecto de reintento corregido con evidencia antes/después.
+
 - [Entrega de Hugo: simulador y QA PL2](hugo-pl2-2026-10-20.md): cliente del contrato A 2.0.0, matriz HTTP ejecutable, regresión con emuladores y navegador; identifica los bloqueos de ingestión/CRUD y hardware.
 
 - [PL2 de Gerson: Auth y monitoreo juntos en emuladores](gerson-integracion-auth-monitoreo.md): combinación solo local de #41/#42, API autenticada, historial de dos placas, semilla repetible y navegador; incluye procedimiento y pendientes, sin declarar esos PR integrados en main.

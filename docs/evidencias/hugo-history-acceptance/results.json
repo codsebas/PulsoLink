@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-10-21T22:14:01.807Z",
+  "base": "abc4d45 + corrección retry",
+  "environment": "Windows; Node 24.15.0; main abc4d45; Auth/Firestore emulados; demo-pulsolink-hugo",
+  "results": [
+    {
+      "id": "HIST-01",
+      "expected": "162 lecturas disponibles y cobertura exacta tras dos ventanas nuevas",
+      "actual": "API recibió 162; interfaz muestra 140; afirma inicio=true",
+      "state": "FAIL",
+      "issue": 29
+    },
+    {
+      "id": "HIST-02",
+      "expected": "Navegación permite inspeccionar las 1120 lecturas; cobertura visible honesta",
+      "actual": "12 páginas descargadas; 1000 filas visibles; botón antiguas deshabilitado",
+      "state": "FAIL",
+      "issue": 29
+    }
+  ]
+}

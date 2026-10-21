@@ -4,6 +4,10 @@ Responsable: HugoX2024. Issues #32 y #44; apoyo #33 y #35.
 Fuentes: contratos A/B 2.0.0, arquitectura aprobada y AGENTS.md.
 Complementa [la matriz de Axel](pl2-08-matriz-api-permisos.md); no sustituye sus casos de permisos/CSRF/concurrencia.
 
+## Estado actualizado: 21 de octubre de 2026
+
+Sobre main abc4d45, A-01–17, B-01–06 y ambos casos conjuntos pasan con timeout de QA 30000 ms. Las antiguas rutas faltantes ya están integradas; los resultados de ad4dede se conservan como antecedentes. [Aceptación actual, comandos y límites](../evidencias/hugo-integrado-2026-10-21.md). El simulador conserva su timeout predeterminado de 5000 ms.
+
 ## Ejecución y fixture
 
 Se elige Node.js 24.15.0 (`fetch` y `Promise.all`) para ejecutar la misma colección desde Windows/PowerShell y macOS.
@@ -89,15 +93,15 @@ Los dos casos ya están automatizados en `tools/device-simulator/src/qa-joint.ts
 
 Antes de cualquier mutación comprueban listado de asignaciones, identidad autenticada, placas simuladas habilitadas, ausencia de sesión y asignaciones activas. Un fallo de precondición produce BLOCKED con el HTTP observado. Una vez iniciado el ciclo, un incumplimiento produce FAIL, no un bloqueo que oculte el defecto. Solo se finalizan/cierran recursos creados por esa ejecución; se conserva la historia para inspección. Una limpieza incompleta se reporta y detiene la siguiente prueba. Las credenciales están fuera del reporte.
 
-**JOINT-CON-17:** admin crea paciente A y asigna D1, crea/inicia sesión por API; simulador emite; finalizar y cerrar asignación; asignar D2 y repetir. Consultar todas las páginas del historial; comparar IDs y fechas del primer tramo con los originales y verificar aislamiento B. Repetir A-08/A-09 después de finalizar/reasignar: referencia original/conflicto respectivamente. B-04 prueba historia presembrada, no acredita estas mutaciones. Bloqueado por CRUD #27 e ingestión 2.0.0.
+**JOINT-CON-17:** admin crea paciente A y asigna D1, crea/inicia sesión por API; simulador emite; finalizar y cerrar asignación; asignar D2 y repetir. Consultar todas las páginas del historial; comparar IDs y fechas del primer tramo con los originales y verificar aislamiento B. Repetir A-08/A-09 después de finalizar/reasignar: referencia original/conflicto respectivamente. B-04 prueba historia presembrada, no acredita estas mutaciones. Bloqueo histórico en ad4dede; aprobado por HTTP sobre abc4d45.
 
-**JOINT-CONC-08:** con sesión nueva por cada ronda, lanzar `finish` y cinco muestras nuevas mediante `Promise.all`; tres rondas. Admitir escritura previa al cierre o 409 SESSION_NOT_ACTIVE; leer estado final e historia, verificar ninguna receivedAt posterior a finishedAt ni escritura huérfana. No ejecutar sobre sesiones de otro integrante. Bloqueado por el mismo corte HTTP. Los tests de repositorios existentes pasan este invariante, pero no sustituyen el recorrido oficial.
+**JOINT-CONC-08:** con sesión nueva por cada ronda, lanzar `finish` y cinco muestras nuevas mediante `Promise.all`; tres rondas. Admitir escritura previa al cierre o 409 SESSION_NOT_ACTIVE; leer estado final e historia, verificar ninguna receivedAt posterior a finishedAt ni escritura huérfana. No ejecutar sobre sesiones de otro integrante. Bloqueo histórico superado en abc4d45. Los tests de repositorios existentes pasan este invariante, pero no sustituyen el recorrido oficial.
 
 La implementación espera las seis respuestas con `Promise.allSettled` antes de limpiar recursos. Cada ronda exige primero una ingestión válida y coteja los ACK/rechazos con las lecturas persistidas. CON-17 también reasigna D1 al paciente B y confirma que no cambia la pertenencia histórica de A. Se usan páginas de una lectura para obligar a verificar cursores. Seis pruebas con un doble deliberado comprueban el propio ejecutor: bloqueo sin mutaciones, fixture ocupado, ambos órdenes de carrera, corrupción de IDs históricos y escritura posterior a finishedAt. Esas pruebas no acreditan el backend real.
 
-Ejecución actual: [reporte ampliado](../evidencias/hugo-pl2-http-extended.json). Ambos casos detectaron GET /assignments → 404 antes de mutar. [Evidencia de ampliación y corrección de interfaz](../evidencias/hugo-pl2-ampliacion-2026-10-20.md).
+Ejecución anterior sobre ad4dede: [reporte ampliado](../evidencias/hugo-pl2-http-extended.json). Ambos casos detectaron GET /assignments → 404 antes de mutar. [Evidencia de ampliación y corrección de interfaz](../evidencias/hugo-pl2-ampliacion-2026-10-20.md).
 
-**Corte real:** ejecutar `random_disconnect` con 60 s online y 50 s de corte. Verificar a >10 s stale y a >45 s disconnected; después del corte solo una muestra nueva, sin ráfaga ni historia atrasada. El cliente se verificó con reloj controlado y transporte HTTP; integración de este escenario está bloqueada por A-05/A-07. También probar timeout, credencial revocada/placa deshabilitada, ausencia de sesión, comienzo y fin desde la web. El simulador se detiene con 401/403 y Ctrl+C aborta peticiones pendientes.
+**Corte real:** ejecutar `random_disconnect` con 60 s online y 50 s de corte. Verificar a >10 s stale y a >45 s disconnected; después del corte solo una muestra nueva, sin ráfaga ni historia atrasada. El cliente se verificó con reloj controlado y transporte HTTP; integración de este escenario pasó sobre abc4d45 con corte de sockets de 50 s y CLI oficial (ver aceptación actual). También probar timeout, credencial revocada/placa deshabilitada, ausencia de sesión, comienzo y fin desde la web. El simulador se detiene con 401/403 y Ctrl+C aborta peticiones pendientes.
 
 ## Registro de defectos / regresión
 
@@ -107,7 +111,7 @@ Ejecución actual: [reporte ampliado](../evidencias/hugo-pl2-http-extended.json)
 | H-02 | A-01–02 | 401 UNAUTHORIZED, contrato exige UNAUTHENTICATED | #27: acordar códigos y envoltorio; repetir ambas credenciales negativas |
 | H-03 | B-01/B-06 | 404 en PATCH paciente y GET assignments | #27: rutas/roles; luego casos conjuntos y regresión con viewer/admin |
 
-No se declara corregido ningún defecto externo. Los seis puntos P-01–P-06 de Axel mantienen su proceso de coordinación; esta entrega no decide cambios de contrato ni modifica sus resultados históricos.
+Los defectos HTTP de #45/#46 ya no se reproducen en la matriz actual; se propone su cierre sujeto a revisión. Los seis puntos P-01–P-06 de Axel mantienen su proceso de coordinación; esta entrega no decide cambios de contrato ni modifica sus resultados históricos.
 
 Seguimiento publicado: [#45 — H-01/H-02, ingestión y autenticación](https://github.com/codsebas/PulsoLink/issues/45), [#46 — H-03, rutas CRUD](https://github.com/codsebas/PulsoLink/issues/46). Entrega para revisión: [PR #47](https://github.com/codsebas/PulsoLink/pull/47).
 

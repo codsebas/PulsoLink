@@ -1,0 +1,92 @@
+{
+  "generatedAt": "2026-10-21T22:33:05.305Z",
+  "base": "f2959ea",
+  "method": "Edge CDP noDefaults, real document.visibilityState; HTTP official, no synthetic responses",
+  "results": [
+    {
+      "id": "UI-REASSIGN",
+      "state": "PASS",
+      "expected": "Antes/después en web, dos placas e historia original inmutable",
+      "actual": "120 filas D1 antes; 120 D1 + 5 D2 después; 120 objetos históricos idénticos por HTTP; lifecycle administrativo por HTTP, presentación en navegador"
+    },
+    {
+      "id": "UI-RETURN",
+      "state": "FAIL",
+      "expected": "Sin polling oculta; al volver recuperar 167 lecturas sin refresco manual",
+      "actual": {
+        "foregroundBefore": "visible",
+        "background": "hidden",
+        "restored": "visible",
+        "hiddenRequests": 0,
+        "foregroundRequests": 11,
+        "apiReadings": 167,
+        "visibleRows": 145,
+        "archiveRequestsAfterReturn": 0,
+        "liveRequestsAfterReturn": 1
+      },
+      "issue": 29
+    }
+  ],
+  "requests": [
+    {
+      "time": 1792621974064,
+      "path": "/api/v1/sessions",
+      "limit": "1"
+    },
+    {
+      "time": 1792621974064,
+      "path": "/api/v1/patients/:patient/latest",
+      "limit": null
+    },
+    {
+      "time": 1792621976080,
+      "path": "/api/v1/sessions",
+      "limit": "1"
+    },
+    {
+      "time": 1792621976122,
+      "path": "/api/v1/patients/:patient/latest",
+      "limit": null
+    },
+    {
+      "time": 1792621978097,
+      "path": "/api/v1/sessions",
+      "limit": "1"
+    },
+    {
+      "time": 1792621978169,
+      "path": "/api/v1/patients/:patient/latest",
+      "limit": null
+    },
+    {
+      "time": 1792621980120,
+      "path": "/api/v1/sessions",
+      "limit": "1"
+    },
+    {
+      "time": 1792621980241,
+      "path": "/api/v1/patients/:patient/latest",
+      "limit": null
+    },
+    {
+      "time": 1792621982064,
+      "path": "/api/v1/patients/:patient/measurements",
+      "limit": "20"
+    },
+    {
+      "time": 1792621982168,
+      "path": "/api/v1/sessions",
+      "limit": "1"
+    },
+    {
+      "time": 1792621982301,
+      "path": "/api/v1/patients/:patient/latest",
+      "limit": null
+    },
+    {
+      "time": 1792621984192,
+      "path": "/api/v1/sessions",
+      "limit": "1"
+    }
+  ]
+}

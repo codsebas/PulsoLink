@@ -54,3 +54,5 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 - [PL2-04: informe de correcciones](informe-auth-pl2-2026-10-20.md): cambios de recuperación, integración de #38, resultados y requisitos de cierre formal.
 
 - [Aceptación integrada de Hugo, 21-10-2026](hugo-integrado-2026-10-21.md): HTTP 25/25, CLI oficial, recuperación de página posterior y defectos de historial reproducidos.
+
+- [Tres pendientes de Hugo: retorno, reasignación y latencia](hugo-seguimiento-2026-10-21.md): cambio de placa visible aprobado; retorno falla con 145/167 filas; timeout5s reproducido y reintentos transaccionales medidos.

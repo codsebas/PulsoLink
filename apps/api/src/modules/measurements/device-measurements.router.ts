@@ -55,7 +55,7 @@ export function createDeviceMeasurementsRouter(
       const currentDevice = req.device!;
       const freshDevice = await devicesRepo.getById(currentDevice.deviceId);
       if (!freshDevice || !freshDevice.enabled) {
-        sendError(res, 'UNAUTHORIZED', 'Dispositivo no encontrado o deshabilitado.', 401);
+        sendError(res, 'UNAUTHENTICATED', 'Dispositivo no encontrado o deshabilitado.', 401);
         return;
       }
 

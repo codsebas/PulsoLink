@@ -84,7 +84,7 @@ export const DevicesPage: React.FC = () => {
           id: editing.id,
           input: {
             ...patch,
-            ...(patch.hardwareId === '' ? { hardwareId: undefined } : {}),
+            ...(patch.hardwareId === '' ? { hardwareId: editing.hardwareId ? '' : undefined } : {}),
           },
         });
       } else {

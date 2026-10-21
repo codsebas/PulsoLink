@@ -109,7 +109,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
 
       const res = await request(app).get('/api/v1/device/config');
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
       expect(res.body.error.message).toMatch(/requerida/i);
     });
 
@@ -130,7 +130,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
         .get('/api/v1/device/config')
         .set('Authorization', 'Basic user:pass');
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
 
     it('devuelve 401 si el token no es válido o está revocado', async () => {
@@ -149,7 +149,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
         .get('/api/v1/device/config')
         .set('Authorization', 'Bearer cred-bad.secret_invalido_que_falla');
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
   });
 
@@ -224,7 +224,7 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
         .set('Authorization', `Bearer ${dev.credentialId}.${dev.secret}`);
 
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
   });
 
@@ -639,26 +639,26 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
   describe('Integración con createApp()', () => {
     const realApp = createApp();
 
-    it('GET /api/v1/device/config responde 401 UNAUTHORIZED sin credencial', async () => {
+    it('GET /api/v1/device/config responde 401 UNAUTHENTICATED sin credencial', async () => {
       const res = await request(realApp).get('/api/v1/device/config');
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
 
-    it('POST /api/v1/device/heartbeat responde 401 UNAUTHORIZED sin credencial', async () => {
+    it('POST /api/v1/device/heartbeat responde 401 UNAUTHENTICATED sin credencial', async () => {
       const res = await request(realApp)
         .post('/api/v1/device/heartbeat')
         .send({ bootId: randomUUID(), uptimeMs: 1000 });
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
 
-    it('POST /api/v1/device/measurements responde 401 UNAUTHORIZED sin credencial', async () => {
+    it('POST /api/v1/device/measurements responde 401 UNAUTHENTICATED sin credencial', async () => {
       const res = await request(realApp)
         .post('/api/v1/device/measurements')
         .send(validPayload());
       expect(res.status).toBe(401);
-      expect(res.body.error.code).toBe('UNAUTHORIZED');
+      expect(res.body.error.code).toBe('UNAUTHENTICATED');
     });
   });
 });

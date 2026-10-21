@@ -9,9 +9,10 @@ import { DevicesRepository } from './devices.repository.js';
 import { deviceDto } from './devices.routes.js';
 
 const code = z.string().trim().min(1).max(32);
-const hardwareId = z.string().min(1).max(128);
+const hardwareId = z.string().trim().min(1).max(128);
+const updateHardwareId = z.string().trim().max(128);
 const createBody = z.object({ code, hardwareId: hardwareId.optional(), source: z.enum(['real', 'simulated']) }).strict();
-const updateBody = z.object({ code, hardwareId, enabled: z.boolean() }).partial().strict()
+const updateBody = z.object({ code, hardwareId: updateHardwareId, enabled: z.boolean() }).partial().strict()
   .refine((value) => Object.keys(value).length > 0, 'Debe indicar al menos un cambio.');
 
 export function createDeviceAdminRouter(devices: Pick<DevicesRepository, 'getById' | 'create' | 'update'> = new DevicesRepository()) {

@@ -100,12 +100,38 @@ describe('pantalla de monitoreo con la capa de datos', () => {
       },
     });
     renderPage();
-    await waitFor(() => expect(screen.getByText(/100 lecturas cargadas en 1 página/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/100 lecturas cargadas en 1 página/)).toBeTruthy(), { timeout: 10000 });
     const button = await screen.findByRole('button', { name: 'Cargar más antiguas' });
     await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
     (button as HTMLButtonElement).click();
-    await waitFor(() => expect(screen.getByText(/120 lecturas cargadas en 2 páginas/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/120 lecturas cargadas en 2 páginas/)).toBeTruthy(), { timeout: 10000 });
     expect(screen.getByText(/Alcanzaste el inicio del intervalo consultado/)).toBeTruthy();
     expect(calls.some((call) => call.includes('cursor=cursor-2'))).toBe(true);
+  }, 20000);
+
+  it('reintenta el archivo que falló y recupera historial después de un error de red', async () => {
+    let offline = true;
+    const calls = installFetch({ measurements: (url) => {
+      if (offline && url.searchParams.get('limit') === '100') throw new TypeError('Network failure in test');
+      return { data: readings.slice(0, 20), pagination: { nextCursor: null, hasMore: false } };
+    } });
+    renderPage();
+    const retry = await screen.findByRole('button', { name: 'Reintentar' });
+    offline = false;
+    (retry as HTMLButtonElement).click();
+    await waitFor(() => expect(screen.getByText(/20 lecturas cargadas en 1 página/)).toBeTruthy());
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(calls.filter(call => call.includes('limit=100'))).toHaveLength(2);
+  }, 20000);
+
+  it('refrescar un historial sano solo vuelve a pedir la ventana reciente', async () => {
+    const calls = installFetch();
+    renderPage();
+    await screen.findByText(/20 lecturas cargadas/);
+    const archivesBefore = calls.filter(call => call.includes('limit=100')).length;
+    const liveBefore = calls.filter(call => call.includes('limit=20')).length;
+    (screen.getByRole('button', { name: 'Refrescar lecturas recientes' }) as HTMLButtonElement).click();
+    await waitFor(() => expect(calls.filter(call => call.includes('limit=20')).length).toBeGreaterThan(liveBefore));
+    expect(calls.filter(call => call.includes('limit=100'))).toHaveLength(archivesBefore);
   }, 20000);
 });

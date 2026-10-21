@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-10-21T05:11:56.663Z",
+  "browser": "155.0.4283.62",
+  "fixture": "persisted synthetic data; request pause/abort explicitly indicated",
+  "results": [
+    {
+      "id": "UI-X01-date-range",
+      "expected": "Fechas Guatemala convertidas a UTC; from inclusivo/to exclusivo y filas coincidentes con API",
+      "actual": "45 filas; límites UTC exactos contrastados con las 240 lecturas persistidas",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-X02-invalid-range",
+      "expected": "Rechaza from >= to sin petición nueva de historial",
+      "actual": "Mensaje de validación visible; 0 peticiones nuevas de historial",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-X03-empty-range",
+      "expected": "Rango futuro muestra vacío, sin reutilizar filas anteriores",
+      "actual": "Comprobación ejecutada",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-X04-reset-range",
+      "expected": "Desde el inicio registrado limpia filtros y recupera primera página",
+      "actual": "Comprobación ejecutada",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-X05-loading",
+      "expected": "Estado de carga mientras se retiene la petición HTTP real",
+      "actual": "Petición retenida y luego liberada hacia la API, sin sustituir respuesta",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-X06-network-error-recovery",
+      "expected": "Error visible al abortar red y recuperación con Reintentar",
+      "actual": "Aserción o espera no cumplida; ver captura de fallo",
+      "state": "FAIL"
+    },
+    {
+      "id": "UI-X07-logout",
+      "expected": "Salir elimina sesión y contenido del paciente; /auth/me devuelve 401",
+      "actual": "Comprobación ejecutada",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-X08-back-after-logout",
+      "expected": "Atrás y acceso directo protegido no muestran historia tras salir",
+      "actual": "Comprobación ejecutada",
+      "state": "PASS"
+    }
+  ]
+}

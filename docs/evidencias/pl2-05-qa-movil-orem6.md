@@ -29,6 +29,20 @@ El navegador concreto no esta confirmado entre Chrome y Edge; se conserva como C
 | Placas | No se observaron cortes evidentes en tarjetas y filtros dentro del area revisada. | La pantalla presento el mensaje de sesion; no acredita una carga funcional completa. |
 | Asignaciones | No se observaron cortes evidentes en tarjetas y filtros dentro del area revisada. | El mensaje de recurso impide atribuir el resultado a una carga completa de datos. |
 
+## Pruebas manuales de accesibilidad del menu
+
+Las siguientes comprobaciones fueron realizadas manualmente por `@orem6` dentro del alcance observado de la navegacion movil. No se utilizaron herramientas automatizadas de accesibilidad.
+
+| Comprobacion | Resultado observado | Alcance |
+| --- | --- | --- |
+| Tab | Satisfactorio: permite avanzar por las opciones observadas del menu. | Comprobacion manual observada. |
+| Shift + Tab | Satisfactorio: permite retroceder por las opciones observadas del menu. | Comprobacion manual observada. |
+| Foco visible | Satisfactorio: el foco fue visible en las opciones observadas. | Comprobacion manual observada. |
+| Enter | Satisfactorio: activa la opcion observada del menu. | Comprobacion manual observada. |
+| Desplazamiento al enfocar | Satisfactorio: el menu movil se desplaza al enfocar opciones. | Comprobacion manual observada. |
+
+Estos resultados no constituyen una auditoria WCAG completa.
+
 ## Recomendacion
 
 - Considerar una indicacion visual mas evidente de que el menu horizontal admite desplazamiento en movil. Es una recomendacion de usabilidad, no un defecto confirmado.
@@ -37,7 +51,6 @@ El navegador concreto no esta confirmado entre Chrome y Edge; se conserva como C
 
 - Pruebas de responsividad a 360, 768 y 1440 px.
 - Medicion verificable de overflow horizontal, solapamientos y comportamiento de tablas/graficas.
-- Recorrido por teclado con Tab y Shift+Tab, orden y visibilidad del foco.
-- Verificacion de contraste, preferencia de movimiento reducido y lector de pantalla/anuncios dinamicos.
+- Verificacion de contraste medido, preferencia de movimiento reducido y lector de pantalla/anuncios dinamicos.
 - Pruebas integradas de autenticacion, sesiones, recursos no visibles y estados de medicion con API, datos de demostracion y entorno autorizado.
 - Validacion completa del dashboard centrado en paciente; esta revision no aprueba todas las pantallas ni el comportamiento funcional completo.

@@ -106,7 +106,10 @@ export function createAuthRouter(deps: AuthRouterDeps): Router {
 
       sendSuccess(res, { id: user.id, displayName: user.displayName, role: user.role });
     } catch (error) {
-      if (!(error instanceof AuthError && error.code === 'AUDIT_UNAVAILABLE')) {
+      if (
+        !(error instanceof AuthError && error.code === 'AUDIT_UNAVAILABLE') &&
+        !(error instanceof AuthError && error.code === 'AUTH_UNAVAILABLE')
+      ) {
         await recordLogin(verifiedUid ?? 'anonymous', 'failure').catch(() => undefined);
       }
       next(error);

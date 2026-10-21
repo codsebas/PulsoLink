@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 import { readSettings } from './config.js';
 import { makeSample, seededRandom } from './simulator.js';
-import { runJointCases } from './qa-joint.js';
+import { JOINT_CONCURRENCY_TIMEOUT_MS, runJointCases } from './qa-joint.js';
 
 type Result = { id: string; expected: string; actual: string; state: 'PASS' | 'FAIL' | 'BLOCKED' };
 type Reply = { status: number; body: any };
@@ -22,11 +22,11 @@ async function main() {
   const s = readSettings(process.env);
   const token = `${s.DEVICE_CREDENTIAL_ID}.${s.DEVICE_SECRET}`;
   const origin = process.env.QA_ORIGIN ?? 'http://localhost:5173';
-  async function request(path: string, method = 'GET', body?: unknown, headers: Record<string, string> = {}): Promise<Reply> {
-    const response = await fetch(`${s.API_BASE_URL}${path}`, { method, headers: { ...headers, ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) }, body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(s.REQUEST_TIMEOUT_MS), redirect: 'error' });
+  async function request(path: string, method = 'GET', body?: unknown, headers: Record<string, string> = {}, timeoutMs = s.REQUEST_TIMEOUT_MS): Promise<Reply> {
+    const response = await fetch(`${s.API_BASE_URL}${path}`, { method, headers: { ...headers, ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) }, body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(timeoutMs), redirect: 'error' });
     return { status: response.status, body: await response.json().catch(() => null) };
   }
-  const device = (path: string, body?: unknown, credential = token) => request(`/device/${path}`, body === undefined ? 'GET' : 'POST', body, credential ? { Authorization: `Bearer ${credential}` } : {});
+  const device = (path: string, body?: unknown, credential = token, timeoutMs = s.REQUEST_TIMEOUT_MS) => request(`/device/${path}`, body === undefined ? 'GET' : 'POST', body, credential ? { Authorization: `Bearer ${credential}` } : {}, timeoutMs);
   async function check(id: string, expected: string, call: () => Promise<Reply>, predicate: (r: Reply) => boolean) {
     try { const r = await call(); record(id, expected, summary(r), predicate(r)); return r; }
     catch { blocked(id, 'Sin respuesta HTTP (red/timeout); no se registran secretos ni errores internos.'); return null; }
@@ -70,8 +70,8 @@ async function main() {
     if (!email || !password) return null;
     const cookies = new Map<string, string>();
     let csrf = '';
-    const call = async (path: string, method = 'GET', body?: unknown): Promise<Reply> => {
-      const res = await fetch(`${s.API_BASE_URL}${path}`, { method, redirect: 'error', signal: AbortSignal.timeout(s.REQUEST_TIMEOUT_MS), headers: { Origin: origin, Cookie: [...cookies].map(([k, v]) => `${k}=${v}`).join('; '), ...(csrf ? { 'X-CSRF-Token': csrf } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) }, body: body === undefined ? undefined : JSON.stringify(body) });
+    const call = async (path: string, method = 'GET', body?: unknown, timeoutMs = s.REQUEST_TIMEOUT_MS): Promise<Reply> => {
+      const res = await fetch(`${s.API_BASE_URL}${path}`, { method, redirect: 'error', signal: AbortSignal.timeout(timeoutMs), headers: { Origin: origin, Cookie: [...cookies].map(([k, v]) => `${k}=${v}`).join('; '), ...(csrf ? { 'X-CSRF-Token': csrf } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) }, body: body === undefined ? undefined : JSON.stringify(body) });
       for (const header of res.headers.getSetCookie()) { const pair = header.split(';')[0]; const i = pair.indexOf('='); cookies.set(pair.slice(0, i), pair.slice(i + 1)); }
       const json = await res.json().catch(() => null) as any;
       if (json?.data?.csrfToken) csrf = json.data.csrfToken;
@@ -110,15 +110,15 @@ async function main() {
     } catch { blocked('B-04', 'No se pudo completar consulta de historia.'); }
   } else ['B-04', 'B-05', 'B-06'].forEach(id => blocked(id, 'Faltan credenciales admin o login no disponible.'));
   if (process.env.QA_JOINT_DEVICE_SECRET) {
-    results.push(...await runJointCases({ admin,
+    results.push(...await runJointCases({ admin: admin ? (path, method, body, timeoutMs) => admin(path, method, body, timeoutMs) : null,
       devices: ['qa-joint-device-1', 'qa-joint-device-2'],
-      device: (index, path, body) => device(path, body, `qa-joint-credential-${index + 1}.${process.env.QA_JOINT_DEVICE_SECRET}`),
+      device: (index, path, body, timeoutMs) => device(path, body, `qa-joint-credential-${index + 1}.${process.env.QA_JOINT_DEVICE_SECRET}`, timeoutMs),
     }));
   } else {
     blocked('JOINT-CON-17', 'Falta QA_JOINT_DEVICE_SECRET del fixture dedicado; sin mutaciones conjuntas.');
     blocked('JOINT-CONC-08', 'Falta QA_JOINT_DEVICE_SECRET del fixture dedicado; sin mutaciones conjuntas.');
   }
-  const report = { contract: '2.0.0', generatedAt: new Date().toISOString(), environment: process.env.QA_ENVIRONMENT ?? 'unspecified', requestTimeoutMs: s.REQUEST_TIMEOUT_MS, results };
+  const report = { contract: '2.0.0', generatedAt: new Date().toISOString(), environment: process.env.QA_ENVIRONMENT ?? 'unspecified', requestTimeoutMs: s.REQUEST_TIMEOUT_MS, jointConcurrencyTimeoutMs: JOINT_CONCURRENCY_TIMEOUT_MS, results };
   if (process.env.QA_REPORT) await writeFile(process.env.QA_REPORT, JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify(report, null, 2));
   process.exitCode = results.some(r => r.state === 'FAIL') ? 1 : results.some(r => r.state === 'BLOCKED') ? 2 : 0;

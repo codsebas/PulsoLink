@@ -3,17 +3,21 @@ import { isDeepStrictEqual } from 'node:util';
 import { makeSample, type Sample } from './simulator.js';
 
 export type Reply = { status: number; body: any };
-export type HttpClient = (path: string, method?: string, body?: unknown) => Promise<Reply>;
+export type HttpClient = (path: string, method?: string, body?: unknown, timeoutMs?: number) => Promise<Reply>;
 export type QaResult = { id: string; expected: string; actual: string; state: 'PASS' | 'FAIL' | 'BLOCKED' };
 export interface JointDeps {
   admin: HttpClient | null;
   devices: [string, string];
-  device: (index: number, path: string, body?: unknown) => Promise<Reply>;
+  device: (index: number, path: string, body?: unknown, timeoutMs?: number) => Promise<Reply>;
 }
 class CaseFailure extends Error {}
 const need = (condition: unknown, message: string): void => { if (!condition) throw new CaseFailure(message); };
 const urlId = (value: string) => encodeURIComponent(value);
 const validId = (value: unknown): value is string => typeof value === 'string' && value.length > 0 && value.length <= 128 && !value.includes('/');
+
+// Local emulator contention has returned valid responses after 5–8 seconds.
+// Keep the product/simulator's 5 s timeout and extend only this QA case.
+export const JOINT_CONCURRENCY_TIMEOUT_MS = 30_000;
 
 /** Real API lifecycle only. Missing prerequisites are not replaced by mocked successes. */
 export async function runJointCases(deps: JointDeps): Promise<QaResult[]> {
@@ -42,6 +46,7 @@ export async function runJointCases(deps: JointDeps): Promise<QaResult[]> {
 
   const results: QaResult[] = [];
   for (const [caseId, expected] of definitions) {
+    const timeoutMs = caseId === 'JOINT-CONC-08' ? JOINT_CONCURRENCY_TIMEOUT_MS : undefined;
     // Track only resources created by this execution. Never finish a pre-existing session.
     const open = new Map<string, { sessionId?: string; finished: boolean }>();
     let stage = 'preparación';
@@ -49,7 +54,7 @@ export async function runJointCases(deps: JointDeps): Promise<QaResult[]> {
     let state: QaResult['state'] = 'PASS';
     const call = async (path: string, method: string, body: unknown, status: number): Promise<any> => {
       stage = `${method} ${path.split('?')[0]}`;
-      const r = await admin(path, method, body);
+      const r = await admin(path, method, body, timeoutMs);
       need(r.status === status, `${stage}: esperado ${status}, obtenido ${r.status}`);
       return r.body?.data;
     };
@@ -83,7 +88,7 @@ export async function runJointCases(deps: JointDeps): Promise<QaResult[]> {
       const rows: any[] = []; const cursors = new Set<string>(); let cursor: string | null = null;
       for (let page = 0; page < 100; page++) {
         stage = 'GET historial paginado';
-        const r = await admin(`/patients/${urlId(patientId)}/measurements?limit=1${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`);
+        const r = await admin(`/patients/${urlId(patientId)}/measurements?limit=1${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`, 'GET', undefined, timeoutMs);
         need(r.status === 200 && Array.isArray(r.body?.data), 'Historial no disponible');
         rows.push(...r.body.data);
         need(r.body.pagination && typeof r.body.pagination.hasMore === 'boolean', 'Historial sin paginación contractual');
@@ -97,7 +102,7 @@ export async function runJointCases(deps: JointDeps): Promise<QaResult[]> {
     const ingest = async (run: { index: number; sessionId: string }, bootId: string, sequence: number) => {
       const sample = makeSample(deps.devices[run.index], run.sessionId, bootId, sequence, 'normal', () => 0.5);
       stage = 'POST medición oficial';
-      const r = await deps.device(run.index, 'measurements', sample);
+      const r = await deps.device(run.index, 'measurements', sample, timeoutMs);
       need(r.status === 201 && r.body?.data?.duplicate === false && validId(r.body.data.measurementId) && Number.isFinite(Date.parse(r.body.data.receivedAt)), `Medición oficial: esperado 201, obtenido ${r.status}`);
       return { sample, ack: r.body.data };
     };
@@ -136,8 +141,8 @@ export async function runJointCases(deps: JointDeps): Promise<QaResult[]> {
           stage = `Carrera ronda ${round + 1}`;
           // allSettled waits for every request before attempting cleanup, even on transport failure.
           const responses = await Promise.allSettled([
-            admin(`/sessions/${urlId(run.sessionId)}/finish`, 'POST'),
-            ...samples.map(sample => deps.device(0, 'measurements', sample)),
+            admin(`/sessions/${urlId(run.sessionId)}/finish`, 'POST', undefined, timeoutMs),
+            ...samples.map(sample => deps.device(0, 'measurements', sample, timeoutMs)),
           ]);
           need(responses.every(r => r.status === 'fulfilled'), 'Carrera con respuesta de red perdida; resultado no verificable');
           const replies = responses.map(r => (r as PromiseFulfilledResult<Reply>).value);

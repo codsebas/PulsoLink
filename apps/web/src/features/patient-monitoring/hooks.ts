@@ -118,7 +118,7 @@ export interface PatientHistoryResult {
   hasMore: boolean;
   /** Carga la página siguiente del historial. */
   loadMore: () => void;
-  /** Refresca solo la ventana en vivo; no vuelve a bajar las páginas acumuladas. */
+  /** Refresca la ventana en vivo; recupera también el archivo si su consulta falló. */
   refresh: () => void;
   isPending: boolean;
   isFetching: boolean;
@@ -171,7 +171,10 @@ export function usePatientHistory(
   }, [archive]);
   const refresh = useCallback(() => {
     void live.refetch();
-  }, [live]);
+    // Retrying only live leaves archive.isError set forever after an archive failure.
+    // Healthy history keeps its pages and is not downloaded on every manual refresh.
+    if (archive.isError) void archive.refetch();
+  }, [live, archive]);
 
   return {
     readings,

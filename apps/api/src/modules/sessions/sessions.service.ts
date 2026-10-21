@@ -5,9 +5,10 @@ import { DevicesRepository } from '../devices/devices.repository.js';
 import { MeasurementsRepository, type StoredMeasurement } from '../measurements/measurements.repository.js';
 import { SessionsRepository, type SessionDocument, type SessionListOptions } from './sessions.repository.js';
 import type { PageOptions } from '../../shared/persistence.js';
+import { monitoringMeta } from '../patients/patient-monitoring.service.js';
 
 export interface SessionsDependencies {
-  sessions: Pick<SessionsRepository, 'create' | 'getById' | 'start' | 'finish' | 'list'>;
+  sessions: Pick<SessionsRepository, 'createForAssignment' | 'getById' | 'start' | 'finish' | 'list'>;
   measurements: Pick<MeasurementsRepository, 'getLatest' | 'list'>;
   devices: Pick<DevicesRepository, 'getById'>;
 }
@@ -46,9 +47,9 @@ export class SessionsService {
     if (user.role !== 'admin') throw new AppError('FORBIDDEN', 'Se requiere rol admin para esta operación.', 403);
   }
 
-  async create(input: { participantCode: string; deviceId: string }, user: AuthUser) {
+  async create(input: { assignmentId: string }, user: AuthUser) {
     this.assertAdmin(user);
-    return sessionDto(await this.deps.sessions.create({ ...input, operatorId: user.id }));
+    return sessionDto(await this.deps.sessions.createForAssignment(input.assignmentId, user.id));
   }
 
   async list(options: Omit<SessionListOptions, 'operatorId'>, _user: AuthUser) {
@@ -72,18 +73,10 @@ export class SessionsService {
       this.deps.measurements.getLatest(sessionId),
       this.deps.devices.getById(session.deviceId),
     ]);
-    const now = Date.now();
-    const ageMs = measurement ? Math.max(0, now - Date.parse(measurement.receivedAt)) : null;
     const lastSeenAt = device?.lastSeenAt ?? null;
     return {
       data: measurement ? measurementDto(measurement) : null,
-      meta: {
-        serverTime: new Date(now).toISOString(),
-        lastSeenAt,
-        deviceOnline: lastSeenAt !== null && now - Date.parse(lastSeenAt) <= 45_000,
-        ageMs,
-        stale: ageMs === null || ageMs > 10_000,
-      },
+      meta: monitoringMeta(measurement, lastSeenAt),
     };
   }
 

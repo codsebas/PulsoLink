@@ -1,19 +1,21 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import { z } from 'zod';
+import { PersistenceError, documentId } from '../../shared/persistence.js';
 import { sendSuccess, sendError } from '../../shared/response.js';
 import { createDeviceAuthMiddleware, type DeviceAuthVerifier } from '../devices/device-auth.middleware.js';
 import { DeviceCredentialsRepository } from '../devices/device-credentials.repository.js';
 import { DevicesRepository } from '../devices/devices.repository.js';
 import {
   MeasurementsRepository,
-  measurementInputSchema,
+  patientMeasurementInputSchema,
 } from './measurements.repository.js';
 
 export const heartbeatInputSchema = z
   .object({
+    deviceId: documentId,
     bootId: z.string().uuid('bootId debe ser un UUID válido'),
     uptimeMs: z.number().int().min(0, 'uptimeMs debe ser un entero no negativo'),
-    firmwareVersion: z.string().max(64).optional(),
+    firmwareVersion: z.string().min(1).max(64).optional(),
   })
   .strict();
 
@@ -76,9 +78,12 @@ export function createDeviceMeasurementsRouter(
   router.post('/heartbeat', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const currentDevice = req.device!;
-      heartbeatInputSchema.parse(req.body);
+      const payload = heartbeatInputSchema.parse(req.body);
+      if (payload.deviceId !== currentDevice.deviceId) {
+        throw new PersistenceError('DEVICE_ID_MISMATCH', 'La identidad declarada no coincide con la credencial.');
+      }
       const serverTime = await devicesRepo.heartbeat(currentDevice.deviceId);
-      sendSuccess(res, { status: 'ok', serverTime });
+      sendSuccess(res, { serverTime });
     } catch (error) {
       next(error);
     }
@@ -94,7 +99,10 @@ export function createDeviceMeasurementsRouter(
   router.post('/measurements', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const currentDevice = req.device!;
-      const parsed = measurementInputSchema.parse(req.body);
+      const parsed = patientMeasurementInputSchema.parse(req.body);
+      if (parsed.deviceId !== currentDevice.deviceId) {
+        throw new PersistenceError('DEVICE_ID_MISMATCH', 'La identidad declarada no coincide con la credencial.');
+      }
       const result = await measurementsRepo.ingest(currentDevice.deviceId, parsed);
       const statusCode = result.duplicate ? 200 : 201;
       sendSuccess(res, result, statusCode);

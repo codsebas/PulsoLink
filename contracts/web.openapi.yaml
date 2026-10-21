@@ -2,9 +2,8 @@ openapi: 3.1.0
 info:
   title: "PulsoLink — Contrato B: frontend web"
   version: 2.0.0
-  description: "Objetivo aprobado 18-10-2026, pendiente de implementación coordinada. Auth actual conserva
-    operator; rutas de dispositivos/sesiones implementan el contrato anterior; pacientes/asignaciones/usuarios/auditoría aún no
-    existen. Versionar documento como 2.0.0 no crea /api/v2. Roles admin|viewer: viewer solo consulta; todo
+  description: "Objetivo aprobado 18-10-2026, con implementación parcial de la API y pendiente de integración
+    de interfaz, emisor y nube. Versionar documento como 2.0.0 no crea /api/v2. Roles admin|viewer: viewer solo consulta; todo
     cambio administrativo y consulta de auditoría exige admin. Excepción funcional: viewer puede registrar su
     propia apertura de expediente. Mutaciones, login y logout requieren cookie CSRF, cabecera X-CSRF-Token y
     origen permitido. Cookies HttpOnly, SameSite=Lax, Path=/, Secure en HTTPS; no localStorage. Frontend solo
@@ -230,7 +229,7 @@ paths:
       description: Admin y viewer consultan pacientes/placas; solo admin consulta usuarios. Por defecto habilitados;
         filtro enabled admite deshabilitados para admin. Orden createdAt DESC/ID DESC para pacientes y
         usuarios; dispositivos ID DESC.
-      x-implementation-status: planned
+      x-implementation-status: existing
       x-roles:
         - admin
         - viewer
@@ -300,7 +299,7 @@ paths:
       summary: Crear patients
       description: Solo admin. Fechas/actor generados por servidor; auditar cambio. Sin secretos en respuesta.  Se
         crea habilitado; enabled y fechas los fija el servidor.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
       responses:
@@ -363,7 +362,7 @@ paths:
       operationId: getPatient
       summary: Consultar patients
       description: Consulta para admin y viewer.
-      x-implementation-status: planned
+      x-implementation-status: existing
       x-roles:
         - admin
         - viewer
@@ -406,7 +405,7 @@ paths:
       summary: Editar o deshabilitar patients
       description: Solo admin; auditar cambio. No borrar historia. Con asignación activa, deshabilitar devuelve 409
         ASSIGNMENT_IN_USE.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
       responses:
@@ -480,7 +479,7 @@ paths:
       description: Admin y viewer consultan pacientes/placas; solo admin consulta usuarios. Por defecto habilitados;
         filtro enabled admite deshabilitados para admin. Orden createdAt DESC/ID DESC para pacientes y
         usuarios; dispositivos ID DESC.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
         - viewer
@@ -550,7 +549,7 @@ paths:
       summary: Crear devices
       description: Solo admin. Fechas/actor generados por servidor; auditar cambio. Sin secretos en respuesta.  Se
         crea habilitado; enabled y fechas los fija el servidor.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
       responses:
@@ -618,7 +617,7 @@ paths:
       operationId: getDevice
       summary: Consultar devices
       description: Consulta para admin y viewer.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
         - viewer
@@ -661,7 +660,7 @@ paths:
       summary: Editar o deshabilitar devices
       description: Solo admin; auditar cambio. No borrar historia. Con asignación activa, deshabilitar devuelve 409
         ASSIGNMENT_IN_USE.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
       responses:
@@ -995,7 +994,7 @@ paths:
       summary: Historial de asignaciones
       description: Consulta admin/viewer. Orden startedAt DESC, ID DESC. status=active implica endedAt:null; closed
         exige endedAt no nulo.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
         - viewer
@@ -1101,7 +1100,7 @@ paths:
       description: Solo admin; paciente/placa habilitados. Reserva paciente y placa en una transacción; a lo sumo
         una asignación activa por cada uno. 409 ASSIGNMENT_CONFLICT si alguno está ocupado. Actor/fechas del
         servidor; auditar.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
       responses:
@@ -1166,7 +1165,7 @@ paths:
       operationId: getAssignment
       summary: Consultar asignación
       description: Consulta para admin y viewer.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
         - viewer
@@ -1210,7 +1209,7 @@ paths:
       summary: Cerrar asignación
       description: "Solo admin; finalizar sesiones antes de cerrar (409 ASSIGNMENT_IN_USE). Liberar ambas reservas
         en transacción. Idempotente: conserva endedAt/endedBy originales. No reescribir lecturas; auditar."
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
       responses:
@@ -1262,7 +1261,7 @@ paths:
       operationId: getSessions
       summary: Listado paginado de sesiones
       description: Consulta admin/viewer. Orden createdAt DESC, ID DESC; filtros temporales sobre createdAt.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
         - viewer
@@ -1377,7 +1376,7 @@ paths:
       description: Solo admin. Recibe assignmentId; resuelve patientId/deviceId/source en servidor; no acepta
         participantCode como identidad. Estado created. Paciente/placa habilitados; reservar sesión abierta en
         asignación para impedir cierres incompatibles. Auditar.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
       responses:
@@ -1436,7 +1435,7 @@ paths:
       operationId: getSession
       summary: Detalle de sesión
       description: Consulta para admin y viewer.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
         - viewer
@@ -1481,7 +1480,7 @@ paths:
       description: Solo admin. Transacción valida asignación activa y paciente/placa habilitados, activa y reserva
         dispositivo. 409 DEVICE_BUSY, SESSION_NOT_ACTIVE o ASSIGNMENT_NOT_ACTIVE si hay conflicto. Repetir
         activa conserva fechas; finalizada no se reabre. Auditar transición.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
       responses:
@@ -1534,7 +1533,7 @@ paths:
       summary: Finalizar sesión
       description: Solo admin. Transacción libera reservas de sesión sin cerrar asignación. Repetir finalizada
         conserva fechas; creada sin iniciar devuelve 409. Auditar transición.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
       responses:
@@ -1590,7 +1589,7 @@ paths:
         connected_without_valid_reading si stale o ninguna magnitud valid; connected_with_recent_reading en
         otro caso. Cada magnitud conserva calidad propia. Polling cada 2 s solo visible/activo; no genera
         auditoría patient.view. Sesión finalizada muestra historia, no dato en vivo."
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
         - viewer
@@ -1695,7 +1694,7 @@ paths:
       summary: Historial paginado de sesión
       description: Admin/viewer. Orden receivedAt DESC, ID DESC. Filtros from inclusivo/to exclusivo. Autorizar
         sesión padre; no auditar cada página/refresco.
-      x-implementation-status: planned
+      x-implementation-status: implemented-emulator-verified
       x-roles:
         - admin
         - viewer

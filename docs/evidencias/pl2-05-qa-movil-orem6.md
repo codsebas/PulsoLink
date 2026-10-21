@@ -43,6 +43,28 @@ Las siguientes comprobaciones fueron realizadas manualmente por `@orem6` dentro 
 
 Estos resultados no constituyen una auditoria WCAG completa.
 
+## Prueba manual de movimiento reducido
+
+Estado: **INCONCLUSO / PENDIENTE DE VERIFICACION**.
+
+- Navegador: Microsoft Edge.
+- Ruta revisada: `/demo`.
+- Viewport: 422 x 776 px.
+- Configuracion: se activo `prefers-reduced-motion: reduce` desde DevTools.
+- Comprobacion de configuracion: la consola confirmo que `matchMedia('(prefers-reduced-motion: reduce)').matches === true`.
+- Procedimiento: se comparo visualmente la ruta con la configuracion normal y con movimiento reducido activo.
+- Observacion: no se identificaron diferencias visibles.
+
+### Limitaciones
+
+- No se aislo una animacion especifica para comprobar su comportamiento.
+- No se midieron duracion, transiciones ni cambios de comportamiento con ambas preferencias.
+- Esta observacion no permite marcar el caso como APROBADO ni FALLIDO, ni afirmar un incumplimiento WCAG de PulsoLink.
+
+### Recomendacion de seguimiento
+
+- Realizar una prueba futura sobre una animacion identificada en el codigo, verificando su duracion y comportamiento con la preferencia normal y con `prefers-reduced-motion: reduce`.
+
 ## Recomendacion
 
 - Considerar una indicacion visual mas evidente de que el menu horizontal admite desplazamiento en movil. Es una recomendacion de usabilidad, no un defecto confirmado.
@@ -51,6 +73,6 @@ Estos resultados no constituyen una auditoria WCAG completa.
 
 - Pruebas de responsividad a 360, 768 y 1440 px.
 - Medicion verificable de overflow horizontal, solapamientos y comportamiento de tablas/graficas.
-- Verificacion de contraste medido, preferencia de movimiento reducido y lector de pantalla/anuncios dinamicos.
+- Verificacion de contraste medido, lector de pantalla/anuncios dinamicos y prueba concluyente de movimiento reducido sobre una animacion identificada.
 - Pruebas integradas de autenticacion, sesiones, recursos no visibles y estados de medicion con API, datos de demostracion y entorno autorizado.
 - Validacion completa del dashboard centrado en paciente; esta revision no aprueba todas las pantallas ni el comportamiento funcional completo.

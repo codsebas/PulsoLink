@@ -29,6 +29,18 @@ El navegador concreto no esta confirmado entre Chrome y Edge; se conserva como C
 | Placas | No se observaron cortes evidentes en tarjetas y filtros dentro del area revisada. | La pantalla presento el mensaje de sesion; no acredita una carga funcional completa. |
 | Asignaciones | No se observaron cortes evidentes en tarjetas y filtros dentro del area revisada. | El mensaje de recurso impide atribuir el resultado a una carga completa de datos. |
 
+## Pruebas manuales de responsividad
+
+Pruebas manuales realizadas por `@orem6` en Microsoft Edge, modo Responsive de DevTools, sobre la ruta `/demo`.
+
+| Viewport | Resultado observado | Alcance |
+| --- | --- | --- |
+| 360 x 800 px | Satisfactorio. | Inspeccion manual del prototipo `/demo`. |
+| 768 x 1024 px | Satisfactorio. | Inspeccion manual del prototipo `/demo`. |
+| 1440 x 900 px | Satisfactorio. | Inspeccion manual del prototipo `/demo`. |
+
+No se reportaron problemas adicionales. Estos resultados no incluyen metricas automaticas, mediciones de overflow ni capturas adicionales, y no se atribuyen al dashboard real `/monitoring/:patientId`.
+
 ## Pruebas manuales de accesibilidad del menu
 
 Las siguientes comprobaciones fueron realizadas manualmente por `@orem6` dentro del alcance observado de la navegacion movil. No se utilizaron herramientas automatizadas de accesibilidad.
@@ -71,7 +83,7 @@ Estado: **INCONCLUSO / PENDIENTE DE VERIFICACION**.
 
 ## Pendientes
 
-- Pruebas de responsividad a 360, 768 y 1440 px.
+- Pruebas de responsividad del dashboard real `/monitoring/:patientId` a 360, 768 y 1440 px.
 - Medicion verificable de overflow horizontal, solapamientos y comportamiento de tablas/graficas.
 - Verificacion de contraste medido, lector de pantalla/anuncios dinamicos y prueba concluyente de movimiento reducido sobre una animacion identificada.
 - Pruebas integradas de autenticacion, sesiones, recursos no visibles y estados de medicion con API, datos de demostracion y entorno autorizado.

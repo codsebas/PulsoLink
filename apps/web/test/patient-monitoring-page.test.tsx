@@ -134,4 +134,26 @@ describe('pantalla de monitoreo con la capa de datos', () => {
     await waitFor(() => expect(calls.filter(call => call.includes('limit=20')).length).toBeGreaterThan(liveBefore));
     expect(calls.filter(call => call.includes('limit=100'))).toHaveLength(archivesBefore);
   }, 20000);
+
+  it('conserva las filas y reintenta el cursor de una página posterior fallida', async () => {
+    let offline = true;
+    const calls = installFetch({ measurements: url => {
+      const cursor = url.searchParams.get('cursor');
+      if (cursor && offline) throw new TypeError('Offline next page');
+      const limit = Number(url.searchParams.get('limit'));
+      const start = cursor ? 100 : 0;
+      return { data: readings.slice(start, start + limit), pagination: { hasMore: !cursor, nextCursor: cursor ? null : 'cursor-2' } };
+    } });
+    renderPage();
+    await screen.findByText(/100 lecturas cargadas/);
+    (screen.getByRole('button', { name: 'Cargar más antiguas' }) as HTMLButtonElement).click();
+    const retry = await screen.findByRole('button', { name: 'Reintentar' });
+    expect(screen.getByText(/100 lecturas cargadas/)).toBeTruthy();
+    const firstPages = calls.filter(c => c.includes('limit=100') && !c.includes('cursor=')).length;
+    offline = false; (retry as HTMLButtonElement).click();
+    await screen.findByText(/120 lecturas cargadas en 2 páginas/);
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(calls.filter(c => c.includes('limit=100') && !c.includes('cursor='))).toHaveLength(firstPages);
+    expect(calls.filter(c => c.includes('cursor=cursor-2'))).toHaveLength(2);
+  }, 20000);
 });

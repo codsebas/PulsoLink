@@ -2,6 +2,8 @@
 
 Fecha de corte: 20 de octubre de 2026 (America/Guatemala). Base consultada: `main` en `1385d23`. Este seguimiento relaciona los criterios de los issues con entregas y evidencias; no modifica contratos, asignaciones ni estados de los issues.
 
+**Ampliación ejecutada:** [prueba local de Auth, persistencia y monitoreo](../evidencias/gerson-integracion-auth-monitoreo.md). Se comprobaron #41 y #42 juntos en una rama local: 148 pruebas API, 16 web y las dos de historial contra API autenticada, más el recorrido de navegador real con tres páginas y estados de conexión. Los PR siguen abiertos y esa combinación no se fusionó en main. El resultado propio no sustituye reproducción por otro integrante ni aceptación del equipo.
+
 ## Fuentes y estado comprobado
 
 Rigen el [contrato aprobado](../arquitectura/contrato-aprobado-2026-10-18.md), el [plan de ejecución](ejecucion-2026-10-18.md), el [modelo objetivo](../../firebase/modelo-objetivo.md) y los criterios de [#25](https://github.com/codsebas/PulsoLink/issues/25), [#26](https://github.com/codsebas/PulsoLink/issues/26), [#29](https://github.com/codsebas/PulsoLink/issues/29) y [#34](https://github.com/codsebas/PulsoLink/issues/34). Los alcances específicos y exclusiones de cada issue se leen junto a la regla común de integración.
@@ -69,7 +71,7 @@ Gerson mantiene emuladores, persistencia reproducible, índices y migración. Lo
 
 Entorno de las ejecuciones propias anteriores: Windows PowerShell, Node 24.15.0, Java 21, Firebase CLI 15.34.0, proyecto desechable `demo-pulsolink`. Las suites que simulan fallos de Auth se distinguen de las que usan Auth Emulator real en la revisión publicada. El lint del repositorio es un marcador; no se presenta como análisis estático.
 
-Esta actualización es documental: se contrastaron fuentes, referencias y estado de GitHub; no se volvieron a ejecutar suites funcionales. Las evidencias históricas conservan su fecha y contexto.
+La revisión documental inicial contrastó fuentes sin repetir suites funcionales. La ampliación enlazada arriba ejecutó la combinación local de #41/#42 y distingue sus resultados de main. Las evidencias históricas conservan su fecha y contexto.
 
 ## Entrega propuesta y siguiente paso
 

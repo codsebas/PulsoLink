@@ -1,0 +1,670 @@
+{
+  "node": "v24.15.0",
+  "calls": [
+    {
+      "startedAt": "2026-10-21T22:28:45.061Z",
+      "method": "GET",
+      "path": "/api/v1/device/config",
+      "status": 401,
+      "durationMs": 37
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.099Z",
+      "method": "GET",
+      "path": "/api/v1/device/config",
+      "status": 401,
+      "durationMs": 2
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.101Z",
+      "method": "GET",
+      "path": "/api/v1/device/config",
+      "status": 200,
+      "durationMs": 40
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.141Z",
+      "method": "POST",
+      "path": "/api/v1/device/heartbeat",
+      "status": 403,
+      "durationMs": 31
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.172Z",
+      "method": "POST",
+      "path": "/api/v1/device/heartbeat",
+      "status": 200,
+      "durationMs": 53
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.226Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 403,
+      "durationMs": 15
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.241Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "durationMs": 85
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.326Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 62
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.388Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 409,
+      "durationMs": 62
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.450Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "durationMs": 73
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.523Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "durationMs": 67
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.590Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "durationMs": 42
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.632Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 400,
+      "durationMs": 17
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.649Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 400,
+      "durationMs": 12
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.661Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 400,
+      "durationMs": 24
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.686Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 400,
+      "durationMs": 12
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.698Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 2977
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.698Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 2884
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.698Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 3511
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.698Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "durationMs": 2724
+    },
+    {
+      "startedAt": "2026-10-21T22:28:45.698Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 3088
+    },
+    {
+      "startedAt": "2026-10-21T22:28:49.209Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 3453
+    },
+    {
+      "startedAt": "2026-10-21T22:28:49.209Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 2790
+    },
+    {
+      "startedAt": "2026-10-21T22:28:49.209Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 2941
+    },
+    {
+      "startedAt": "2026-10-21T22:28:49.210Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "durationMs": 2696
+    },
+    {
+      "startedAt": "2026-10-21T22:28:49.210Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 3476
+    },
+    {
+      "startedAt": "2026-10-21T22:28:52.686Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 3057
+    },
+    {
+      "startedAt": "2026-10-21T22:28:52.686Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 2691
+    },
+    {
+      "startedAt": "2026-10-21T22:28:52.686Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 3166
+    },
+    {
+      "startedAt": "2026-10-21T22:28:52.686Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "durationMs": 2032
+    },
+    {
+      "startedAt": "2026-10-21T22:28:52.686Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 2667
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.852Z",
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "durationMs": 1
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.854Z",
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status": 200,
+      "durationMs": 16
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.870Z",
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "durationMs": 1
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.871Z",
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "durationMs": 1
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.872Z",
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status": 200,
+      "durationMs": 23
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.895Z",
+      "method": "GET",
+      "path": "/api/v1/auth/csrf",
+      "status": 200,
+      "durationMs": 1
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.896Z",
+      "method": "PATCH",
+      "path": "/api/v1/patients/:id",
+      "status": 403,
+      "durationMs": 9
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.906Z",
+      "method": "GET",
+      "path": "/api/v1/audit-logs",
+      "status": 403,
+      "durationMs": 12
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.918Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 28
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.947Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 15
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.962Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 24
+    },
+    {
+      "startedAt": "2026-10-21T22:28:55.987Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 23
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.010Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 18
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.029Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 24
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.053Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 15
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.068Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 22
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.089Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 12
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.102Z",
+      "method": "GET",
+      "path": "/api/v1/assignments",
+      "status": 200,
+      "durationMs": 11
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.114Z",
+      "method": "GET",
+      "path": "/api/v1/assignments",
+      "status": 200,
+      "durationMs": 23
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.137Z",
+      "method": "GET",
+      "path": "/api/v1/device/config",
+      "status": 200,
+      "durationMs": 33
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.170Z",
+      "method": "GET",
+      "path": "/api/v1/devices/:id",
+      "status": 200,
+      "durationMs": 35
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.205Z",
+      "method": "GET",
+      "path": "/api/v1/assignments",
+      "status": 200,
+      "durationMs": 18
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.223Z",
+      "method": "GET",
+      "path": "/api/v1/device/config",
+      "status": 200,
+      "durationMs": 41
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.264Z",
+      "method": "GET",
+      "path": "/api/v1/devices/:id",
+      "status": 200,
+      "durationMs": 30
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.294Z",
+      "method": "GET",
+      "path": "/api/v1/assignments",
+      "status": 200,
+      "durationMs": 13
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.307Z",
+      "method": "POST",
+      "path": "/api/v1/patients",
+      "status": 201,
+      "durationMs": 11
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.319Z",
+      "method": "POST",
+      "path": "/api/v1/patients",
+      "status": 201,
+      "durationMs": 22
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.341Z",
+      "method": "POST",
+      "path": "/api/v1/assignments",
+      "status": 201,
+      "durationMs": 47
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.389Z",
+      "method": "POST",
+      "path": "/api/v1/sessions",
+      "status": 201,
+      "durationMs": 46
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.435Z",
+      "method": "POST",
+      "path": "/api/v1/sessions/:id/start",
+      "status": 200,
+      "durationMs": 72
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.508Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "durationMs": 54
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.562Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 20
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.582Z",
+      "method": "POST",
+      "path": "/api/v1/sessions/:id/finish",
+      "status": 200,
+      "durationMs": 55
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.638Z",
+      "method": "POST",
+      "path": "/api/v1/assignments/:id/close",
+      "status": 200,
+      "durationMs": 62
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.700Z",
+      "method": "POST",
+      "path": "/api/v1/assignments",
+      "status": 201,
+      "durationMs": 25
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.726Z",
+      "method": "POST",
+      "path": "/api/v1/sessions",
+      "status": 201,
+      "durationMs": 31
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.757Z",
+      "method": "POST",
+      "path": "/api/v1/sessions/:id/start",
+      "status": 200,
+      "durationMs": 43
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.801Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "durationMs": 55
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.856Z",
+      "method": "POST",
+      "path": "/api/v1/assignments",
+      "status": 201,
+      "durationMs": 15
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.871Z",
+      "method": "POST",
+      "path": "/api/v1/sessions",
+      "status": 201,
+      "durationMs": 28
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.899Z",
+      "method": "POST",
+      "path": "/api/v1/sessions/:id/start",
+      "status": 200,
+      "durationMs": 53
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.952Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "durationMs": 29
+    },
+    {
+      "startedAt": "2026-10-21T22:28:56.981Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 200,
+      "durationMs": 30
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.011Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 409,
+      "durationMs": 51
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.062Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 34
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.097Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 18
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.115Z",
+      "method": "GET",
+      "path": "/api/v1/patients/:id/measurements",
+      "status": 200,
+      "durationMs": 19
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.135Z",
+      "method": "POST",
+      "path": "/api/v1/sessions/:id/finish",
+      "status": 200,
+      "durationMs": 30
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.164Z",
+      "method": "POST",
+      "path": "/api/v1/assignments/:id/close",
+      "status": 200,
+      "durationMs": 25
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.190Z",
+      "method": "POST",
+      "path": "/api/v1/sessions/:id/finish",
+      "status": 200,
+      "durationMs": 38
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.229Z",
+      "method": "POST",
+      "path": "/api/v1/assignments/:id/close",
+      "status": 200,
+      "durationMs": 23
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.252Z",
+      "method": "POST",
+      "path": "/api/v1/patients",
+      "status": 201,
+      "durationMs": 14
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.266Z",
+      "method": "POST",
+      "path": "/api/v1/assignments",
+      "status": 201,
+      "durationMs": 17
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.283Z",
+      "method": "POST",
+      "path": "/api/v1/sessions",
+      "status": 201,
+      "durationMs": 20
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.303Z",
+      "method": "POST",
+      "path": "/api/v1/sessions/:id/start",
+      "status": 200,
+      "durationMs": 20
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.323Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "durationMs": 36
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.359Z",
+      "method": "POST",
+      "path": "/api/v1/sessions/:id/finish",
+      "outcome": "timeout",
+      "durationMs": 5005
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.360Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "outcome": "timeout",
+      "durationMs": 5005
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.360Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "outcome": "timeout",
+      "durationMs": 5006
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.360Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "outcome": "timeout",
+      "durationMs": 5006
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.360Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "outcome": "timeout",
+      "durationMs": 5006
+    },
+    {
+      "startedAt": "2026-10-21T22:28:57.360Z",
+      "method": "POST",
+      "path": "/api/v1/device/measurements",
+      "outcome": "timeout",
+      "durationMs": 5006
+    },
+    {
+      "startedAt": "2026-10-21T22:29:02.366Z",
+      "method": "POST",
+      "path": "/api/v1/sessions/:id/finish",
+      "status": 200,
+      "durationMs": 520
+    },
+    {
+      "startedAt": "2026-10-21T22:29:02.886Z",
+      "method": "POST",
+      "path": "/api/v1/assignments/:id/close",
+      "status": 200,
+      "durationMs": 24
+    }
+  ]
+}

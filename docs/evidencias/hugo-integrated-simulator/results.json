@@ -1,0 +1,308 @@
+{
+  "generatedAt": "2026-10-21T22:15:36.573Z",
+  "base": "abc4d45",
+  "environment": "Windows; Node 24.15.0; main abc4d45; Auth/Firestore emulados; demo-pulsolink-hugo",
+  "method": "CLI oficial; proxy HTTP corta sockets 50s; API y persistencia reales en emuladores",
+  "results": [
+    {
+      "id": "SIM-I01",
+      "state": "PASS",
+      "actual": "CLI oficial: config/heartbeat sin sesión, cero mediciones"
+    },
+    {
+      "id": "SIM-I02",
+      "state": "PASS",
+      "actual": "CLI detecta inicio, persiste muestras nuevas con los cuatro IDs del backend"
+    },
+    {
+      "id": "SIM-I03",
+      "state": "PASS",
+      "actual": "Corte de sockets de 50 s: stale, disconnected y reconexión sin cola; muestras nuevas espaciadas >=1900 ms"
+    },
+    {
+      "id": "SIM-I04",
+      "state": "PASS",
+      "actual": "Modo no_contact real: ópticos null, temperatura válida; estado de calidad visible en web"
+    },
+    {
+      "id": "SIM-I04b",
+      "state": "PASS",
+      "actual": "Modo unavailable: tres magnitudes null, conectado sin lectura válida; distinto de desconectado"
+    },
+    {
+      "id": "SIM-I05",
+      "state": "PASS",
+      "actual": "Fin oficial detiene nuevas muestras; recarga web conserva historia"
+    },
+    {
+      "id": "SIM-I06",
+      "state": "PASS",
+      "actual": "Placa deshabilitada: CLI termina con código 1"
+    }
+  ],
+  "traffic": [
+    {
+      "time": 1792620864924,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620864956,
+      "path": "/api/v1/device/heartbeat",
+      "status": 200,
+      "bootId": "df700a4f-dd26-44fd-bcdc-78b4bc4225cf"
+    },
+    {
+      "time": 1792620866974,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620869039,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620869061,
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "sequence": 1,
+      "bootId": "df700a4f-dd26-44fd-bcdc-78b4bc4225cf"
+    },
+    {
+      "time": 1792620871060,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620871156,
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "sequence": 2,
+      "bootId": "df700a4f-dd26-44fd-bcdc-78b4bc4225cf"
+    },
+    {
+      "time": 1792620873099,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620873275,
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "sequence": 3,
+      "bootId": "df700a4f-dd26-44fd-bcdc-78b4bc4225cf"
+    },
+    {
+      "time": 1792620875166,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620877196,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620879212,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620881235,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620883264,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620885293,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620887311,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620889334,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620891356,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620893379,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620895402,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620897432,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620899436,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620901442,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620903470,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620905475,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620907492,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620909521,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620911526,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620913555,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620915560,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620917565,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620919570,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620921575,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620923579,
+      "path": "/api/v1/device/config",
+      "cut": true
+    },
+    {
+      "time": 1792620925599,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620925615,
+      "path": "/api/v1/device/heartbeat",
+      "status": 200,
+      "bootId": "df700a4f-dd26-44fd-bcdc-78b4bc4225cf"
+    },
+    {
+      "time": 1792620925638,
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "sequence": 4,
+      "bootId": "df700a4f-dd26-44fd-bcdc-78b4bc4225cf"
+    },
+    {
+      "time": 1792620927628,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620927677,
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "sequence": 5,
+      "bootId": "df700a4f-dd26-44fd-bcdc-78b4bc4225cf"
+    },
+    {
+      "time": 1792620927932,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620927958,
+      "path": "/api/v1/device/heartbeat",
+      "status": 200,
+      "bootId": "bc6206b5-8ece-4da4-bbad-5f0fcbbd1577"
+    },
+    {
+      "time": 1792620927983,
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "sequence": 1,
+      "bootId": "bc6206b5-8ece-4da4-bbad-5f0fcbbd1577"
+    },
+    {
+      "time": 1792620928598,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620928620,
+      "path": "/api/v1/device/heartbeat",
+      "status": 200,
+      "bootId": "4a437507-b3c1-4f09-a2de-3d2a553aea54"
+    },
+    {
+      "time": 1792620928645,
+      "path": "/api/v1/device/measurements",
+      "status": 201,
+      "sequence": 1,
+      "bootId": "4a437507-b3c1-4f09-a2de-3d2a553aea54"
+    },
+    {
+      "time": 1792620930627,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620932681,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620934758,
+      "path": "/api/v1/device/config",
+      "status": 200
+    },
+    {
+      "time": 1792620936173,
+      "path": "/api/v1/device/config",
+      "status": 401
+    }
+  ]
+}

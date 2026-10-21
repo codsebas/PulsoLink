@@ -118,7 +118,7 @@ async function main() {
     blocked('JOINT-CON-17', 'Falta QA_JOINT_DEVICE_SECRET del fixture dedicado; sin mutaciones conjuntas.');
     blocked('JOINT-CONC-08', 'Falta QA_JOINT_DEVICE_SECRET del fixture dedicado; sin mutaciones conjuntas.');
   }
-  const report = { contract: '2.0.0', generatedAt: new Date().toISOString(), environment: process.env.QA_ENVIRONMENT ?? 'unspecified', results };
+  const report = { contract: '2.0.0', generatedAt: new Date().toISOString(), environment: process.env.QA_ENVIRONMENT ?? 'unspecified', requestTimeoutMs: s.REQUEST_TIMEOUT_MS, results };
   if (process.env.QA_REPORT) await writeFile(process.env.QA_REPORT, JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify(report, null, 2));
   process.exitCode = results.some(r => r.state === 'FAIL') ? 1 : results.some(r => r.state === 'BLOCKED') ? 2 : 0;

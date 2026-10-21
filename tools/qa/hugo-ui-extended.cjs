@@ -104,6 +104,30 @@ async function main() {
       await page.screenshot({ path: path.join(output, 'network-recovered.png') });
       return 'Red abortada por Playwright; error visible; 100 lecturas recuperadas desde API real';
     });
+    await check('UI-X09-later-page-recovery', 'Fallo de página posterior conserva 100 filas; Reintentar recupera 200; archivo sano sin polling completo', async () => {
+      await page.reload();
+      await page.getByText('100 lecturas cargadas', { exact: false }).waitFor();
+      const previousRows = await page.locator('tbody tr').allTextContents();
+      await page.route(historyPattern, route => new URL(route.request().url()).searchParams.has('cursor') ? route.abort('failed') : route.continue());
+      try {
+        await page.getByRole('button', { name: 'Cargar más antiguas' }).click();
+        await page.getByRole('button', { name: 'Reintentar', exact: true }).waitFor();
+        assert.deepEqual(await page.locator('tbody tr').allTextContents(), previousRows);
+      } finally { await page.unroute(historyPattern); }
+      await page.getByRole('button', { name: 'Reintentar', exact: true }).click();
+      await page.getByText('200 lecturas cargadas', { exact: false }).waitFor();
+      const restored = await page.locator('tbody tr').allTextContents();
+      assert.ok(previousRows.every(row => restored.includes(row)));
+      let archives = 0; let live = 0;
+      const listener = request => { const u = new URL(request.url()); if (u.pathname.endsWith('/monitor-patient/measurements')) { if (u.searchParams.get('limit') === '100') archives++; else live++; } };
+      page.on('request', listener);
+      await page.getByRole('button', { name: 'Refrescar lecturas recientes' }).click();
+      await page.waitForTimeout(11000);
+      page.off('request', listener);
+      assert.equal(archives, 0); assert.ok(live >= 1);
+      await page.screenshot({ path: path.join(output, 'later-page-recovered.png') });
+      return '100 filas conservadas durante el fallo; 200 después; 0 peticiones de archivo durante refresco y 11 s de observación';
+    });
     await check('UI-X07-logout', 'Salir elimina sesión y contenido del paciente; /auth/me devuelve 401', async () => {
       const responsePromise = page.waitForResponse(r => new URL(r.url()).pathname === '/api/v1/auth/logout');
       await page.getByRole('button', { name: 'Salir', exact: true }).click();

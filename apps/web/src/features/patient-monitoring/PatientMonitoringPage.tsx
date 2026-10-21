@@ -119,7 +119,8 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
         <button className="rounded-lg border px-4 py-2 text-sm" type="button" onClick={() => { setDates({ from: '', to: '' }); setRange({}); setRangeError(''); }}>Desde el inicio registrado</button>
       </form>
       {rangeError ? <p role="alert" className="text-sm text-rose-700">{rangeError}</p> : null}
-      {history.isPending ? <p role="status">Cargando historial…</p> : history.isError ? <ErrorMessage error={history.error} retry={refresh} /> : readings.length === 0 ? <p className="rounded-xl border bg-white p-6 text-sm">No hay lecturas en este intervalo.</p> : <>
+      {history.isError ? <ErrorMessage error={history.error} retry={refresh} /> : null}
+      {history.isPending ? <p role="status">Cargando historial…</p> : readings.length === 0 ? (history.isError ? null : <p className="rounded-xl border bg-white p-6 text-sm">No hay lecturas en este intervalo.</p>) : <>
         <p className="text-sm text-slate-600">{coverage.loaded} lecturas cargadas en {coverage.pagesLoaded} {coverage.pagesLoaded === 1 ? 'página' : 'páginas'}: {guatemalaDate(coverage.oldestReceivedAt)} — {guatemalaDate(coverage.newestReceivedAt)}. {coverage.hasMore ? 'Hay datos más antiguos por cargar.' : 'Alcanzaste el inicio del intervalo consultado.'}</p>
         {coverage.truncated ? <p className="text-xs font-semibold text-amber-800">Se conservaron las {coverage.loaded} lecturas más recientes; {coverage.dropped} más antiguas quedaron fuera de memoria y de la gráfica.</p> : null}
         {readings.some((reading) => reading.source === 'simulated') ? <p className="text-xs font-semibold text-violet-800">Este intervalo contiene datos simulados.</p> : null}

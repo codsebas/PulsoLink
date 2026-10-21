@@ -2,7 +2,7 @@
 
 Responsables: HugoX2024 y codsebas, issue #44. Node.js 24.15.0 + TypeScript; solo HTTP REST, sin SDK de Firebase ni acceso directo a Firestore.
 
-Implementa config, heartbeat y mediciones serializadas. El backend fija paciente, asignación y origen; registrar la placa como `simulated`. La API de main `ad4dede` todavía rechaza el campo obligatorio `deviceId`: la integración depende de #27. El simulador se detiene ante esa incompatibilidad; no elimina campos para volver al contrato anterior.
+Implementa config, heartbeat y mediciones serializadas. El backend fija paciente, asignación y origen; registrar la placa como `simulated`. La API integrada en main `abc4d45` acepta el contrato oficial. La regresión HTTP y la demostración del CLI contra API/Firestore/web se documentan en la [aceptación integrada](../../docs/evidencias/hugo-integrado-2026-10-21.md).
 
 ## Ejecutar
 
@@ -74,6 +74,6 @@ npm run build --workspace=tools/device-simulator
 
 [Procedimiento y matriz HTTP #32](../../docs/qa/pl2-08-hugo.md): `npm run qa --workspace=tools/device-simulator` verifica credenciales, identidad, calidades, duplicados, conflictos, concurrencia, permisos e historia; exige QA_ALLOW_WRITES=true y un fixture desechable. El fixture se prepara con un script del backend protegido para emuladores; el cliente QA nunca accede a Firebase directamente.
 
-[Resultados y límites](../../docs/evidencias/hugo-pl2-2026-10-20.md). Pasar pruebas aisladas del emisor no acredita la API objetivo, la nube ni el hardware. La demostración oficial exige resolver #27 y repetir el recorrido completo.
+[Resultados y límites](../../docs/evidencias/hugo-pl2-2026-10-20.md). Pasar pruebas aisladas del emisor no acredita la API objetivo, la nube ni el hardware. La demostración local oficial ya se ejecutó sobre abc4d45; nube y hardware conservan su aceptación independiente.
 
 [Ampliación de QA](../../docs/evidencias/hugo-pl2-ampliacion-2026-10-20.md): 26 pruebas, timeout HTTP real, errores 500/503 y cambio de identidad. La colección incluye los ciclos conjuntos de reasignación y finalización concurrente; definir `QA_JOINT_DEVICE_SECRET` del fixture dedicado para habilitarlos. Comprueban las dependencias por HTTP y nunca presentan un endpoint faltante como aprobado.

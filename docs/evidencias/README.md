@@ -52,3 +52,7 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 - [PL2-08: línea base de la API antes del contrato 2.0.0](pl2-08-linea-base.md): suite de la API con emuladores (106/106) sobre el contrato anterior; no acredita el contrato 2.0.0.
 - [PL2-04: autenticación, usuarios y auditoría](auth-pl2-2026-10-20.md): suite correctiva de API con emuladores (148/148), recuperación, P-06, compilación y evidencia de navegador; distingue verificaciones y límites.
 - [PL2-04: informe de correcciones](informe-auth-pl2-2026-10-20.md): cambios de recuperación, integración de #38, resultados y requisitos de cierre formal.
+
+- [Aceptación integrada de Hugo, 21-10-2026](hugo-integrado-2026-10-21.md): HTTP 25/25, CLI oficial, recuperación de página posterior y defectos de historial reproducidos.
+
+- [Tres pendientes de Hugo: retorno, reasignación y latencia](hugo-seguimiento-2026-10-21.md): cambio de placa visible aprobado; retorno falla con 145/167 filas; timeout5s reproducido y reintentos transaccionales medidos.

@@ -31,7 +31,7 @@ export function createDeviceAuthMiddleware(
       if (!authHeader) {
         sendError(
           res,
-          'UNAUTHORIZED',
+          'UNAUTHENTICATED',
           'Cabecera Authorization: Bearer <credentialId>.<secret> requerida.',
           401
         );
@@ -42,7 +42,7 @@ export function createDeviceAuthMiddleware(
       if (!match) {
         sendError(
           res,
-          'UNAUTHORIZED',
+          'UNAUTHENTICATED',
           'Formato de autorización inválido. Debe ser Bearer <credentialId>.<secret>.',
           401
         );
@@ -54,7 +54,7 @@ export function createDeviceAuthMiddleware(
       if (!device) {
         sendError(
           res,
-          'UNAUTHORIZED',
+          'UNAUTHENTICATED',
           'Credencial de dispositivo inválida, deshabilitada o revocada.',
           401
         );

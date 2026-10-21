@@ -114,7 +114,8 @@ describe('protección de rutas web', () => {
     // credencial de dispositivo. Se comprueba que no exige la cookie de sesión.
     expect(response.status).not.toBe(200);
     if (response.body?.error) {
-      expect(response.body.error.code).not.toBe('UNAUTHENTICATED');
+      expect(response.body.error.code).toBe('UNAUTHENTICATED');
+      expect(response.body.error.message).toMatch(/Authorization:\s*Bearer/i);
     }
   });
 });

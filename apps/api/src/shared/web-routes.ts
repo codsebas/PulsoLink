@@ -13,7 +13,8 @@ export const pageQueryFields = {
 };
 const validInterval = (query: { from?: string; to?: string }) => !query.from || !query.to || query.from < query.to;
 export const pageQuery = z.object(pageQueryFields).strict().refine(validInterval, 'Intervalo inválido');
-export const devicePageQuery = z.object({ limit: pageQueryFields.limit, cursor: pageQueryFields.cursor }).strict();
+export const devicePageQuery = z.object({ limit: pageQueryFields.limit, cursor: pageQueryFields.cursor,
+  enabled: z.enum(['true', 'false']).transform((value) => value === 'true').optional() }).strict();
 
 export const sessionListQuery = z.object({ ...pageQueryFields,
   status: z.enum(['created', 'active', 'finished']).optional(),

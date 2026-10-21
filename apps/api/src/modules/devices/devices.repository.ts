@@ -22,9 +22,10 @@ export class DevicesRepository {
   constructor(private readonly db: () => Firestore = getDb) {}
   async listEnabled(): Promise<DeviceDocument[]> { return (await this.list()).data; }
 
-  async list(options: Pick<PageOptions, 'limit' | 'cursor'> = {}) {
-    const page = pagination(options, { collection: 'devices', enabled: true, order: 'id:desc' });
-    let query = this.db().collection('devices').where('enabled', '==', true)
+  async list(options: Pick<PageOptions, 'limit' | 'cursor'> & { enabled?: boolean } = {}) {
+    const enabled = z.boolean().default(true).parse(options.enabled);
+    const page = pagination(options, { collection: 'devices', enabled, order: 'id:desc' });
+    let query = this.db().collection('devices').where('enabled', '==', enabled)
       .orderBy(FieldPath.documentId(), 'desc').limit(page.limit + 1);
     if (page.after) query = query.startAfter(page.after.id);
     const rows = (await query.get()).docs.map((doc) => ({ ...doc.data(), deviceId: doc.id }) as DeviceDocument);

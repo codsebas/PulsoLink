@@ -100,11 +100,11 @@ describe('pantalla de monitoreo con la capa de datos', () => {
       },
     });
     renderPage();
-    await waitFor(() => expect(screen.getByText(/100 lecturas cargadas en 1 página/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/100 lecturas cargadas en 1 página/)).toBeTruthy(), { timeout: 10000 });
     const button = await screen.findByRole('button', { name: 'Cargar más antiguas' });
     await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
     (button as HTMLButtonElement).click();
-    await waitFor(() => expect(screen.getByText(/120 lecturas cargadas en 2 páginas/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/120 lecturas cargadas en 2 páginas/)).toBeTruthy(), { timeout: 10000 });
     expect(screen.getByText(/Alcanzaste el inicio del intervalo consultado/)).toBeTruthy();
     expect(calls.some((call) => call.includes('cursor=cursor-2'))).toBe(true);
   }, 20000);

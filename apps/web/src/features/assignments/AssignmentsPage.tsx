@@ -436,6 +436,8 @@ export const AssignmentsPage: React.FC = () => {
             . Elige otra placa.
           </div>
         )}
+        {reassignDeviceId && activeForReassignedPatient?.deviceId === reassignDeviceId ?
+          <p role="status" className="text-sm text-amber-900">Esta placa ya está asignada al paciente. Selecciona una placa diferente.</p> : null}
       </FormDialog>
 
       <ConfirmDialog

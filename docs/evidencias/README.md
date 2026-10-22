@@ -56,3 +56,5 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 - [Aceptación integrada de Hugo, 21-10-2026](hugo-integrado-2026-10-21.md): HTTP 25/25, CLI oficial, recuperación de página posterior y defectos de historial reproducidos.
 
 - [Tres pendientes de Hugo: retorno, reasignación y latencia](hugo-seguimiento-2026-10-21.md): cambio de placa visible aprobado; retorno falla con 145/167 filas; timeout5s reproducido y reintentos transaccionales medidos.
+
+- [PL2-08: permisos, consistencia y concurrencia de la API (Axel), 21-10-2026](pl2-08-axel-2026-10-21.md): matriz completa 90/90 en 3 ejecuciones con emuladores (65 casos propios + 25 de Hugo); diferencias de `error.code` con el contrato; sin nube ni hardware.

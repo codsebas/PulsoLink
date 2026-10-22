@@ -49,6 +49,11 @@ equipo nuevo, instalar Playwright desde npm y el navegador correspondiente;
 el verificador admite un módulo instalado mediante esa variable y exige puertos
 libres 13001/15173 y emuladores desechables 18080/19099.
 
+También se repitió con `PULSOLINK_NATIVE_VISIBILITY=true`: el verificador inicia
+un Edge headless dedicado y conecta por CDP con `noDefaults:true`, evitando la
+emulación de foco de Playwright. Si Edge está instalado en otra ruta, definir
+`PULSOLINK_EDGE_PATH`. El perfil temporal se crea en `.cache` y se limpia.
+
 Regresión en navegador con tráfico real, sin interceptar respuestas:
 
 - 240 lecturas de semilla + dos nuevas = 242; dos incrementos de 21 por
@@ -62,6 +67,17 @@ Regresión en navegador con tráfico real, sin interceptar respuestas:
 - Se verifican tres estados de conexión, idempotencia, nulos ópticos con
   temperatura independiente y ausencia de overflow a 375×812. Esto no sustituye
   la revisión de estilos y de 360×800 del bloque visual de Keily.
+- Visibilidad nativa: `visible → hidden → visible`, sin peticiones de historial
+  ni última lectura durante la ocultación; 47 nuevas muestras por HTTP oficial
+  se recuperan al volver, pasando de 284 a **331** filas. Después se completa
+  también la navegación de las 1120 y el regreso a recientes en este modo.
+
+Intermitencia registrada: el primer intento del modo CDP terminó con fallo en
+la etapa HIST-01, sin detalle suficiente para establecer su causa. La repetición
+con etapas de diagnóstico más precisas pasó el recorrido completo; no hubo
+cambios en el código de la aplicación entre ambas. QA debe repetir este caso
+y determinar la causa si vuelve a fallar. No se declara estabilidad por una
+única ejecución satisfactoria.
 
 Las nuevas regresiones comprueban 162 lecturas tras dos incrementos de 21,
 recuperación de 47 después de visibilidad simulada en jsdom, navegación de 1120,
@@ -71,8 +87,8 @@ recuperación de red y de reintento de la página siguiente.
 
 El build advierte del tamaño del bundle existente; jsdom avisa de que Recharts
 no tiene dimensiones reales. Esos avisos no se presentan como una validación
-visual. La simulación de visibilidad en jsdom no demuestra un cambio de pestaña
-real: su aceptación final corresponde a QA.
+visual. La prueba jsdom y el cambio de pestaña nativo quedan diferenciados;
+la aceptación independiente del recorrido corresponde a QA.
 
 ## #25: base Firebase y aprovisionamiento
 

@@ -4,6 +4,7 @@
 const assert = require('node:assert/strict');
 const { createHash, randomBytes, randomUUID } = require('node:crypto');
 const { spawn } = require('node:child_process');
+const { createServer } = require('node:net');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -29,6 +30,8 @@ async function main() {
   const api = 'http://127.0.0.1:13001';
   const children = [];
   let browser;
+  let visibilityProfile;
+  const nativeVisibility = process.env.PULSOLINK_NATIVE_VISIBILITY === 'true';
   const environment = { ...process.env, NODE_ENV: 'development', PORT: '13001', CORS_ORIGIN: origin,
     COOKIE_SECURE: 'false', FIREBASE_WEB_API_KEY: 'emulator', CSRF_SECRET: randomBytes(32).toString('hex'),
     VITE_API_PROXY_TARGET: api, VITE_API_BASE_URL: '/api/v1' };
@@ -66,14 +69,36 @@ async function main() {
       }
       assert(ready, 'Local verification server did not become ready.');
     }
-    browser = await chromium.launch({ channel: process.env.PULSOLINK_BROWSER_CHANNEL || 'chrome', headless: true });
-    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    let page;
+    if (nativeVisibility) {
+      // Playwright's default focus emulation keeps background tabs visible.
+      // A dedicated Edge with noDefaults exercises the actual browser event.
+      visibilityProfile = fs.mkdtempSync(path.join(root, '.cache/gerson-visibility-'));
+      const reserve = createServer();
+      await new Promise(resolve => reserve.listen(0, '127.0.0.1', resolve));
+      const port = reserve.address().port;
+      await new Promise(resolve => reserve.close(resolve));
+      children.push(spawn(process.env.PULSOLINK_EDGE_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+        ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${visibilityProfile}`, '--no-first-run'],
+        { windowsHide: true, stdio: 'ignore' }));
+      for (let attempt = 0; attempt < 40; attempt++) {
+        try { browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`, { noDefaults: true, timeout: 500 }); break; }
+        catch { await new Promise(resolve => setTimeout(resolve, 100)); }
+      }
+      assert(browser, 'Dedicated browser is not available.');
+      page = await browser.contexts()[0].newPage();
+      await page.setViewportSize({ width: 1280, height: 900 });
+    } else {
+      browser = await chromium.launch({ channel: process.env.PULSOLINK_BROWSER_CHANNEL || 'chrome', headless: true });
+      page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    }
     page.setDefaultTimeout(20000);
-    const counts = { access: 0, latest: 0, archive: 0 };
+    const counts = { access: 0, latest: 0, archive: 0, history: 0 };
     page.on('request', (request) => {
       const url = new URL(request.url());
       if (url.pathname.endsWith('/monitor-patient/access')) counts.access++;
       if (url.pathname.endsWith('/monitor-patient/latest')) counts.latest++;
+      if (url.pathname.endsWith('/monitor-patient/measurements')) counts.history++;
       if (url.pathname.endsWith('/monitor-patient/measurements') && url.searchParams.get('limit') === '100') counts.archive++;
     });
     step = 'viewer login and return';
@@ -183,13 +208,36 @@ async function main() {
       }
     }
     for (let round = 0; round < 2; round++) {
+      step = `HIST-01 round ${round + 1}: ingestion`;
       await ingestOfficial(21);
+      step = `HIST-01 round ${round + 1}: refresh`;
       await page.getByRole('button', { name: 'Refrescar lecturas recientes', exact: true }).click();
+      step = `HIST-01 round ${round + 1}: visible rows`;
       await page.getByText(new RegExp(`${263 + round * 21} lecturas cargadas en `)).waitFor();
       assert.equal(await page.locator('tbody tr').count(), 263 + round * 21);
     }
+    if (nativeVisibility) {
+      step = 'native hidden-visible continuity';
+      await page.bringToFront();
+      assert.equal(await page.evaluate(() => document.visibilityState), 'visible');
+      const other = await page.context().newPage();
+      await other.goto('about:blank'); await other.bringToFront();
+      assert.equal(await page.evaluate(() => document.visibilityState), 'hidden');
+      await page.waitForTimeout(1000); // Allow requests already in flight to finish.
+      const hiddenRequests = counts.latest + counts.history;
+      await ingestOfficial(47);
+      await page.waitForTimeout(11000);
+      assert.equal(counts.latest + counts.history, hiddenRequests, 'Polling continued while hidden.');
+      await page.bringToFront();
+      assert.equal(await page.evaluate(() => document.visibilityState), 'visible');
+      await page.getByText(/331 lecturas cargadas en /).waitFor();
+      assert.equal(await page.locator('tbody tr').count(), 331);
+      await other.close();
+      console.log(JSON.stringify({ nativeVisibility: 'passed', stateChanges: ['visible', 'hidden', 'visible'],
+        newReadingsWhileHidden: 47, recoveredRows: 331, requestsWhileHidden: 0 }));
+    }
     step = 'HIST-02 bounded navigation through 1120 official readings';
-    await ingestOfficial(836);
+    await ingestOfficial(nativeVisibility ? 789 : 836);
     await page.reload();
     await page.getByText(/100 lecturas cargadas en 1 página:/).waitFor();
     const visited = new Set();
@@ -239,13 +287,23 @@ async function main() {
       connectionStates: 3, identicalDuplicate: true, opticalNullIndependentOfTemperature: true,
       archiveNotPolled: true, pollingStops: true, viewer403: true, logoutClearsView: true, mobileOverflow: false }));
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      if (nativeVisibility) {
+        try { const session = await browser.newBrowserCDPSession(); await session.send('Browser.close'); } catch {}
+      }
+      await browser.close();
+    }
     for (const child of children) if (child.pid && child.exitCode === null) child.kill();
     await Promise.all(admin.apps.map((app) => app.delete()));
+    if (visibilityProfile && path.dirname(path.resolve(visibilityProfile)) === path.resolve(root, '.cache') &&
+      path.basename(visibilityProfile).startsWith('gerson-visibility-')) {
+      try { fs.rmSync(visibilityProfile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }); } catch {}
+    }
   }
 }
-main().catch(() => {
+main().catch(error => {
   // Only a controlled stage is printed: browser/API errors can contain credentials.
   console.error(`PATIENT_BROWSER_FAILED: ${step}. Check dependencies, fresh emulators and browser installation; no credentials logged.`);
+  console.error(`Failure category: ${error instanceof assert.AssertionError ? 'assertion' : error?.name || 'unknown'}`);
   process.exitCode = 1;
 });

@@ -17,7 +17,18 @@
       "returnsToRecent": true,
       "ingestion": "POST /api/v1/device/measurements, ruta oficial"
     },
-    "visibilityRecovery": "167 lecturas tras 47 nuevas; evento simulado en jsdom, no cambio de pestaña nativo",
+    "visibilityRecovery": {
+      "jsdom": "167 lecturas tras 47 nuevas; evento simulado",
+      "nativeBrowser": {
+        "method": "Edge headless dedicado, CDP noDefaults:true; sin eventos fabricados",
+        "status": "passed on retry",
+        "states": ["visible", "hidden", "visible"],
+        "historyAndLatestRequestsWhileHidden": 0,
+        "newReadingsWhileHidden": 47,
+        "recoveredRows": 331,
+        "initialAttempt": "Falló etapa HIST-01; causa no identificada. La repetición pasó sin cambiar código de aplicación."
+      }
+    },
     "seedRepeated": true,
     "boards": 2,
     "accessEvents": 2,
@@ -33,7 +44,7 @@
   },
   "pending": [
     "Reproducción independiente de #25 y aceptación de #26",
-    "Cambio de pestaña real y aceptación de QA #33",
+    "Repetición independiente de visibilidad nativa y diagnóstico de la intermitencia del primer intento; aceptación de QA #33",
     "Revisión frontend de Marielos/Axel y coordinación de Sebastián",
     "Automatización/CI, HTTPS y demostración física con sus responsables",
     "#51 sigue abierto; no se cambió el presupuesto de respuesta del producto"

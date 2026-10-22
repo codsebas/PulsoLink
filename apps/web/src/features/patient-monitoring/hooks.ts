@@ -1,15 +1,13 @@
-import { useCallback, useMemo, useSyncExternalStore } from 'react';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import type { ApiListResponse } from '../../lib/api-client';
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  HISTORY_PAGE_SIZE,
   LIVE_WINDOW_SIZE,
   fetchPatientLatest,
   fetchPatientMeasurements,
   recordPatientAccess,
   type HistoryRange,
 } from './api';
-import { MAX_HISTORY_SAMPLES, coverageOf, mergeMeasurements, type HistoryCoverage } from './history';
+import { coverageOf, olderHistoryWindow, recentHistoryWindow, windowReadings, type HistoryCoverage, type HistoryWindow } from './history';
 import { monitoringKeys } from './keys';
 import { buildSeries, type MagnitudeSeries } from './series';
 import type { PatientMeasurement } from './patient-monitoring.types';
@@ -136,57 +134,82 @@ export function usePatientHistory(
   options: { enabled?: boolean; poll?: boolean } = {}
 ): PatientHistoryResult {
   const enabled = (options.enabled ?? true) && Boolean(patientId);
-  const live = usePatientLiveWindow(patientId, range, { enabled, poll: options.poll });
-  const archive = useInfiniteQuery<ApiListResponse<PatientMeasurement>>({
-    queryKey: monitoringKeys.historyArchive(patientId, range),
-    enabled,
-    initialPageParam: undefined as string | undefined,
-    queryFn: ({ pageParam, signal }) =>
-      fetchPatientMeasurements(patientId, { ...range, cursor: pageParam as string | undefined, limit: HISTORY_PAGE_SIZE }, signal),
-    getNextPageParam: (lastPage) => lastPage.pagination.nextCursor ?? undefined,
-    staleTime: 5000,
+  const client = useQueryClient();
+  const visible = useDocumentVisible();
+  // Una única fuente acotada. El sufijo evita reutilizar la forma antigua de
+  // useInfiniteQuery al actualizar la aplicación con una caché existente.
+  const queryKey = useMemo(() => [...monitoringKeys.historyArchive(patientId, range), 'window-v2'],
+    [patientId, range.from, range.to]);
+  const navigation = useMemo<{ controller?: AbortController }>(() => ({}), [queryKey]);
+  useEffect(() => () => navigation.controller?.abort(), [navigation]);
+  const older = useMutation({
+    mutationKey: queryKey,
+    gcTime: 0,
+    mutationFn: async () => {
+      const controller = new AbortController();
+      navigation.controller = controller;
+      // Una navegación antigua no compite con una recuperación en vivo.
+      await client.cancelQueries({ queryKey, exact: true });
+      controller.signal.throwIfAborted();
+      const previous = client.getQueryData<HistoryWindow>(queryKey);
+      if (!previous) throw new Error('Primero debe cargar el historial.');
+      const next = await olderHistoryWindow(previous, (cursor, limit) =>
+        fetchPatientMeasurements(patientId, { ...range, cursor, limit }, controller.signal));
+      controller.signal.throwIfAborted();
+      if (!client.getQueryState(queryKey)) return; // logout limpió la caché
+      client.setQueryData(queryKey, next);
+    },
   });
-
-  const pages = archive.data?.pages ?? [];
-  const merged = useMemo(
-    () => mergeMeasurements(live.data?.data ?? [], ...pages.map((page) => page.data)),
-    [live.data, pages]
-  );
-  // Límite de memoria y de render: se conservan las lecturas más recientes y la
-  // cobertura declara cuántas se descartaron.
-  const readings = useMemo(() => merged.slice(0, MAX_HISTORY_SAMPLES), [merged]);
-  const coverage = useMemo(
-    () =>
-      coverageOf(merged, {
-        hasMore: archive.hasNextPage,
-        pagesLoaded: pages.length,
-        limit: MAX_HISTORY_SAMPLES,
-      }),
-    [merged, archive.hasNextPage, pages.length]
-  );
+  const archive = useQuery({
+    queryKey,
+    enabled,
+    queryFn: ({ signal }) => recentHistoryWindow(client.getQueryData<HistoryWindow>(queryKey),
+      (cursor, limit) => fetchPatientMeasurements(patientId, { ...range, cursor, limit }, signal)),
+    refetchInterval: query => visible && options.poll && !older.isPending && !older.isError &&
+      !query.state.data?.browsingOlder ? HISTORY_POLL_MS : false,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
+    gcTime: 0,
+  });
+  const wasVisible = useRef(visible);
+  useEffect(() => {
+    // Se recupera el intervalo perdido al volver de una pestaña oculta, aunque
+    // el temporizador de polling todavía no haya llegado a su siguiente tick.
+    const resumed = visible && !wasVisible.current;
+    wasVisible.current = visible;
+    if (enabled && resumed && options.poll && !older.isPending && !older.isError &&
+      !client.getQueryData<HistoryWindow>(queryKey)?.browsingOlder) {
+      void client.refetchQueries({ queryKey, exact: true, type: 'active' });
+    }
+  }, [enabled, visible, options.poll, client, queryKey]);
+  const readings = useMemo(() => archive.data ? windowReadings(archive.data) : [], [archive.data]);
+  const hasMore = Boolean(archive.data?.nextCursor);
+  const coverage = useMemo(() => coverageOf(readings, {
+    hasMore, pagesLoaded: archive.data?.pages.length ?? 0,
+  }), [readings, hasMore, archive.data]);
   const series = useMemo(() => buildSeries(readings), [readings]);
 
   const loadMore = useCallback(() => {
-    if (archive.hasNextPage && !archive.isFetchingNextPage) void archive.fetchNextPage();
-  }, [archive]);
+    if (hasMore && !archive.isFetching && !older.isPending) older.mutate();
+  }, [hasMore, archive.isFetching, older]);
   const refresh = useCallback(() => {
-    void live.refetch();
-    // Retrying only live leaves archive.isError set forever after an archive failure.
-    // Healthy history keeps its pages and is not downloaded on every manual refresh.
-    if (archive.isFetchNextPageError) void archive.fetchNextPage();
-    else if (archive.isError) void archive.refetch();
-  }, [live, archive]);
+    if (archive.isFetching || older.isPending) return;
+    if (older.isError) older.mutate();
+    else void archive.refetch();
+  }, [archive, older]);
 
   return {
     readings,
     coverage,
     series,
-    hasMore: archive.hasNextPage,
+    hasMore,
     loadMore,
     refresh,
-    isPending: live.isPending || archive.isPending,
-    isFetching: live.isFetching || archive.isFetching,
-    isError: live.isError || archive.isError,
-    error: live.error ?? archive.error,
+    isPending: archive.isPending,
+    isFetching: archive.isFetching || older.isPending,
+    isError: archive.isError || older.isError,
+    error: archive.error ?? older.error,
   };
 }

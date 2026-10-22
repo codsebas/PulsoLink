@@ -1,5 +1,7 @@
 # Gerson — aceptación y pendientes de PL2
 
+**Seguimiento actualizado:** [entrega técnica del 21 de octubre](gerson-cierre-tecnico-2026-10-21.md), con la corrección del historial y el estado de #25/#26/#29/#34. El documento siguiente conserva su corte histórico; sus referencias a PR abiertos no describen el estado actual.
+
 Fecha de corte: 20 de octubre de 2026 (America/Guatemala). Base consultada: `main` en `1385d23`. Este seguimiento relaciona los criterios de los issues con entregas y evidencias; no modifica contratos, asignaciones ni estados de los issues.
 
 **Ampliación ejecutada:** [prueba local de Auth, persistencia y monitoreo](../evidencias/gerson-integracion-auth-monitoreo.md). Se comprobaron #41 y #42 juntos en una rama local: 148 pruebas API, 16 web y las dos de historial contra API autenticada, más el recorrido de navegador real con tres páginas y estados de conexión. Los PR siguen abiertos y esa combinación no se fusionó en main. El resultado propio no sustituye reproducción por otro integrante ni aceptación del equipo.

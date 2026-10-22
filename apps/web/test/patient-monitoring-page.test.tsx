@@ -81,10 +81,10 @@ describe('pantalla de monitoreo con la capa de datos', () => {
     await waitFor(() => expect(screen.getByText('Paciente de prueba')).toBeTruthy());
     await waitFor(() => expect(screen.getByText(/20 lecturas cargadas/)).toBeTruthy());
     await waitFor(() => expect(screen.getByText(/Conectado con lectura reciente/)).toBeTruthy());
-    // La ventana en vivo pide 20 lecturas; el archivo acumulado pide 100.
+    // Una sola consulta inicial; los refrescos posteriores piden solo 20.
     const measurementCalls = calls.filter((call) => call.includes('/measurements'));
     expect(measurementCalls.length).toBeGreaterThan(0);
-    expect(measurementCalls.some((call) => call.includes('limit=20'))).toBe(true);
+    expect(measurementCalls.some((call) => call.includes('limit=20'))).toBe(false);
     expect(measurementCalls.some((call) => call.includes('limit=100'))).toBe(true);
   }, 20000);
 

@@ -2,8 +2,9 @@
 // Requires the Auth and monitoring-data implementations from PRs #41/#42.
 // Never exports cookies, passwords or tokens to files or command arguments.
 const assert = require('node:assert/strict');
-const { randomBytes, randomUUID } = require('node:crypto');
+const { createHash, randomBytes, randomUUID } = require('node:crypto');
 const { spawn } = require('node:child_process');
+const { createServer } = require('node:net');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -29,6 +30,8 @@ async function main() {
   const api = 'http://127.0.0.1:13001';
   const children = [];
   let browser;
+  let visibilityProfile;
+  const nativeVisibility = process.env.PULSOLINK_NATIVE_VISIBILITY === 'true';
   const environment = { ...process.env, NODE_ENV: 'development', PORT: '13001', CORS_ORIGIN: origin,
     COOKIE_SECURE: 'false', FIREBASE_WEB_API_KEY: 'emulator', CSRF_SECRET: randomBytes(32).toString('hex'),
     VITE_API_PROXY_TARGET: api, VITE_API_BASE_URL: '/api/v1' };
@@ -66,14 +69,36 @@ async function main() {
       }
       assert(ready, 'Local verification server did not become ready.');
     }
-    browser = await chromium.launch({ channel: process.env.PULSOLINK_BROWSER_CHANNEL || 'chrome', headless: true });
-    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    let page;
+    if (nativeVisibility) {
+      // Playwright's default focus emulation keeps background tabs visible.
+      // A dedicated Edge with noDefaults exercises the actual browser event.
+      visibilityProfile = fs.mkdtempSync(path.join(root, '.cache/gerson-visibility-'));
+      const reserve = createServer();
+      await new Promise(resolve => reserve.listen(0, '127.0.0.1', resolve));
+      const port = reserve.address().port;
+      await new Promise(resolve => reserve.close(resolve));
+      children.push(spawn(process.env.PULSOLINK_EDGE_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+        ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${visibilityProfile}`, '--no-first-run'],
+        { windowsHide: true, stdio: 'ignore' }));
+      for (let attempt = 0; attempt < 40; attempt++) {
+        try { browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`, { noDefaults: true, timeout: 500 }); break; }
+        catch { await new Promise(resolve => setTimeout(resolve, 100)); }
+      }
+      assert(browser, 'Dedicated browser is not available.');
+      page = await browser.contexts()[0].newPage();
+      await page.setViewportSize({ width: 1280, height: 900 });
+    } else {
+      browser = await chromium.launch({ channel: process.env.PULSOLINK_BROWSER_CHANNEL || 'chrome', headless: true });
+      page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    }
     page.setDefaultTimeout(20000);
-    const counts = { access: 0, latest: 0, archive: 0 };
+    const counts = { access: 0, latest: 0, archive: 0, history: 0 };
     page.on('request', (request) => {
       const url = new URL(request.url());
       if (url.pathname.endsWith('/monitor-patient/access')) counts.access++;
       if (url.pathname.endsWith('/monitor-patient/latest')) counts.latest++;
+      if (url.pathname.endsWith('/monitor-patient/measurements')) counts.history++;
       if (url.pathname.endsWith('/monitor-patient/measurements') && url.searchParams.get('limit') === '100') counts.archive++;
     });
     step = 'viewer login and return';
@@ -152,13 +177,89 @@ async function main() {
       skinTemperature: sample.measurements.skinTemperature,
     } });
     await page.getByRole('button', { name: 'Actualizar', exact: true }).click();
-    await page.getByText('242 lecturas cargadas en 3 páginas:', { exact: false }).waitFor();
+    await page.getByText(/242 lecturas cargadas en \d+ páginas:/).waitFor();
     state = await (await page.request.get(latestUrl)).json();
     assert.equal(state.meta.connectionState, 'connected_with_recent_reading');
     assert.equal(state.data.measurements.heartRate.value, null);
     assert.equal(state.data.measurements.skinTemperature.value, 33.4);
     assert.equal((await db.collectionGroup('measurements').where('patientId', '==', 'monitor-patient').get()).size, 242);
     assert.equal(counts.access, 1);
+    step = 'HIST-01 official HTTP continuity';
+    const deviceSecret = randomBytes(32).toString('base64url');
+    await db.collection('deviceCredentials').doc('monitor-browser-credential').create({
+      deviceId: 'monitor-device-2', enabled: true, revokedAt: null,
+      createdAt: new Date().toISOString(), secretHash: createHash('sha256').update(deviceSecret).digest('hex'),
+    });
+    let sequence = 2;
+    async function ingestOfficial(amount) {
+      for (let i = 0; i < amount; i++) {
+        const current = sequence++;
+        const input = { ...sample, sequence: current, measurements: {
+          ...sample.measurements,
+          heartRate: { value: 100 + current % 100, unit: 'bpm', status: 'valid' },
+          skinTemperature: { value: 30 + Math.floor(current / 100) / 10, unit: 'C', status: 'valid' },
+        } };
+        const response = await fetch(`${api}/api/v1/device/measurements`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json',
+            Authorization: `Bearer monitor-browser-credential.${deviceSecret}` },
+          body: JSON.stringify(input), signal: AbortSignal.timeout(30000),
+        });
+        assert.equal(response.status, 201, 'Official device ingestion failed.');
+      }
+    }
+    for (let round = 0; round < 2; round++) {
+      step = `HIST-01 round ${round + 1}: ingestion`;
+      await ingestOfficial(21);
+      step = `HIST-01 round ${round + 1}: refresh`;
+      await page.getByRole('button', { name: 'Refrescar lecturas recientes', exact: true }).click();
+      step = `HIST-01 round ${round + 1}: visible rows`;
+      await page.getByText(new RegExp(`${263 + round * 21} lecturas cargadas en `)).waitFor();
+      assert.equal(await page.locator('tbody tr').count(), 263 + round * 21);
+    }
+    if (nativeVisibility) {
+      step = 'native hidden-visible continuity';
+      await page.bringToFront();
+      assert.equal(await page.evaluate(() => document.visibilityState), 'visible');
+      const other = await page.context().newPage();
+      await other.goto('about:blank'); await other.bringToFront();
+      assert.equal(await page.evaluate(() => document.visibilityState), 'hidden');
+      await page.waitForTimeout(1000); // Allow requests already in flight to finish.
+      const hiddenRequests = counts.latest + counts.history;
+      await ingestOfficial(47);
+      await page.waitForTimeout(11000);
+      assert.equal(counts.latest + counts.history, hiddenRequests, 'Polling continued while hidden.');
+      await page.bringToFront();
+      assert.equal(await page.evaluate(() => document.visibilityState), 'visible');
+      await page.getByText(/331 lecturas cargadas en /).waitFor();
+      assert.equal(await page.locator('tbody tr').count(), 331);
+      await other.close();
+      console.log(JSON.stringify({ nativeVisibility: 'passed', stateChanges: ['visible', 'hidden', 'visible'],
+        newReadingsWhileHidden: 47, recoveredRows: 331, requestsWhileHidden: 0 }));
+    }
+    step = 'HIST-02 bounded navigation through 1120 official readings';
+    await ingestOfficial(nativeVisibility ? 789 : 836);
+    await page.reload();
+    await page.getByText(/100 lecturas cargadas en 1 página:/).waitFor();
+    const visited = new Set();
+    let maxVisible = 0;
+    for (let index = 0; index < 15; index++) {
+      const rows = await page.locator('tbody tr').allTextContents();
+      rows.forEach(row => visited.add(row));
+      maxVisible = Math.max(maxVisible, rows.length);
+      assert(rows.length <= 1000, 'History retained more than its bounded window.');
+      if (await more.isDisabled()) break;
+      const response = page.waitForResponse(r => r.url().includes('/measurements') && r.url().includes('cursor='));
+      await more.click(); await response;
+      await page.waitForFunction(() => !document.querySelector('button[disabled]') ||
+        [...document.querySelectorAll('button')].find(b => b.textContent === 'Refrescar lecturas recientes')?.disabled === false);
+    }
+    assert.equal(visited.size, 1120, 'Some persisted readings could not be inspected through navigation.');
+    assert(await more.isDisabled());
+    await page.getByRole('button', { name: 'Refrescar lecturas recientes', exact: true }).click();
+    await page.getByText(/100 lecturas cargadas en 1 página:/).waitFor();
+    assert(await more.isEnabled(), 'Returning to recent readings must restore older navigation.');
+    console.log(JSON.stringify({ historyRegression: 'passed', successiveRefreshReadings: 284,
+      navigableReadings: visited.size, maxVisibleReadings: maxVisible, returnsToRecent: true }));
     step = 'viewer restrictions';
     assert.equal((await page.request.get(`${origin}/api/v1/users`)).status(), 403);
     assert.equal((await page.request.get(`${origin}/api/v1/audit-logs`)).status(), 403);
@@ -182,17 +283,27 @@ async function main() {
     await page.waitForURL('**/login');
     assert.equal(await page.getByRole('heading', { name: 'Paciente seudónimo de monitoreo', exact: true }).count(), 0);
     console.log(JSON.stringify({ patientBrowser: 'passed', api: 'real-local', emulators: 'auth-firestore-standard',
-      seedRepeated: true, realApiHistoryTests: 2, pages: 3, historicalReadings: 240, newReadings: 2, boards: 2, accessEvents: 1,
+      seedRepeated: true, realApiHistoryTests: 2, initialPages: 3, historicalReadings: 240, finalReadings: 1120, boards: 2, accessEvents: counts.access,
       connectionStates: 3, identicalDuplicate: true, opticalNullIndependentOfTemperature: true,
       archiveNotPolled: true, pollingStops: true, viewer403: true, logoutClearsView: true, mobileOverflow: false }));
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      if (nativeVisibility) {
+        try { const session = await browser.newBrowserCDPSession(); await session.send('Browser.close'); } catch {}
+      }
+      await browser.close();
+    }
     for (const child of children) if (child.pid && child.exitCode === null) child.kill();
     await Promise.all(admin.apps.map((app) => app.delete()));
+    if (visibilityProfile && path.dirname(path.resolve(visibilityProfile)) === path.resolve(root, '.cache') &&
+      path.basename(visibilityProfile).startsWith('gerson-visibility-')) {
+      try { fs.rmSync(visibilityProfile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }); } catch {}
+    }
   }
 }
-main().catch(() => {
+main().catch(error => {
   // Only a controlled stage is printed: browser/API errors can contain credentials.
   console.error(`PATIENT_BROWSER_FAILED: ${step}. Check dependencies, fresh emulators and browser installation; no credentials logged.`);
+  console.error(`Failure category: ${error instanceof assert.AssertionError ? 'assertion' : error?.name || 'unknown'}`);
   process.exitCode = 1;
 });

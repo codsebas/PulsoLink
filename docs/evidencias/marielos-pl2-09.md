@@ -29,6 +29,7 @@ Para repetir solo los casos administrativos y visuales, usar `PULSOLINK_UI_ACCEP
 - Visibilidad nativa: fase aprobada, 47 muestras mientras la pestaña estaba oculta, 331 filas al volver, cero peticiones de polling oculta. No se sobrescribió visibilityState ni se fabricaron eventos.
 - La suite administrativa crea opciones por HTTP, utiliza los formularios reales, verifica Tab/Escape/retorno, sesiones y dos placas con lecturas por ingestión oficial. Compara íntegramente la lectura original después de reasignar.
 - Las pruebas de recuperación abortan peticiones reales; no se fabrican respuestas ni datos de medición.
+- `hugo-history-acceptance.cjs` se ajustó a la navegación acotada y pasó comprobación sintáctica; no se ejecutó ese archivo exacto con su fixture de puertos 3001/5173. Las fases reales de historial anteriores corresponden al verificador integrado de Gerson, no se intercambian sus resultados.
 - Ejecución final de aceptación administrativa/visual: **salida 0, 17 casos aprobados**, incluidas las dos integraciones HTTP autenticadas previas. Reporte: [results.json](marielos-pl2-09/results.json).
 
 ## Relación con criterios de aceptación

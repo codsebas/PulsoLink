@@ -76,14 +76,14 @@ paths:
                         type: string
                         minLength: 1
                         maxLength: 128
-                        pattern: ^[^/]+$
+                        pattern: ^(?!\.{1,2}$)[^/]+$
                       activeSessionId:
                         type:
                           - string
                           - "null"
                         minLength: 1
                         maxLength: 128
-                        pattern: ^[^/]+$
+                        pattern: ^(?!\.{1,2}$)[^/]+$
                       uploadIntervalMs:
                         type: integer
                         minimum: 1
@@ -128,7 +128,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 128
-                  pattern: ^[^/]+$
+                  pattern: ^(?!\.{1,2}$)[^/]+$
                 bootId:
                   type: string
                   format: uuid
@@ -183,7 +183,7 @@ paths:
         contenido normalizado. Duplicado idéntico conserva referencia/fecha original incluso después de
         finalizar/reasignar con credencial y placa aún habilitadas; distinto contenido da 409
         IDEMPOTENCY_CONFLICT. Nueva muestra con relación inactiva da 409 SESSION_NOT_ACTIVE o
-        ASSIGNMENT_NOT_ACTIVE. capturedAt obligatorio UTC o null. Temperatura superficial; SpO2 académica;
+        ASSIGNMENT_NOT_ACTIVE. capturedAt marca temporal ISO 8601 (con UTC 'Z' o con offset) normalizada por backend, o null. Temperatura superficial; SpO2 académica;
         valores valid no son validación clínica.
       x-implementation-status: implemented-emulator-verified
       requestBody:
@@ -272,10 +272,43 @@ components:
           properties:
             code:
               type: string
+              description: "Código de error legible por máquina según el catálogo de la API de dispositivos."
+              enum:
+                - VALIDATION_ERROR
+                - INVALID_CURSOR
+                - UNAUTHENTICATED
+                - DEVICE_DISABLED
+                - FORBIDDEN
+                - CSRF_INVALID
+                - RESOURCE_DISABLED
+                - DEVICE_ID_MISMATCH
+                - NOT_FOUND
+                - DEVICE_NOT_FOUND
+                - SESSION_NOT_FOUND
+                - PATIENT_NOT_FOUND
+                - ASSIGNMENT_NOT_FOUND
+                - USER_NOT_FOUND
+                - AUDIT_NOT_FOUND
+                - ASSIGNMENT_CONFLICT
+                - ASSIGNMENT_IN_USE
+                - ASSIGNMENT_NOT_ACTIVE
+                - INVALID_SESSION_STATE
+                - IDEMPOTENCY_CONFLICT
+                - SESSION_NOT_ACTIVE
+                - DEVICE_BUSY
+                - DEVICE_SOURCE_CHANGED
+                - PAYLOAD_TOO_LARGE
+                - RATE_LIMITED
+                - SERVICE_UNAVAILABLE
+                - INTERNAL_SERVER_ERROR
             message:
               type: string
+              description: "Mensaje descriptivo en español para el cliente."
             requestId:
               type: string
+              description: "Identificador único de correlación de la solicitud."
+            details:
+              description: "Información adicional opcional sobre el error."
     Measurements:
       type: object
       additionalProperties: false
@@ -413,12 +446,12 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         sessionId:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         bootId:
           type: string
           format: uuid
@@ -431,8 +464,8 @@ components:
             - string
             - "null"
           format: date-time
-          description: Fecha ISO 8601 UTC normalizada por backend.
-          pattern: Z$
+          description: Marca temporal ISO 8601 completa en UTC ('Z') o con desplazamiento de zona horaria (offset, p. ej. +01:00 o -05:00), normalizada a UTC por el backend.
+          pattern: (Z|[+-]\d{2}:\d{2})$
         measurements:
           $ref: "#/components/schemas/Measurements"
     IngestionAck:
@@ -447,7 +480,7 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         receivedAt:
           type: string
           format: date-time
@@ -463,31 +496,31 @@ components:
         secreto exclusivamente en cabecera, nunca en logs/Git.
   responses:
     BadRequest:
-      description: "VALIDATION_ERROR: JSON, campos, filtros o cursor inválidos."
+      description: "Error de solicitud del cliente (400). Códigos posibles: VALIDATION_ERROR (JSON, campos, tipos o restricciones inválidas), INVALID_CURSOR (cursor corrupto o desalineado)."
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     Unauthorized:
-      description: "UNAUTHENTICATED: credencial o sesión ausente, inválida o vencida."
+      description: "Autenticación fallida o credencial ausente (401). Códigos posibles: UNAUTHENTICATED (sin cabecera Bearer, credencial inválida o revocada), DEVICE_DISABLED (dispositivo deshabilitado)."
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     Forbidden:
-      description: "FORBIDDEN: rol insuficiente, usuario/dispositivo deshabilitado, CSRF u origen inválidos."
+      description: "Operación no autorizada (403). Códigos posibles: FORBIDDEN, DEVICE_ID_MISMATCH (la identidad declarada en el cuerpo no coincide con la credencial autenticada), RESOURCE_DISABLED (paciente deshabilitado), CSRF_INVALID."
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     NotFound:
-      description: "NOT_FOUND: recurso no encontrado."
+      description: "Recurso no encontrado (404). Códigos posibles: DEVICE_NOT_FOUND, SESSION_NOT_FOUND, PATIENT_NOT_FOUND, ASSIGNMENT_NOT_FOUND, USER_NOT_FOUND, AUDIT_NOT_FOUND, NOT_FOUND."
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     Conflict:
-      description: Conflicto de estado o idempotencia.
+      description: "Conflicto de estado o idempotencia (409). Códigos posibles: IDEMPOTENCY_CONFLICT (clave deviceId+bootId+sequence repetida con distinto contenido), SESSION_NOT_ACTIVE (sesión no activa para este dispositivo), ASSIGNMENT_NOT_ACTIVE (asignación no activa o incompatible), ASSIGNMENT_IN_USE, ASSIGNMENT_CONFLICT, INVALID_SESSION_STATE, DEVICE_BUSY, DEVICE_SOURCE_CHANGED, RESOURCE_DISABLED."
       content:
         application/json:
           schema:

@@ -33,12 +33,19 @@ async function main() {
     results.push({id:'HIST-01',expected:'162 lecturas disponibles y cobertura exacta tras dos ventanas nuevas',actual:`API recibió 162; interfaz muestra ${visible}; afirma inicio=${claimed>0}`,state:visible===162?'PASS':'FAIL',issue:29});await page.screenshot({path:path.join(output,'live-window.png')});
     await ingest(958); // 1120 rows persisted via official HTTP, not a direct database seed.
     await page.reload();await page.getByText('100 lecturas cargadas',{exact:false}).waitFor();
-    let pages=1;
+    let pages=1; const visited = new Set(); let maxVisible = 0;
+    const inspect = async () => {
+      const rows = await page.locator('tbody tr').evaluateAll(rows => rows.map(row => row.getAttribute('data-reading-key')));
+      assert.ok(rows.every(Boolean), 'Cada lectura debe tener identidad verificable');
+      rows.forEach(row => visited.add(row)); maxVisible = Math.max(maxVisible, rows.length);
+      assert.ok(rows.length <= 1000, 'El historial excedió la ventana acotada');
+    };
+    await inspect();
     while(await page.getByRole('button',{name:'Cargar más antiguas'}).isEnabled()) {
-      assert.ok(pages<15);const response=page.waitForResponse(r=>r.url().includes('/measurements')&&r.url().includes('cursor='));await page.getByRole('button',{name:'Cargar más antiguas'}).click();await response;await page.waitForTimeout(400);pages++;
+      assert.ok(pages<15);const response=page.waitForResponse(r=>r.url().includes('/measurements')&&r.url().includes('cursor='));await page.getByRole('button',{name:'Cargar más antiguas'}).click();await response;await page.waitForTimeout(400);pages++; await inspect();
     }
     const final=await page.locator('tbody tr').count();
-    results.push({id:'HIST-02',expected:'Navegación permite inspeccionar las 1120 lecturas; cobertura visible honesta',actual:`${pages} páginas descargadas; ${final} filas visibles; botón antiguas deshabilitado`,state:final===1120?'PASS':'FAIL',issue:29});await page.screenshot({path:path.join(output,'history-1120.png')});
+    results.push({id:'HIST-02',expected:'Navegación permite inspeccionar las 1120 lecturas; máximo 1000 simultáneas',actual:`${pages} páginas; ${visited.size} lecturas inspeccionadas; ${final} visibles; máximo ${maxVisible}`,state:visited.size===1120 && maxVisible<=1000?'PASS':'FAIL',issue:29});await page.screenshot({path:path.join(output,'history-1120.png')});
   } catch {results.push({id:'HIST-SETUP',state:'FAIL',actual:'Ejecución interrumpida; no se acredita el caso restante'});}
   finally {try{if(session)await call(`/sessions/${session}/finish`,'POST');if(assignment)await call(`/assignments/${assignment}/close`,'POST');}catch{results.push({id:'CLEANUP',state:'FAIL'});}await browser.close();await fs.writeFile(path.join(output,'results.json'),JSON.stringify({generatedAt:new Date().toISOString(),base:'abc4d45 + corrección retry',environment:process.env.QA_ENVIRONMENT,results},null,2)+'\n');console.log(JSON.stringify(results));process.exitCode=results.some(r=>r.state==='FAIL')?1:0;}
 }

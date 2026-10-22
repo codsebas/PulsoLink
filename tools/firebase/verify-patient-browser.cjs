@@ -3,7 +3,7 @@
 // Never exports cookies, passwords or tokens to files or command arguments.
 const assert = require('node:assert/strict');
 const { createHash, randomBytes, randomUUID } = require('node:crypto');
-const { spawn } = require('node:child_process');
+const { spawn, execFileSync } = require('node:child_process');
 const { createServer } = require('node:net');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -73,13 +73,14 @@ async function main() {
     if (nativeVisibility) {
       // Playwright's default focus emulation keeps background tabs visible.
       // A dedicated Edge with noDefaults exercises the actual browser event.
+      fs.mkdirSync(path.join(root, '.cache'), { recursive: true });
       visibilityProfile = fs.mkdtempSync(path.join(root, '.cache/gerson-visibility-'));
       const reserve = createServer();
       await new Promise(resolve => reserve.listen(0, '127.0.0.1', resolve));
       const port = reserve.address().port;
       await new Promise(resolve => reserve.close(resolve));
       children.push(spawn(process.env.PULSOLINK_EDGE_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
-        ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${visibilityProfile}`, '--no-first-run'],
+        ['--headless=new', '--disable-sync', '--disable-features=msImplicitSignin', '--no-default-browser-check', `--remote-debugging-port=${port}`, `--user-data-dir=${visibilityProfile}`, '--no-first-run'],
         { windowsHide: true, stdio: 'ignore' }));
       for (let attempt = 0; attempt < 40; attempt++) {
         try { browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`, { noDefaults: true, timeout: 500 }); break; }
@@ -93,6 +94,7 @@ async function main() {
       page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     }
     page.setDefaultTimeout(20000);
+    page.setDefaultNavigationTimeout(60000); // Vite's first dependency transform is cold on a new checkout.
     const counts = { access: 0, latest: 0, archive: 0, history: 0 };
     page.on('request', (request) => {
       const url = new URL(request.url());
@@ -101,12 +103,15 @@ async function main() {
       if (url.pathname.endsWith('/monitor-patient/measurements')) counts.history++;
       if (url.pathname.endsWith('/monitor-patient/measurements') && url.searchParams.get('limit') === '100') counts.archive++;
     });
-    step = 'viewer login and return';
+    step = 'viewer: open protected route';
     await page.goto(`${origin}/monitoring/monitor-patient`);
+    step = 'viewer: redirect to login';
     await page.waitForURL('**/login');
+    step = 'viewer: fill login form';
     await page.getByLabel('Correo electrónico', { exact: true }).fill('demo-viewer@example.invalid');
     await page.getByLabel('Contraseña', { exact: true }).fill(password);
     await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();
+    step = 'viewer: return after login';
     await page.waitForURL('**/monitoring/monitor-patient');
     await page.getByRole('heading', { name: 'Paciente seudónimo de monitoreo', exact: true }).waitFor();
     await page.getByText(/100 lecturas cargadas en 1 página:/).waitFor();
@@ -128,6 +133,31 @@ async function main() {
       integration.once('error', reject); integration.once('exit', resolve);
     });
     assert.equal(integrationCode, 0, 'Real-API history tests failed.');
+    const verifyUi = async () => {
+      const output = path.resolve(process.env.PULSOLINK_EVIDENCE_DIR || path.join(root, '.cache/gerson-integration'));
+      fs.mkdirSync(output, { recursive: true });
+      assert.equal((await page.request.get(`${origin}/api/v1/users`)).status(), 403);
+      assert.equal((await page.request.get(`${origin}/api/v1/audit-logs`)).status(), 403);
+      assert.equal(await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Usuarios', exact: true }).count(), 0);
+      assert.equal(await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Auditoría', exact: true }).count(), 0);
+      step = 'dashboard responsive and accessibility acceptance';
+      const checks = await require('../qa/dashboard-acceptance.cjs')({ page, output });
+      checks.push('viewer-admin-controls-hidden-http403');
+      step = 'administrative real API acceptance';
+      checks.push(...await require('../qa/admin-acceptance.cjs')({ browser, origin, password, db }));
+      fs.writeFileSync(path.join(output, 'ui-acceptance.json'), JSON.stringify({
+        environment: 'Windows, Node 24, Edge, Auth/Firestore Standard emulados',
+        fabricatedResponses: false, faultInjection: 'Se aborta la petición de una página histórica y se restablece la red',
+        checkedAt: new Date().toISOString(), node: process.version,
+        commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8', windowsHide: true }).trim(),
+        workingTree: true, checks, status: 'passed',
+      }, null, 2) + '\n');
+      console.log(JSON.stringify({ uiAcceptance: 'passed', checks }));
+    };
+    if (process.env.PULSOLINK_UI_ACCEPTANCE_ONLY === 'true') {
+      await verifyUi();
+      return; // El historial largo y la visibilidad nativa tienen ejecuciones independientes.
+    }
     step = 'three history pages';
     const more = page.getByRole('button', { name: 'Cargar más antiguas', exact: true });
     await more.click();
@@ -182,6 +212,9 @@ async function main() {
     assert.equal(state.meta.connectionState, 'connected_with_recent_reading');
     assert.equal(state.data.measurements.heartRate.value, null);
     assert.equal(state.data.measurements.skinTemperature.value, 33.4);
+    await page.getByRole('article', { name: 'Pulso', exact: true }).getByText('Sin contacto', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('article', { name: 'Pulso', exact: true }).getByText('—', { exact: true }).count(), 1);
+    await page.getByRole('article', { name: 'Temperatura superficial', exact: true }).getByText('Lectura válida', { exact: true }).waitFor();
     assert.equal((await db.collectionGroup('measurements').where('patientId', '==', 'monitor-patient').get()).size, 242);
     assert.equal(counts.access, 1);
     step = 'HIST-01 official HTTP continuity';
@@ -191,7 +224,7 @@ async function main() {
       createdAt: new Date().toISOString(), secretHash: createHash('sha256').update(deviceSecret).digest('hex'),
     });
     let sequence = 2;
-    async function ingestOfficial(amount) {
+    async function ingestOfficial(amount, measurements) {
       for (let i = 0; i < amount; i++) {
         const current = sequence++;
         const input = { ...sample, sequence: current, measurements: {
@@ -199,6 +232,7 @@ async function main() {
           heartRate: { value: 100 + current % 100, unit: 'bpm', status: 'valid' },
           skinTemperature: { value: 30 + Math.floor(current / 100) / 10, unit: 'C', status: 'valid' },
         } };
+        if (measurements) input.measurements = measurements;
         const response = await fetch(`${api}/api/v1/device/measurements`, {
           method: 'POST', headers: { 'Content-Type': 'application/json',
             Authorization: `Bearer monitor-browser-credential.${deviceSecret}` },
@@ -260,12 +294,28 @@ async function main() {
     assert(await more.isEnabled(), 'Returning to recent readings must restore older navigation.');
     console.log(JSON.stringify({ historyRegression: 'passed', successiveRefreshReadings: 284,
       navigableReadings: visited.size, maxVisibleReadings: maxVisible, returnsToRecent: true }));
+    if (process.env.PULSOLINK_FULL_UI_ACCEPTANCE === 'true') {
+      step = 'independent invalid and unavailable sensor qualities';
+      await ingestOfficial(1, {
+        heartRate: { value: null, unit: 'bpm', status: 'invalid' },
+        spo2: { value: null, unit: '%', status: 'unavailable' },
+        skinTemperature: { value: 29.4, unit: 'C', status: 'valid' },
+      });
+      await page.getByRole('article', { name: 'Pulso', exact: true }).getByText('Dato inválido', { exact: true }).waitFor();
+      await page.getByRole('article', { name: 'SpO₂ estimada', exact: true }).getByText('No disponible', { exact: true }).waitFor();
+      for (const name of ['Pulso', 'SpO₂ estimada']) {
+        assert.equal(await page.getByRole('article', { name, exact: true }).getByText('—', { exact: true }).count(), 1);
+      }
+    }
     step = 'viewer restrictions';
     assert.equal((await page.request.get(`${origin}/api/v1/users`)).status(), 403);
     assert.equal((await page.request.get(`${origin}/api/v1/audit-logs`)).status(), 403);
     step = 'desktop and mobile';
     const output = path.resolve(process.env.PULSOLINK_EVIDENCE_DIR || path.join(root, '.cache/gerson-integration'));
     fs.mkdirSync(output, { recursive: true });
+    if (process.env.PULSOLINK_FULL_UI_ACCEPTANCE === 'true') {
+      await verifyUi();
+    }
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: path.join(output, 'desktop.png') });
     await page.setViewportSize({ width: 375, height: 812 });
@@ -305,5 +355,7 @@ main().catch(error => {
   // Only a controlled stage is printed: browser/API errors can contain credentials.
   console.error(`PATIENT_BROWSER_FAILED: ${step}. Check dependencies, fresh emulators and browser installation; no credentials logged.`);
   console.error(`Failure category: ${error instanceof assert.AssertionError ? 'assertion' : error?.name || 'unknown'}`);
+  if (error instanceof assert.AssertionError) console.error(error.message);
+  console.error(String(error?.stack ?? '').split('\n').filter(line => line.trim().startsWith('at ')).slice(0, 3).join('\n'));
   process.exitCode = 1;
 });

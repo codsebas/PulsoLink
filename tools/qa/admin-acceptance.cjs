@@ -1,6 +1,7 @@
 // Runs only inside the disposable-emulator verifier; no credentials are saved.
 const assert = require('node:assert/strict');
-module.exports = async function adminAcceptance({ browser, origin, password }) {
+const { createHash, randomBytes, randomUUID } = require('node:crypto');
+module.exports = async function adminAcceptance({ browser, origin, password, db }) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage(); page.setDefaultTimeout(20000);
   const passed = [];
@@ -28,22 +29,51 @@ module.exports = async function adminAcceptance({ browser, origin, password }) {
     assert(await trigger.evaluate(el => el === document.activeElement));
     passed.push('native-focus-tab-escape-return');
     await trigger.click();
-    await page.getByLabel('Código', { exact: true }).fill('ADMIN-QA-A');
-    await page.getByLabel('Nombre visible', { exact: true }).fill('Paciente ficticio administrativo');
+    await page.getByLabel(/^Código/).fill('ADMIN-QA-A');
+    await page.getByLabel(/^Nombre visible/).fill('Paciente ficticio administrativo');
     let pending = response('/patients'); await dialog.getByRole('button', { name: 'Crear paciente', exact: true }).click();
     const patient = (await (await pending).json()).data;
     await dialog.waitFor({ state: 'detached' });
     await page.getByRole('link', { name: 'Ver monitoreo de Paciente ficticio administrativo' }).waitFor();
     passed.push('patient-create-monitoring-link');
+    await page.getByRole('link', { name: 'Ver monitoreo de Paciente ficticio administrativo' }).click();
+    await page.getByText('No hay lecturas en este intervalo.', { exact: true }).waitFor();
+    passed.push('empty-patient-real-api');
     // Catalog pages are produced by the API, never by an intercepted response.
     for (let start = 0; start < 101; start += 10) {
       await Promise.all(Array.from({ length: Math.min(10, 101 - start) }, (_, index) =>
         call('/patients', 'POST', { code: `OPT-${start + index}`, displayName: `Opción ficticia ${start + index}` }, 201)));
     }
-    const d1 = (await call('/devices', 'POST', { code: 'ADMIN-QA-D1', source: 'simulated' }, 201)).data;
-    const d2 = (await call('/devices', 'POST', { code: 'ADMIN-QA-D2', source: 'simulated' }, 201)).data;
+    const createDevice = async code => {
+      await page.goto(origin + '/devices');
+      await page.getByRole('button', { name: 'Nueva placa', exact: true }).click();
+      await page.getByLabel(/^Código/).fill(code);
+      await page.getByLabel(/^Origen/).selectOption('simulated');
+      const pending = response('/devices');
+      await dialog.getByRole('button', { name: 'Crear placa', exact: true }).click();
+      const device = (await (await pending).json()).data;
+      await dialog.waitFor({ state: 'detached' });
+      return device;
+    };
+    const d1 = await createDevice('ADMIN-QA-D1');
+    const d2 = await createDevice('ADMIN-QA-D2');
+    passed.push('device-forms-create');
+    const ingest = async (device, sessionId) => {
+      const credentialId = `admin-qa-${device.id}`;
+      const secret = randomBytes(32).toString('base64url');
+      await db.collection('deviceCredentials').doc(credentialId).create({ deviceId: device.id, enabled: true,
+        revokedAt: null, createdAt: new Date().toISOString(), secretHash: createHash('sha256').update(secret).digest('hex') });
+      const r = await page.request.post(origin + '/api/v1/device/measurements', {
+        headers: { Authorization: `Bearer ${credentialId}.${secret}` }, data: {
+          deviceId: device.id, sessionId, bootId: randomUUID(), sequence: 1, capturedAt: null,
+          measurements: { heartRate: { value: 78, unit: 'bpm', status: 'valid' },
+            spo2: { value: 97, unit: '%', status: 'valid' }, skinTemperature: { value: 29, unit: 'C', status: 'valid' } },
+        } });
+      assert.equal(r.status(), 201);
+    };
     await page.goto(origin + '/assignments');
     await page.getByRole('button', { name: 'Asignar placa', exact: true }).click();
+    await page.waitForFunction(() => document.querySelectorAll('#assignment-patient option').length === 101);
     const initial = await page.locator('#assignment-patient option').count();
     assert.equal(initial, 101); // placeholder plus first 100
     await dialog.getByRole('button', { name: 'Cargar más pacientes', exact: true }).click();
@@ -61,13 +91,17 @@ module.exports = async function adminAcceptance({ browser, origin, password }) {
     await dialog.waitFor({ state: 'detached' });
     const row = page.getByRole('row').filter({ hasText: session.id });
     pending = response(`/sessions/${session.id}/start`); await row.getByRole('button', { name: 'Iniciar', exact: true }).click(); await pending;
+    await ingest(d1, session.id);
+    const originalReading = (await call(`/patients/${patient.id}/measurements`)).data[0];
     await row.getByRole('button', { name: 'Finalizar', exact: true }).click();
     pending = response(`/sessions/${session.id}/finish`); await page.getByRole('alertdialog').getByRole('button', { name: 'Finalizar', exact: true }).click(); await pending;
     await page.getByRole('alertdialog').waitFor({ state: 'detached' }); passed.push('session-create-start-finish');
     await page.goto(origin + '/assignments'); await page.getByRole('button', { name: 'Reasignar', exact: true }).click();
-    if (await dialog.getByRole('button', { name: 'Cargar más pacientes', exact: true }).count()) {
+    await page.waitForFunction(() => document.querySelectorAll('#reassign-patient option').length > 1);
+    while (!(await page.locator('#reassign-patient option').evaluateAll((options, value) => options.some(option => option.value === value), patient.id))) {
+      const before = await page.locator('#reassign-patient option').count();
       await dialog.getByRole('button', { name: 'Cargar más pacientes', exact: true }).click();
-      await page.waitForFunction(() => document.querySelectorAll('#reassign-patient option').length > 101);
+      await page.waitForFunction(count => document.querySelectorAll('#reassign-patient option').length > count, before);
     }
     await page.locator('#reassign-patient').selectOption(patient.id);
     await page.locator('#reassign-device').selectOption(d2.id);
@@ -79,6 +113,18 @@ module.exports = async function adminAcceptance({ browser, origin, password }) {
     assert.equal((await call(`/sessions/${session.id}`)).data.status, 'finished');
     assert.equal((await call(`/assignments?patientId=${patient.id}&status=closed`)).data[0].id, assignment.id);
     passed.push('reassign-preserves-previous-session');
+    const secondSession = (await call('/sessions', 'POST', { assignmentId: replacement.id }, 201)).data;
+    await call(`/sessions/${secondSession.id}/start`, 'POST');
+    await ingest(d2, secondSession.id);
+    await call(`/sessions/${secondSession.id}/finish`, 'POST');
+    const history = (await call(`/patients/${patient.id}/measurements`)).data;
+    assert.equal(history.length, 2);
+    assert.deepEqual(history.find(reading => reading.sessionId === session.id), originalReading);
+    assert.deepEqual(new Set(history.map(reading => reading.deviceId)), new Set([d1.id, d2.id]));
+    await page.goto(`${origin}/monitoring/${patient.id}`);
+    await page.getByText(/2 lecturas cargadas en 1 página:/).waitFor();
+    assert.equal(await page.locator('tbody tr').count(), 2);
+    passed.push('official-two-device-history-immutable-and-visible');
     await call(`/patients/${patient.id}`, 'PATCH', { enabled: false }, 409);
     await call(`/devices/${d2.id}`, 'PATCH', { enabled: false }, 409);
     await call(`/assignments/${replacement.id}/close`, 'POST');

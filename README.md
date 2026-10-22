@@ -4,6 +4,8 @@
 
 **Hosting y pruebas externas:** [alternativas, variables de entorno y recorrido HTTPS de NodeMCU](docs/setup/hosting-y-pruebas-externas.md). Incluye plantillas activas para desarrollo y producción, requisitos de mismo origen y límites del firmware HTTP actual.
 
+**Despliegue activo en Render:** [servicio público HTTPS](https://pulsolink-api.onrender.com). Configurado en un solo servicio para frontend y API ([guía de configuración](docs/setup/render.md)). Incluye la [prueba del simulador contra Render y Firestore](docs/setup/prueba-simulador-render.md), con 10 mediciones persistidas e idempotencia verificada.
+
 **Render, un solo servicio:** [configuración de web y API juntas](docs/setup/render.md). Compilar con `npm run build:deploy` antes de iniciar en production permite entrar por `/login` en el mismo origen de `/api/v1`.
 
 **Identidad de la NodeMCU:** [aprovisionamiento seguro de placa y credencial oficial](docs/setup/placa-fisica-aprovisionamiento.md), con simulación previa, aplicación explícita e idempotencia. El procedimiento no sustituye la carga ni la demostración del firmware físico.

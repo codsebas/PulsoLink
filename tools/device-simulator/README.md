@@ -6,6 +6,8 @@ Implementa config, heartbeat y mediciones serializadas. El backend fija paciente
 
 ## Ejecutar
 
+Para validar el despliegue público con lecturas contrastadas en Firestore, consultar la [prueba del simulador contra Render](../../docs/setup/prueba-simulador-render.md). Incluye preparación administrativa aislada, ejecución acotada y estado real de la verificación.
+
 Desde raíz PowerShell:
 
 ```powershell

@@ -10,7 +10,8 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/*.test.ts",
-    "qa": "tsx src/qa.ts"
+    "qa": "tsx src/qa.ts",
+    "lint": "npm run typecheck && npm run build && npm test"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
@@ -21,5 +22,8 @@
     "rimraf": "^6.0.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }

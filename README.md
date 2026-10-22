@@ -554,6 +554,8 @@ El proyecto cuenta con un conjunto de siete skills especializadas para agentes d
 
 La guía completa paso a paso para Windows PowerShell se encuentra en [docs/setup/desarrollo-local.md](docs/setup/desarrollo-local.md).
 
+**Requisito de entorno:** Node.js **24 LTS** (`engines.node >= 24.0.0` en la raíz y en cada workspace; `.node-version` fija 24.15.0).
+
 ### Comandos principales desde la raíz:
 
 ```powershell
@@ -568,14 +570,19 @@ npm run dev:api     # Backend Express 5
 npm run dev:web     # Frontend React + Vite
 npm run dev --workspace=tools/device-simulator  # Simulador IoT
 
-# 4. Comprobaciones de calidad y compilación
+# 4. Comprobaciones de calidad y compilación (Node 24 LTS)
 npm run typecheck   # Validación de tipos TypeScript en todos los workspaces
 npm run build       # Compilación de producción
-npm run lint        # Verificación de linters
+npm run lint        # Verificación real: typecheck + build + test en cada workspace
 
 # 5. Pruebas automatizadas (sin emuladores; las de integración se omiten)
 npm run test --workspace=apps/api
 npm run test --workspace=apps/web
+
+# 6. Verificación completa exigida antes de abrir un PR
+npm run verify                                     # Verificación de todos los workspaces + aceptación local del historial
+node tools/qa/history-continuity-acceptance.cjs    # Puerta local HIST-01 e HIST-02 (sin backend ni emuladores)
+node tools/qa/hugo-history-acceptance.cjs          # Recorrido real de QA (requiere API, web y navegador)
 ```
 
 ### Enlaces a la documentación del sistema:

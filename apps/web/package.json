@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "echo [web] lint ok"
+    "lint": "npm run typecheck && npm run build && npm test"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.66.0",
@@ -36,5 +36,8 @@
     "typescript": "^5.7.3",
     "vite": "^6.1.0",
     "vitest": "^3.0.4"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }

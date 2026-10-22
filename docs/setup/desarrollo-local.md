@@ -10,7 +10,7 @@ Asegúrese de contar con las siguientes herramientas instaladas y accesibles en 
 
 | Herramienta | Versión recomendada | Verificación en PowerShell |
 | :--- | :--- | :--- |
-| **Node.js** | `>= 22.0.0` (LTS recomendada: Node 24) | `node --version` |
+| **Node.js** | `>= 24.0.0` (Node 24 LTS; declarado en `engines` de la raíz, `apps/api`, `apps/web` y `tools/device-simulator`) | `node --version` |
 | **npm** | `>= 10.0.0` | `npm --version` |
 | **Git** | `>= 2.40.0` | `git --version` |
 | **PowerShell** | Versión 5.1 o PowerShell 7+ | `$PSVersionTable.PSVersion` |
@@ -127,21 +127,36 @@ npm run typecheck
 # Compilar todas las aplicaciones a producción
 npm run build
 
-# Ejecutar validación de linters
+# Verificación real por workspace: typecheck + build + test (API, web y simulador)
 npm run lint
+
+# Verificación completa: la de todos los workspaces y la puerta local de aceptación del historial
+npm run verify
+```
+
+La capa de historial tiene dos puertas de aceptación:
+
+```powershell
+# Puerta local: mismo escenario sobre la capa de datos, sin backend ni emuladores
+node tools/qa/history-continuity-acceptance.cjs
+
+# Recorrido real de QA: endpoint oficial y navegador (necesita API, web, emuladores y Edge)
+node tools/qa/hugo-history-acceptance.cjs
 ```
 
 ### 6.1 Estado conocido de las comprobaciones
 
-La ejecución local registrada por integracion y QA el 16 de octubre de 2026, tras `npm ci`, produjo el siguiente resultado:
+La ejecución local registrada el 22 de octubre de 2026, tras `npm install`, produjo el siguiente resultado:
 
 | Comando | Resultado | Alcance y observaciones |
 | --- | --- | --- |
-| `npm run typecheck` | Fallo | La API y el simulador completaron su comprobación. La web falla con `TS6310` porque `apps/web/tsconfig.json` referencia `tsconfig.node.json`, que declara `noEmit`. |
-| `npm run build` | Fallo | La API y el simulador completaron su compilación. La web se bloquea por el mismo `TS6310`; Vite no llega a ejecutarse. |
-| `npm run lint` | Sale correctamente | Los scripts de API y web solo imprimen mensajes `lint ok`; no sustituyen un linter real. |
+| `npm run typecheck` | Correcto | API, web y simulador completan la comprobación sin errores de tipos. |
+| `npm run build` | Correcto | API, web (`vite build`) y simulador compilan. |
+| `npm run lint` | Correcto | Los scripts de API y web ya no imprimen un `echo`: ejecutan `typecheck`, `build` y `test`; el simulador ejecuta `typecheck`, `build` y `test`. |
+| `npm run verify` | Correcto | Encadena la verificación de los tres workspaces con la puerta local de aceptación del historial. |
+| `node tools/qa/history-continuity-acceptance.cjs` | Correcto | Verifica los criterios HIST-01 e HIST-02 de la capa de historial del frontend; no requiere emuladores. |
 
-No considere el typecheck ni la compilación globales aprobados hasta resolver la configuración TypeScript de `apps/web`. Los detalles reproducibles están en [la evidencia de integración AV1-09](../evidencias/integracion-av1-09.md).
+Los detalles reproducibles de la capa de historial están en [la evidencia de PL2-07](../evidencias/monitoreo-pl2-07.md).
 
 ### 6.2 Pruebas de persistencia con emuladores
 

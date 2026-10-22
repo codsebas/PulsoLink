@@ -4,18 +4,15 @@ import { writeFile } from 'node:fs/promises';
 import { readSettings } from './config.js';
 import { makeSample, seededRandom } from './simulator.js';
 import { JOINT_CONCURRENCY_TIMEOUT_MS, runJointCases } from './qa-joint.js';
+import { runPermissionCases } from './qa-permissions.js';
+import { createWebClient, summarize } from './qa-web.js';
 
 type Result = { id: string; expected: string; actual: string; state: 'PASS' | 'FAIL' | 'BLOCKED' };
 type Reply = { status: number; body: any };
 const results: Result[] = [];
 const record = (id: string, expected: string, actual: string, pass: boolean) => results.push({ id, expected, actual, state: pass ? 'PASS' : 'FAIL' });
 const blocked = (id: string, why: string) => results.push({ id, expected: 'Ver matriz PL2-08 de Hugo', actual: why, state: 'BLOCKED' });
-const codes = new Set(['UNAUTHENTICATED', 'UNAUTHORIZED', 'FORBIDDEN', 'VALIDATION_ERROR', 'DEVICE_ID_MISMATCH', 'SESSION_NOT_ACTIVE', 'ASSIGNMENT_NOT_ACTIVE', 'IDEMPOTENCY_CONFLICT', 'NOT_FOUND', 'AUTH_UNAVAILABLE', 'INVALID_CREDENTIALS', 'CSRF_INVALID', 'USER_DISABLED', 'ASSIGNMENT_CONFLICT', 'ASSIGNMENT_IN_USE']);
-const summary = (r: Reply) => {
-  const requestId = r.body?.error?.requestId;
-  const safeId = typeof requestId === 'string' && /^(req-\d{10,16}|[a-f0-9]{8}-[a-f0-9-]{27})$/.test(requestId) ? ` requestId=${requestId}` : '';
-  return `HTTP ${r.status}${codes.has(r.body?.error?.code) ? ` ${r.body.error.code}` : ''}${safeId}`;
-};
+const summary = summarize;
 
 async function main() {
   if (process.env.QA_ALLOW_WRITES !== 'true') throw new Error('QA_ALLOW_WRITES=true requerido; usar únicamente fixtures desechables.');
@@ -66,22 +63,12 @@ async function main() {
   }
 
   // Real HTTP cookies and CSRF; never store or print authentication material.
+  const web = createWebClient({ baseUrl: s.API_BASE_URL, origin, timeoutMs: s.REQUEST_TIMEOUT_MS });
   async function login(email: string | undefined, password: string | undefined) {
     if (!email || !password) return null;
-    const cookies = new Map<string, string>();
-    let csrf = '';
-    const call = async (path: string, method = 'GET', body?: unknown, timeoutMs = s.REQUEST_TIMEOUT_MS): Promise<Reply> => {
-      const res = await fetch(`${s.API_BASE_URL}${path}`, { method, redirect: 'error', signal: AbortSignal.timeout(timeoutMs), headers: { Origin: origin, Cookie: [...cookies].map(([k, v]) => `${k}=${v}`).join('; '), ...(csrf ? { 'X-CSRF-Token': csrf } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) }, body: body === undefined ? undefined : JSON.stringify(body) });
-      for (const header of res.headers.getSetCookie()) { const pair = header.split(';')[0]; const i = pair.indexOf('='); cookies.set(pair.slice(0, i), pair.slice(i + 1)); }
-      const json = await res.json().catch(() => null) as any;
-      if (json?.data?.csrfToken) csrf = json.data.csrfToken;
-      return { status: res.status, body: json };
-    };
-    await call('/auth/csrf');
-    const r = await call('/auth/login', 'POST', { email, password });
-    if (r.status !== 200) { record(email === process.env.QA_ADMIN_EMAIL ? 'LOGIN-ADMIN' : 'LOGIN-VIEWER', '200 login fixture', summary(r), false); return null; }
-    await call('/auth/csrf');
-    return call;
+    const { session, reply } = await web.login(email, password);
+    if (!session) { record(email === process.env.QA_ADMIN_EMAIL ? 'LOGIN-ADMIN' : 'LOGIN-VIEWER', '200 login fixture', summary(reply), false); return null; }
+    return session.call;
   }
   const admin = await login(process.env.QA_ADMIN_EMAIL, process.env.QA_PASSWORD);
   const viewer = await login(process.env.QA_VIEWER_EMAIL, process.env.QA_PASSWORD);
@@ -117,6 +104,11 @@ async function main() {
   } else {
     blocked('JOINT-CON-17', 'Falta QA_JOINT_DEVICE_SECRET del fixture dedicado; sin mutaciones conjuntas.');
     blocked('JOINT-CONC-08', 'Falta QA_JOINT_DEVICE_SECRET del fixture dedicado; sin mutaciones conjuntas.');
+  }
+  // Matriz de Axel (permisos, consistencia y concurrencia); crea sus propios recursos por API.
+  if (process.env.QA_PERMISSIONS !== 'false') {
+    results.push(...await runPermissionCases({ web, adminEmail: process.env.QA_ADMIN_EMAIL, viewerEmail: process.env.QA_VIEWER_EMAIL, password: process.env.QA_PASSWORD,
+      fixture: { patientA, patientB, sessionId } }));
   }
   const report = { contract: '2.0.0', generatedAt: new Date().toISOString(), environment: process.env.QA_ENVIRONMENT ?? 'unspecified', requestTimeoutMs: s.REQUEST_TIMEOUT_MS, jointConcurrencyTimeoutMs: JOINT_CONCURRENCY_TIMEOUT_MS, results };
   if (process.env.QA_REPORT) await writeFile(process.env.QA_REPORT, JSON.stringify(report, null, 2) + '\n');

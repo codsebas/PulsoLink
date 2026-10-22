@@ -1,4 +1,5 @@
 import type { PatientMeasurement } from './patient-monitoring.types';
+import type { ApiListResponse } from '../../lib/api-client';
 
 /**
  * Capa de historial del paciente (contrato B §7, `/patients/{id}/measurements`).
@@ -103,4 +104,71 @@ export function coverageOf(readings: readonly PatientMeasurement[], input: Cover
 /** Normaliza el rango temporal para usarlo como parte de la clave de consulta. */
 export function rangeKey(range: { from?: string; to?: string }): string {
   return `${range.from ?? ''}|${range.to ?? ''}`;
+}
+
+type HistoryPage = ApiListResponse<PatientMeasurement>;
+export interface HistoryWindow {
+  pages: HistoryPage[];
+  nextCursor: string | null;
+  /** La navegación descartó páginas recientes; el refresco manual vuelve al presente. */
+  browsingOlder: boolean;
+}
+
+// También acota páginas superpuestas cuando llegan pocas muestras por refresco.
+export const MAX_HISTORY_PAGES = 50;
+type FetchHistoryPage = (cursor: string | undefined, limit: number) => Promise<HistoryPage>;
+
+export function windowReadings(window: HistoryWindow): PatientMeasurement[] {
+  return mergeMeasurements(...window.pages.map(page => page.data));
+}
+
+function boundedWindow(pages: HistoryPage[], direction: 'recent' | 'older', nextCursor: string | null,
+  browsingOlder = false): HistoryWindow {
+  const retained = [...pages];
+  while (retained.length > 1 && (retained.length > MAX_HISTORY_PAGES ||
+    mergeMeasurements(...retained.map(page => page.data)).length > MAX_HISTORY_SAMPLES)) {
+    if (direction === 'recent') {
+      retained.pop();
+      nextCursor = retained[retained.length - 1].pagination.nextCursor;
+    } else {
+      retained.shift();
+      browsingOlder = true;
+    }
+  }
+  return { pages: retained, nextCursor, browsingOlder };
+}
+
+/** Cursores originales, sin reconstruirlos a partir de una fecha ni cortar páginas. */
+export async function olderHistoryWindow(previous: HistoryWindow, fetchPage: FetchHistoryPage): Promise<HistoryWindow> {
+  if (!previous.nextCursor) return previous;
+  const page = await fetchPage(previous.nextCursor, 100);
+  return boundedWindow([...previous.pages, page], 'older', page.pagination.nextCursor, previous.browsingOlder);
+}
+
+/** Recupera solo el tramo nuevo hasta solapar la frontera ya cargada. */
+export async function recentHistoryWindow(previous: HistoryWindow | undefined, fetchPage: FetchHistoryPage): Promise<HistoryWindow> {
+  if (!previous || previous.browsingOlder || windowReadings(previous).length === 0) {
+    const first = await fetchPage(undefined, 100);
+    return { pages: [first], nextCursor: first.pagination.nextCursor, browsingOlder: false };
+  }
+  const frontier = measurementKey(windowReadings(previous)[0]);
+  const pages = [await fetchPage(undefined, 20)];
+  const overlaps = () => pages.some(page => page.data.some(row => measurementKey(row) === frontier));
+  const seenCursors = new Set<string>();
+  while (!overlaps() && pages[pages.length - 1].pagination.nextCursor &&
+    mergeMeasurements(...pages.map(page => page.data)).length < MAX_HISTORY_SAMPLES) {
+    const cursor = pages[pages.length - 1].pagination.nextCursor!;
+    if (seenCursors.has(cursor)) throw new Error('El historial repitió un cursor sin avanzar.');
+    seenCursors.add(cursor);
+    pages.push(await fetchPage(cursor, 100));
+  }
+  if (!overlaps()) {
+    // Una ausencia larga puede exceder la ventana. El cursor conserva acceso a
+    // TODO lo anterior; no unimos extremos separados fingiendo continuidad.
+    return boundedWindow(pages, 'recent', pages[pages.length - 1].pagination.nextCursor);
+  }
+  // No añadir páginas de polling que solo repiten datos ya retenidos.
+  const known = new Set(windowReadings(previous).map(measurementKey));
+  const additions = pages.filter(page => page.data.some(row => !known.has(measurementKey(row))));
+  return boundedWindow([...additions, ...previous.pages], 'recent', previous.nextCursor);
 }

@@ -2825,6 +2825,7 @@ components:
         - ASSIGNMENT_CONFLICT: Conflicto de asignación; paciente o placa ya asignados a otra relación activa.
         - ASSIGNMENT_IN_USE: Asignación con sesión abierta activa al intentar cerrarla, o placa/paciente en uso al intentar deshabilitarlos.
         - INVALID_SESSION_STATE: Transición de estado de sesión no permitida (p. ej. finalizar sesión created o iniciar sesión finished).
+        - SUMMARY_RETRY_TOO_SOON: Esperar 60 segundos antes de reintentar un resumen PulsoAI terminal.
         - IDEMPOTENCY_CONFLICT: Clave o reintento conflictivo con carga útil o estado diferente.
         - SESSION_NOT_ACTIVE: Sesión no activa para el dispositivo o asignación.
         - ASSIGNMENT_NOT_ACTIVE: Asignación inactiva o incompatible con la sesión.

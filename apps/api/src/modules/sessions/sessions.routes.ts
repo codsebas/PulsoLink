@@ -6,6 +6,7 @@ import { sendSuccess } from '../../shared/response.js';
 import { pageQuery, sessionListQuery, webRoute } from '../../shared/web-routes.js';
 import { SessionsService } from './sessions.service.js';
 import { requireRole } from '../auth/index.js';
+import { SummaryService } from '../pulsoai/pulsoai.service.js';
 
 const createBody = z.object({ assignmentId: documentId }).strict();
 const emptyBody = z.object({}).strict();
@@ -15,9 +16,17 @@ function authenticatedUser(req: Express.Request) {
   return req.user;
 }
 
-export function createSessionsRouter(service = new SessionsService()): Router {
+export function createSessionsRouter(service = new SessionsService(), summaries = new SummaryService()): Router {
   const router = Router();
   router.use(requireRole('admin', 'viewer'));
+
+  router.get('/:id/summary', webRoute(async (req, res) => {
+    sendSuccess(res, await summaries.get(documentId.parse(req.params.id), authenticatedUser(req)));
+  }));
+  router.post('/:id/summary/retry', requireRole('admin'), webRoute(async (req, res) => {
+    emptyBody.parse(req.body ?? {});
+    sendSuccess(res, await summaries.retry(documentId.parse(req.params.id), authenticatedUser(req)), 202);
+  }));
 
   router.get('/', webRoute(async (req, res) => {
     const page = await service.list(sessionListQuery.parse(req.query), authenticatedUser(req));

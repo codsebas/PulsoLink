@@ -132,7 +132,9 @@ describe('OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08)', () => {
 
     it('contracts/web.openapi.yaml contains updated patterns and error catalogue', () => {
       const webContract = readFileSync(resolve(process.cwd(), '../../contracts/web.openapi.yaml'), 'utf8');
-      expect(webContract).toContain('version: 2.0.0');
+      expect(webContract).toContain('version: 2.1.0');
+      expect(webContract).toContain('/sessions/{id}/summary:');
+      expect(webContract).toContain('/sessions/{id}/summary/retry:');
       expect(webContract).toContain('pattern: ^(?!\\.{1,2}$)[^/]+$');
       expect(webContract).toContain('pattern: (Z|[+-]\\d{2}:\\d{2})$');
       expect(webContract).toContain('CSRF_INVALID');

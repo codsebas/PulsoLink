@@ -7,6 +7,7 @@ import type { DeviceDocument } from '../devices/devices.repository.js';
 import type { AssignmentDocument } from '../assignments/assignments.repository.js';
 import type { PatientDocument } from '../patients/patients.repository.js';
 import { writeAudit } from '../audit/audit.repository.js';
+import { pendingSummary } from '../pulsoai/pulsoai.repository.js';
 
 export interface SessionDocument {
   sessionId: string;
@@ -121,6 +122,7 @@ export class SessionsRepository {
       const now = new Date().toISOString();
       const changes = { status: target, ...(target === 'active' ? { startedAt: now } : { finishedAt: now }) };
       tx.update(sessionRef, changes);
+      if (target === 'finished') tx.create(db.collection('sessionSummaries').doc(sessionId), pendingSummary(sessionId, now));
       tx.update(deviceRef, { activeSessionId: target === 'active' ? sessionId : null });
       if (assignmentRef && target === 'finished') tx.update(assignmentRef, { openSessionId: null });
       if (assignmentRef) writeAudit(tx, db, { actorId: actorId!, action: target === 'active' ? 'session.start' : 'session.finish', targetType: 'session', targetId: sessionId });

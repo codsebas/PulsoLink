@@ -20,6 +20,8 @@ import { SessionsService, type SessionsDependencies } from '../src/modules/sessi
 import { SessionsRepository, type SessionDocument } from '../src/modules/sessions/sessions.repository.js';
 import { MeasurementsRepository, type StoredMeasurement } from '../src/modules/measurements/measurements.repository.js';
 import { PersistenceError } from '../src/shared/persistence.js';
+import { SummaryService } from '../src/modules/pulsoai/pulsoai.service.js';
+import { pendingSummary } from '../src/modules/pulsoai/pulsoai.repository.js';
 
 const origin = 'http://localhost:5173';
 const operator = { uid: 'operator', email: 'operator@test.local', password: 'Password123' };
@@ -81,7 +83,9 @@ function setup(real?: { deps: SessionsDependencies; devices: DevicesRepository }
   const { requireUser } = createAuthMiddleware({ identityProvider, userRepository });
   const { csrfProtection } = createCsrf({ secret: config.csrfSecret, secure: false, origins: [origin] });
   app.use('/api/v1/devices', requireUser, createDevicesRouter(real?.devices ?? { list: listDevices }));
-  app.use('/api/v1/sessions', requireUser, csrfProtection, createSessionsRouter(new SessionsService(real?.deps ?? deps)));
+  const summaryJobs = { get: vi.fn(async () => null), request: vi.fn(async (id: string) => pendingSummary(id, new Date().toISOString())) };
+  app.use('/api/v1/sessions', requireUser, csrfProtection, createSessionsRouter(new SessionsService(real?.deps ?? deps),
+    new SummaryService(real?.deps.sessions ?? { getById }, summaryJobs)));
   app.use(errorHandler);
 
   async function login(user: typeof operator) {
@@ -95,10 +99,24 @@ function setup(real?: { deps: SessionsDependencies; devices: DevicesRepository }
     return { agent, csrf: rotated.body.data.csrfToken as string };
   }
 
-  return { app, login, getById, create, start, finish, list, getLatest, listMeasurements, listDevices };
+  return { app, login, getById, create, start, finish, list, getLatest, listMeasurements, listDevices, summaryJobs };
 }
 
 describe('Contrato B: dispositivos y sesiones', () => {
+  it('PulsoAI exige cookie, CSRF y admin para solicitar; viewer solo consulta sin generar', async () => {
+    const { app, login, getById, summaryJobs } = setup();
+    expect((await request(app).get('/api/v1/sessions/session-1/summary')).status).toBe(401);
+    const viewer = await login(operator);
+    expect((await viewer.agent.get('/api/v1/sessions/session-1/summary')).body.data.status).toBe('not_requested');
+    expect(summaryJobs.request).not.toHaveBeenCalled();
+    expect((await viewer.agent.post('/api/v1/sessions/session-1/summary/retry').set('Origin', origin).set('X-CSRF-Token', viewer.csrf).send({})).status).toBe(403);
+    const administrator = await login(admin);
+    expect((await administrator.agent.post('/api/v1/sessions/session-1/summary/retry').set('Origin', origin).send({})).status).toBe(403);
+    getById.mockImplementation(async id => id === ownSession.sessionId ? { ...ownSession, status: 'finished' } : null);
+    expect((await administrator.agent.post('/api/v1/sessions/session-1/summary/retry').set('Origin', origin).set('X-CSRF-Token', administrator.csrf).send({})).status).toBe(202);
+    expect(summaryJobs.request).toHaveBeenCalledOnce();
+    expect((await administrator.agent.get('/api/v1/sessions/missing/summary')).status).toBe(404);
+  });
   it('exige sesión web y CSRF en mutaciones antes de tocar la persistencia', async () => {
     const { app, login, create } = setup();
     expect((await request(app).get('/api/v1/devices')).status).toBe(401);

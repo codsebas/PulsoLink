@@ -89,21 +89,27 @@ export class SessionsRepository {
         throw new PersistenceError('INVALID_SESSION_STATE', 'La transición de sesión no está permitida.');
       }
       const deviceRef = db.collection('devices').doc(session.deviceId);
-      const device = (await tx.get(deviceRef)).data() as DeviceDocument | undefined;
-      if (!device) throw new PersistenceError('DEVICE_NOT_FOUND', 'Dispositivo no encontrado.');
+      let device: DeviceDocument | undefined;
       let assignmentRef;
       if (session.assignmentId && session.patientId) {
         if (!actorId) throw new PersistenceError('ACTOR_REQUIRED', 'Se requiere el actor autenticado de la operación.');
         assignmentRef = db.collection('assignments').doc(session.assignmentId);
-        const [a, p] = await tx.getAll(assignmentRef, db.collection('patients').doc(session.patientId));
+        const [d, a, p] = await tx.getAll(deviceRef, assignmentRef, db.collection('patients').doc(session.patientId));
+        device = d.data() as DeviceDocument | undefined;
         const assignment = a.data() as AssignmentDocument | undefined;
+        if (!device) throw new PersistenceError('DEVICE_NOT_FOUND', 'Dispositivo no encontrado.');
         if (!assignment || assignment.endedAt || assignment.patientId !== session.patientId || assignment.deviceId !== session.deviceId ||
           assignment.openSessionId !== sessionId || p.data()?.activeAssignmentId !== session.assignmentId || device.activeAssignmentId !== session.assignmentId) {
           throw new PersistenceError('ASSIGNMENT_NOT_ACTIVE', 'La sesión no corresponde a una asignación activa.');
         }
         if (target === 'active' && !p.data()?.enabled) throw new PersistenceError('RESOURCE_DISABLED', 'Paciente deshabilitado.');
-      } else if (device.activeAssignmentId) {
-        throw new PersistenceError('ASSIGNMENT_CONFLICT', 'La placa ya pertenece al modelo por paciente.');
+      } else {
+        const d = await tx.get(deviceRef);
+        device = d.data() as DeviceDocument | undefined;
+        if (!device) throw new PersistenceError('DEVICE_NOT_FOUND', 'Dispositivo no encontrado.');
+        if (device.activeAssignmentId) {
+          throw new PersistenceError('ASSIGNMENT_CONFLICT', 'La placa ya pertenece al modelo por paciente.');
+        }
       }
       if (target === 'active') {
         if (!device.enabled) throw new PersistenceError('DEVICE_DISABLED', 'Dispositivo no habilitado.');

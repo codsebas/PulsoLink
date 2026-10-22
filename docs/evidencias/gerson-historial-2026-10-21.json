@@ -1,0 +1,41 @@
+{
+  "base": "93ff901 + cambios de fix/gerson-historial-continuo",
+  "dateLocal": "2026-10-21",
+  "environment": "Windows, Node 24.15.0, Java 21, Firebase CLI 15.34.0, Playwright 1.63.0, Microsoft Edge headless",
+  "data": "Ficticios, demo-pulsolink, Auth y Firestore Standard emulados. Sin nube ni hardware.",
+  "checks": {
+    "typecheck": "passed; tres workspaces",
+    "build": "passed; tres workspaces",
+    "apiTests": { "passed": 208, "skipped": 0, "files": 24 },
+    "webTests": { "passed": 28, "skipped": 2 },
+    "realApiHistoryTests": { "passed": 2, "note": "Los dos omitidos de la suite web se ejecutaron con sesión en el verificador de navegador." },
+    "historyRegression": {
+      "status": "passed",
+      "successiveRefreshReadings": 284,
+      "navigableReadings": 1120,
+      "maxVisibleReadings": 1000,
+      "returnsToRecent": true,
+      "ingestion": "POST /api/v1/device/measurements, ruta oficial"
+    },
+    "visibilityRecovery": "167 lecturas tras 47 nuevas; evento simulado en jsdom, no cambio de pestaña nativo",
+    "seedRepeated": true,
+    "boards": 2,
+    "accessEvents": 2,
+    "connectionStates": 3,
+    "identicalDuplicate": true,
+    "opticalNullIndependentOfTemperature": true,
+    "archiveNotPolled": true,
+    "pollingStops": true,
+    "viewer403": true,
+    "logoutClearsView": true,
+    "pendingNavigationAbortedOnExit": true,
+    "mobileOverflow375x812": false
+  },
+  "pending": [
+    "Reproducción independiente de #25 y aceptación de #26",
+    "Cambio de pestaña real y aceptación de QA #33",
+    "Revisión frontend de Marielos/Axel y coordinación de Sebastián",
+    "Automatización/CI, HTTPS y demostración física con sus responsables",
+    "#51 sigue abierto; no se cambió el presupuesto de respuesta del producto"
+  ]
+}

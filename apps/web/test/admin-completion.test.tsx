@@ -9,9 +9,11 @@ import { OptionPagination } from '../src/components/admin/OptionPagination';
 import { usePatientOptions } from '../src/features/patients/api';
 import { useDeviceOptions } from '../src/features/devices/api';
 import { AssignmentsPage } from '../src/features/assignments/AssignmentsPage';
-vi.mock('../src/features/auth/useSessionUser', () => ({ useSessionUser: () => ({ data: { role: 'admin' } }) }));
+const session = vi.hoisted(() => ({ role: 'admin' }));
+vi.mock('../src/features/auth/useSessionUser', () => ({ useSessionUser: () => ({ data: { role: session.role } }) }));
 
 beforeEach(() => {
+  session.role = 'admin';
   // jsdom does not implement the browser's modal/focus algorithms.
   HTMLDialogElement.prototype.showModal = vi.fn(function(this: HTMLDialogElement) { this.open = true; });
   HTMLDialogElement.prototype.close = vi.fn(function(this: HTMLDialogElement) { this.open = false; });
@@ -114,5 +116,24 @@ it('muestra nombre y código de pacientes y placas deshabilitados en el historia
   render(<QueryClientProvider client={client}><AssignmentsPage /></QueryClientProvider>);
   await waitFor(() => expect(screen.getByText('Ficticio Archivado (P-900) · deshabilitado')).toBeTruthy());
   expect(screen.getByText('SIM-900 · deshabilitada')).toBeTruthy();
+  client.clear();
+});
+
+it('viewer no pide el detalle de registros fuera del catálogo (la API lo rechaza con 403)', async () => {
+  session.role = 'viewer';
+  const json = (body: unknown) => new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json' } });
+  const paths: string[] = [];
+  vi.stubGlobal('fetch', vi.fn(async (input) => {
+    const url = new URL(String(input), 'http://localhost'); paths.push(url.pathname);
+    if (url.pathname.endsWith('/assignments')) return json({ data: [{ id: 'asg-old', patientId: 'pat-off', deviceId: 'dev-off',
+      startedAt: '2026-10-20T10:00:00Z', endedAt: '2026-10-21T10:00:00Z' }], pagination: { hasMore: false, nextCursor: null } });
+    return json({ data: [], pagination: { hasMore: false, nextCursor: null } });
+  }));
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(<QueryClientProvider client={client}><AssignmentsPage /></QueryClientProvider>);
+  await waitFor(() => expect(screen.getByText('pat-off')).toBeTruthy());
+  await waitFor(() => expect(client.isFetching()).toBe(0));
+  expect(screen.getByText('dev-off')).toBeTruthy();
+  expect(paths.some((path) => /\/(patients|devices)\/[^/]+$/.test(path))).toBe(false);
   client.clear();
 });

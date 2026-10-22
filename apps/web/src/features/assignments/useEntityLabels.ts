@@ -12,21 +12,25 @@ interface EntityRefs {
  * Etiquetas de paciente/placa para tablas históricas. Los catálogos de opciones
  * solo traen registros habilitados; los IDs que no aparecen ahí (deshabilitados
  * o fuera de la página cargada) se resuelven uno a uno con GET /patients/{id} y
- * GET /devices/{id}, sin descargar el catálogo completo.
+ * GET /devices/{id}, sin descargar el catálogo completo. Solo admin puede leer
+ * el detalle de registros deshabilitados (viewer recibe 403), así que para los
+ * demás roles no se lanzan esas consultas y la tabla muestra el ID.
  */
 export function useEntityLabels(
   rows: readonly EntityRefs[],
   patientNames: ReadonlyMap<string, string>,
   deviceCodes: ReadonlyMap<string, string>,
   catalogsReady: boolean,
+  canResolveDetails: boolean,
 ) {
+  const resolve = catalogsReady && canResolveDetails;
   const missingPatients = useMemo(
-    () => (catalogsReady ? [...new Set(rows.map((r) => r.patientId))].filter((id) => !patientNames.has(id)) : []),
-    [rows, patientNames, catalogsReady],
+    () => (resolve ? [...new Set(rows.map((r) => r.patientId))].filter((id) => !patientNames.has(id)) : []),
+    [rows, patientNames, resolve],
   );
   const missingDevices = useMemo(
-    () => (catalogsReady ? [...new Set(rows.map((r) => r.deviceId))].filter((id) => !deviceCodes.has(id)) : []),
-    [rows, deviceCodes, catalogsReady],
+    () => (resolve ? [...new Set(rows.map((r) => r.deviceId))].filter((id) => !deviceCodes.has(id)) : []),
+    [rows, deviceCodes, resolve],
   );
 
   const patientQueries = useQueries({

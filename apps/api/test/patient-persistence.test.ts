@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { PatientsRepository } from '../src/modules/patients/patients.repository.js';
 import { DevicesRepository } from '../src/modules/devices/devices.repository.js';
 import { AssignmentsRepository } from '../src/modules/assignments/assignments.repository.js';
-import { SessionsRepository } from '../src/modules/sessions/sessions.repository.js';
+import { SessionsRepository, type SessionDocument } from '../src/modules/sessions/sessions.repository.js';
 import { MeasurementsRepository, type IngestInput } from '../src/modules/measurements/measurements.repository.js';
 import { AuditRepository } from '../src/modules/audit/audit.repository.js';
 
@@ -145,6 +145,51 @@ describe.skipIf(!enabled)('PL2 patient persistence (Standard emulator)', () => {
     expect((await devices.getById(device.deviceId))?.activeSessionId).toBeNull();
     await expect(measurements.ingest(device.deviceId, payload(session.sessionId, device.deviceId))).rejects.toMatchObject({ code: 'SESSION_NOT_ACTIVE' });
   }, 30000);
+  it('resolves concurrent session finish against 5 incoming measurements (JOINT-CONC-08) within 5000 ms budget', async () => {
+    const { patient, device } = await fixture();
+    const assignment = await assignments.create({ patientId: patient.id, deviceId: device.deviceId }, actor);
+    const session = await sessions.createForAssignment(assignment.id, actor);
+    await sessions.start(session.sessionId, actor);
+    const bootId = randomUUID();
+    const samples: IngestInput[] = Array.from({ length: 5 }, (_, i) => ({
+      ...payload(session.sessionId, device.deviceId),
+      bootId,
+      sequence: i + 2,
+    }));
+
+    const startTime = performance.now();
+    const responses = await Promise.allSettled([
+      sessions.finish(session.sessionId, actor),
+      ...samples.map((sample) => measurements.ingest(device.deviceId, sample)),
+    ]);
+    const elapsedMs = performance.now() - startTime;
+
+    expect(elapsedMs).toBeLessThan(5000);
+    expect(responses[0].status).toBe('fulfilled');
+    const finishedSession = (responses[0] as PromiseFulfilledResult<SessionDocument>).value;
+    expect(finishedSession.status).toBe('finished');
+    expect(finishedSession.finishedAt).toBeTruthy();
+
+    const measurementResults = responses.slice(1);
+    for (const r of measurementResults) {
+      if (r.status === 'rejected') {
+        expect(r.reason).toMatchObject({ code: 'SESSION_NOT_ACTIVE' });
+      } else {
+        expect(r.status).toBe('fulfilled');
+      }
+    }
+
+    const history = await measurements.listByPatient(patient.id);
+    const acceptedCount = measurementResults.filter((r) => r.status === 'fulfilled').length;
+    expect(history.data.length).toBe(acceptedCount);
+    for (const row of history.data) {
+      expect(row.sessionId).toBe(session.sessionId);
+      expect(row.deviceId).toBe(device.deviceId);
+      expect(Date.parse(row.receivedAt)).toBeLessThanOrEqual(Date.parse(finishedSession.finishedAt!));
+    }
+
+    await expect(measurements.ingest(device.deviceId, { ...samples[0], sequence: 99 })).rejects.toMatchObject({ code: 'SESSION_NOT_ACTIVE' });
+  }, 10000);
   it('deduplicates access events and rejects arbitrary sensitive context', async () => {
     const viewId = randomUUID();
     const a = await audit.recordPatientView(actor, 'patient', viewId);

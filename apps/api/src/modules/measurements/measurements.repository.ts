@@ -59,7 +59,7 @@ export class MeasurementsRepository {
     const deviceRef = db.collection('devices').doc(deviceId);
     const measurementRef = sessionRef.collection('measurements').doc();
     return db.runTransaction(async (tx) => {
-      const [keySnapshot, deviceSnapshot] = await tx.getAll(keyRef, deviceRef);
+      const [sessionSnapshot, deviceSnapshot, keySnapshot] = await tx.getAll(sessionRef, deviceRef, keyRef);
       const device = deviceSnapshot.data() as DeviceDocument | undefined;
       if (!device?.enabled) throw new PersistenceError('DEVICE_DISABLED', 'Dispositivo no habilitado.');
       if (keySnapshot.exists) {
@@ -67,7 +67,6 @@ export class MeasurementsRepository {
         if (key.payloadHash !== payloadHash) throw new PersistenceError('IDEMPOTENCY_CONFLICT', 'La clave ya tiene otro contenido.');
         return { measurementId: key.measurementId, receivedAt: key.receivedAt, duplicate: true };
       }
-      const sessionSnapshot = await tx.get(sessionRef);
       const session = sessionSnapshot.data() as SessionDocument | undefined;
       if (!session || session.status !== 'active' || session.deviceId !== deviceId || device.activeSessionId !== data.sessionId) {
         throw new PersistenceError('SESSION_NOT_ACTIVE', 'La sesión no está activa para este dispositivo.');

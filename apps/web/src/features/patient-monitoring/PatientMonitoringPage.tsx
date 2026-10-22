@@ -13,6 +13,11 @@ const PatientTrends = lazy(() => import('./PatientTrends'));
 const states: Record<PatientMonitoringMeta['connectionState'], string> = {
   disconnected: 'Desconectado', connected_without_valid_reading: 'Conectado sin lectura válida reciente', connected_with_recent_reading: 'Conectado con lectura reciente',
 };
+const connectionStyles: Record<PatientMonitoringMeta['connectionState'], string> = {
+  disconnected: 'border-rose-300 bg-rose-50 text-rose-900',
+  connected_without_valid_reading: 'border-amber-300 bg-amber-50 text-amber-900',
+  connected_with_recent_reading: 'border-emerald-300 bg-emerald-50 text-emerald-900',
+};
 const quality = { valid: 'Válida', no_contact: 'Sin contacto', invalid: 'Inválida', unavailable: 'No disponible' };
 const keys = ['heartRate', 'spo2', 'skinTemperature'] as const;
 
@@ -29,7 +34,7 @@ export function PatientMonitoringIndex() {
   const cursor = cursors[cursors.length - 1];
   const patients = useQuery({ queryKey: ['patients', 'monitoring', cursor], queryFn: ({ signal }) => apiList<Patient>('/patients', { signal, params: { limit: 25, cursor } }) });
   if (patients.error instanceof ApiClientError && patients.error.statusCode === 401) return <Navigate to="/login" replace />;
-  return <main className="space-y-6">
+  return <main className="min-w-0 space-y-6 break-words">
     <div><h1 className="text-2xl font-bold text-slate-900">Monitoreo de pacientes</h1><p className="mt-2 text-sm text-slate-600">Selecciona un paciente para consultar sus signos vitales y su historial entre placas.</p></div>
     {patients.isPending ? <p role="status">Cargando pacientes…</p> : patients.isError ? <ErrorMessage error={patients.error} retry={() => void patients.refetch()} /> : <>
       {patients.data.data.length === 0 ? <p className="rounded-xl border border-slate-200 bg-white p-6">No hay pacientes disponibles para consultar.</p> :
@@ -93,13 +98,13 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
   const readings = history.readings;
   const coverage = history.coverage;
   const refresh = () => { void active.refetch(); void latest.refetch(); history.refresh(); };
-  return <main className="space-y-6">
+  return <main className="min-w-0 space-y-6 break-words">
     <Link to="/monitoring" className="text-sm font-medium text-sky-700 hover:underline">← Pacientes</Link>
     <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold text-sky-700">{patient.data.data.code}</p>
       <h1 className="mt-1 text-2xl font-bold text-slate-900">{patient.data.data.displayName}</h1><p className="mt-2 text-sm text-slate-600">Signos vitales e historia del paciente a través de sus placas.</p></div>
       <button type="button" onClick={refresh} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium">Actualizar</button></div>
     <section className="flex flex-wrap justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm" aria-label="Estado del monitoreo">
-      <p role="status" className="font-semibold text-slate-800">{active.isPending || latest.isPending ? 'Consultando estado…' : meta ? states[meta.connectionState] : 'Estado no disponible'}</p>
+      <p role="status" className={`rounded-lg border px-3 py-2 font-semibold ${meta ? connectionStyles[meta.connectionState] : 'border-slate-200 text-slate-700'}`}>{active.isPending || latest.isPending ? 'Consultando estado…' : meta ? states[meta.connectionState] : 'Estado no disponible'}</p>
       <p className="text-slate-600">{activeSession ? 'Monitoreo activo' : 'Sin sesión activa · consulta histórica'}</p>
       {row?.source === 'simulated' ? <span className="rounded bg-violet-50 px-2 py-1 font-semibold text-violet-800">Datos simulados</span> : null}
     </section>
@@ -109,8 +114,8 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
       <VitalCard title="SpO₂ estimada" measurement={row?.measurements.spo2} unit="%" icon={Activity} accentClassName="bg-sky-50 text-sky-600" />
       <VitalCard title="Temperatura superficial" measurement={row?.measurements.skinTemperature} unit="°C" icon={Thermometer} accentClassName="bg-amber-50 text-amber-600" />
     </div>
-    <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-500"><p>Última lectura: {guatemalaDate(row?.receivedAt)}</p><p>Última comunicación: {guatemalaDate(meta?.lastSeenAt)}</p>{meta?.stale ? <p>Sin lectura reciente; consulta el historial para ver datos anteriores.</p> : null}</div>
-    <section className="space-y-5 border-t border-slate-200 pt-6" aria-labelledby="history-title">
+    <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-600"><p>Última lectura: {guatemalaDate(row?.receivedAt)}</p><p>Última comunicación: {guatemalaDate(meta?.lastSeenAt)}</p>{meta?.stale ? <p className="rounded border border-amber-300 bg-amber-50 px-2 py-1 font-semibold text-amber-900">Sin lectura reciente; consulta el historial para ver datos anteriores.</p> : null}</div>
+    <section className="min-w-0 space-y-5 border-t border-slate-200 pt-6" aria-labelledby="history-title">
       <div><h2 id="history-title" className="text-xl font-semibold text-slate-900">Evolución e historial</h2><p className="mt-1 text-sm text-slate-600">Valores puntuales, sin interpretación clínica. Los huecos conservan desconexiones, cambios de sesión y datos ausentes.</p></div>
       <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => { event.preventDefault(); try { setRange(rangeFromLocal(dates.from, dates.to)); setRangeError(''); } catch (error) { setRangeError(error instanceof Error ? error.message : 'Rango inválido'); } }}>
         <label className="text-sm text-slate-700">Desde (Guatemala)<input type="datetime-local" value={dates.from} onChange={(event) => setDates({ ...dates, from: event.target.value })} className="mt-1 block rounded-lg border border-slate-300 bg-white p-2" /></label>
@@ -125,7 +130,7 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
         {coverage.truncated ? <p className="text-xs font-semibold text-amber-800">Se conservaron las {coverage.loaded} lecturas más recientes; {coverage.dropped} más antiguas quedaron fuera de memoria y de la gráfica.</p> : null}
         {readings.some((reading) => reading.source === 'simulated') ? <p className="text-xs font-semibold text-violet-800">Este intervalo contiene datos simulados.</p> : null}
         <Suspense fallback={<p role="status">Preparando gráficas…</p>}><PatientTrends readings={readings} /></Suspense>
-        <div className="overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[720px] bg-white text-left text-sm"><caption className="sr-only">Valores y calidad por lectura del intervalo cargado</caption>
+        <div tabIndex={0} role="region" aria-label="Tabla de lecturas, desplazamiento horizontal" className="max-w-full overflow-x-auto rounded-xl border border-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-700"><table className="w-full min-w-[720px] bg-white text-left text-sm"><caption className="sr-only">Valores y calidad por lectura del intervalo cargado</caption>
           <thead className="bg-slate-50 text-slate-600"><tr>{['Fecha (Guatemala)', 'Placa', 'Pulso (bpm)', 'SpO₂ (%)', 'Superficial (°C)', 'Origen'].map((heading) => <th scope="col" key={heading} className="p-3 font-medium">{heading}</th>)}</tr></thead>
           <tbody>{readings.map((reading) => <tr key={`${reading.sessionId}/${reading.id}`} className="border-t border-slate-100"><td className="p-3">{guatemalaDate(reading.receivedAt)}</td><td className="max-w-32 truncate p-3" title={reading.deviceId}>{reading.deviceId}</td>
             {keys.map((key) => <td className="p-3" key={key}>{reading.measurements[key].status === 'valid' ? formatVital(reading.measurements[key].value) : '—'}<span className="mt-1 block text-xs text-slate-500">{quality[reading.measurements[key].status]}</span></td>)}<td className="p-3">{reading.source === 'simulated' ? 'Simulado' : 'Dispositivo real'}</td></tr>)}</tbody>

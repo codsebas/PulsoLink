@@ -9,9 +9,9 @@ Se contrastó la auditoría entregada a las 00:03 Guatemala con los issues y PR 
 | Hallazgo | Entrega | Alcance y pendiente |
 | --- | --- | --- |
 | A01, credencial de placa física | [PR #62](https://github.com/codsebas/PulsoLink/pull/62), integrado en `main` (`ebacc48`) | Aprovisionamiento privado, validación administrativa, hash y transacción repetible, seis regresiones nuevas. Falta que Sebastián identifique la NodeMCU y cargue su configuración; no se emitió una credencial cloud para hardware desconocido. [Procedimiento](../setup/placa-fisica-aprovisionamiento.md). |
-| A11, aprovisionamiento de identidades | [PR #63](https://github.com/codsebas/PulsoLink/pull/63), presentado a revisión | Conserva contraseña, nombre y estado existentes; rechaza cuentas deshabilitadas y destinos inconsistentes. Cuatro regresiones con Auth/Firestore emulados. No es una herramienta para modificar contraseñas ni permisos de cuentas existentes. |
-| Aceptación de negocio con Firebase real | PR #63, presentado a revisión | Última ejecución: 95 comprobaciones PASS, protocolos conjuntos de reasignación y concurrencia, paginación, permisos y persistencia tras reiniciar la API local; limpieza PASS. Primera ejecución: 89 PASS. Los conteos varían con los ACK concurrentes. [Guía del PR](https://github.com/codsebas/PulsoLink/blob/fix/gerson-aprovisionamiento-cuentas/docs/setup/firebase-aceptacion-cloud.md). No acredita hosting HTTPS ni hardware. |
-| A13, descubrimiento de sesión externa | Esta rama `fix/gerson-descubrimiento-sesiones`, base `ebacc48` + cambios | Defecto reproducido antes de corregirlo. Consulta de sesión activa cada 5 s en reposo y 2 s con sesión; se pausa oculta y ante 401/403/404. Las lecturas mantienen su plan separado. |
+| A11, aprovisionamiento de identidades | [PR #63](https://github.com/codsebas/PulsoLink/pull/63), integrado en `main` (`a299b2a`) | Conserva contraseña, nombre y estado existentes; rechaza cuentas deshabilitadas y destinos inconsistentes. Cuatro regresiones con Auth/Firestore emulados. No es una herramienta para modificar contraseñas ni permisos de cuentas existentes. |
+| Aceptación de negocio con Firebase real | PR #63, integrado en `main` | Última ejecución: 95 comprobaciones PASS, protocolos conjuntos de reasignación y concurrencia, paginación, permisos y persistencia tras reiniciar la API local; limpieza PASS. Primera ejecución: 89 PASS. Los conteos varían con los ACK concurrentes. [Guía](../setup/firebase-aceptacion-cloud.md). No acredita hosting HTTPS ni hardware. |
+| A13, descubrimiento de sesión externa | [PR #64](https://github.com/codsebas/PulsoLink/pull/64), rama `fix/gerson-descubrimiento-sesiones` | Defecto reproducido antes de corregirlo sobre `ebacc48` + cambios. Rebase posterior sobre `a299b2a`, que agrega #63 sin cambios web. Consulta de sesión activa cada 5 s en reposo y 2 s con sesión; se pausa oculta y ante 401/403/404. Las lecturas mantienen su plan separado. |
 
 ## Reproducción y corrección de A13
 
@@ -31,9 +31,11 @@ Resultado focal: 7/7 pruebas aprobadas. Suite web: 41 aprobadas y dos omitidas q
 
 No se cambia el contrato HTTP, las gráficas, el diseño ni la política de paginación que Javier propone en #60. La detección normal requiere hasta 5 s más el tiempo de red y del render; las consultas de lecturas solo se reactivan al descubrir una sesión activa. La visibilidad vuelve a habilitar el temporizador, sin prometer una consulta instantánea.
 
+Antes del rebase de #64 se comprobó también la combinación de #62 y #63: build de API y `./tools/firebase/verify-gerson.ps1 -SkipBuild` sobre `8c8c8f4`, 218 pruebas API en 26 archivos aprobadas, sin omisiones, con Auth/Firestore Standard emulados. Esto amplía la validación combinada; no reemplaza las ejecuciones cloud anteriores ni afirma hardware.
+
 ## Qué sigue abierto para Gerson y el equipo
 
-- **#25, Firebase e identidades:** revisión de #63 y reproducción de los procedimientos por otro integrante. La configuración real y el código no equivalen a esa aceptación independiente.
+- **#25, Firebase e identidades:** #63 integrado; falta conciliar criterios y reproducción de los procedimientos por otro integrante. La configuración real y el código no equivalen a esa aceptación independiente.
 - **#26, persistencia:** contrastar la evidencia de emuladores y cloud con cada criterio de cierre. #63 amplía la evidencia real, pero no ejecuta toda la matriz transaccional ni migraciones contra cloud. El timeout de producto de 5 s sigue observado en #51; el PASS de QA con 30 s no lo resuelve.
 - **#34, compartido:** Gerson aporta Firebase, emuladores, índices, migración y procedimientos. Javier mantiene automatización/manifiestos (#60); Sebastián coordina destino de alojamiento, HTTPS y variables del despliegue.
 - **Sebastián:** identificar y configurar la NodeMCU, firmware/sensores y recorrido físico. El identificador físico o MAC identifica la placa, pero no reemplaza su credencial privada.

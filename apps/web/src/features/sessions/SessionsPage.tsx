@@ -20,6 +20,7 @@ import { usePatientOptions } from '../patients/api';
 import { useDeviceOptions } from '../devices/api';
 import type { Session } from '../../lib/contract-types';
 import { formatDateTime } from '../../lib/format';
+import { OptionPagination } from '../../components/admin/OptionPagination';
 
 const STATUS_LABELS: Record<Session['status'], string> = {
   created: 'Creada',
@@ -256,6 +257,8 @@ export const SessionsPage: React.FC = () => {
         />
       </div>
 
+      <OptionPagination label="pacientes" query={patientsQuery} />
+      <OptionPagination label="placas" query={devicesQuery} />
       <DataTable<Session>
         columns={columns}
         rows={rows}
@@ -295,6 +298,7 @@ export const SessionsPage: React.FC = () => {
         isSubmitting={createMutation.isPending}
         error={createMutation.error}
       >
+        <OptionPagination label="asignaciones" query={activeAssignmentsQuery} />
         <SelectField
           id="session-assignment"
           label="Asignación activa"

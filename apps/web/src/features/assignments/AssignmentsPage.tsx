@@ -11,6 +11,8 @@ import { usePatientOptions } from '../patients/api';
 import { useDeviceOptions } from '../devices/api';
 import type { Assignment } from '../../lib/contract-types';
 import { formatDateTime } from '../../lib/format';
+import { OptionPagination } from '../../components/admin/OptionPagination';
+import { formatApiError } from '../../components/admin/api-error';
 
 function useLookupOptions() {
   const patientsQuery = usePatientOptions();
@@ -32,7 +34,7 @@ function useLookupOptions() {
     return map;
   }, [devicesQuery.data]);
 
-  return { patientNames, deviceCodes };
+  return { patientNames, deviceCodes, patientsQuery, devicesQuery };
 }
 
 const EMPTY_FILTERS: AssignmentFilters = {};
@@ -43,7 +45,7 @@ export const AssignmentsPage: React.FC = () => {
 
   const [filters, setFilters] = useState<AssignmentFilters>(EMPTY_FILTERS);
   const listQuery = useAssignments(filters);
-  const { patientNames, deviceCodes } = useLookupOptions();
+  const { patientNames, deviceCodes, patientsQuery, devicesQuery } = useLookupOptions();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({ patientId: '', deviceId: '' });
@@ -95,7 +97,9 @@ export const AssignmentsPage: React.FC = () => {
   const deviceActiveAssignment = activeForDeviceQuery.data?.pages[0]?.data[0];
   const deviceOccupiedByOther =
     Boolean(deviceActiveAssignment) && deviceActiveAssignment?.patientId !== reassignPatientId;
-  const reassignBlocked = reassignLookupLoading || deviceOccupiedByOther;
+  const reassignLookupError = activeForPatientQuery.error ?? activeForDeviceQuery.error;
+  const reassignBlocked = reassignLookupLoading || Boolean(reassignLookupError) || deviceOccupiedByOther ||
+    activeForReassignedPatient?.deviceId === reassignDeviceId;
 
   const openReassignDialog = () => {
     createMutation.reset();
@@ -290,6 +294,8 @@ export const AssignmentsPage: React.FC = () => {
         />
       </div>
 
+      <OptionPagination label="pacientes" query={patientsQuery} />
+      <OptionPagination label="placas" query={devicesQuery} />
       <DataTable<Assignment>
         columns={columns}
         rows={rows}
@@ -313,6 +319,8 @@ export const AssignmentsPage: React.FC = () => {
         isSubmitting={createMutation.isPending}
         error={createMutation.error}
       >
+        <OptionPagination label="pacientes" query={patientsQuery} />
+        <OptionPagination label="placas" query={devicesQuery} />
         <SelectField
           id="assignment-patient"
           label="Paciente"
@@ -366,6 +374,12 @@ export const AssignmentsPage: React.FC = () => {
           </button>
         }
       >
+        <OptionPagination label="pacientes" query={patientsQuery} />
+        <OptionPagination label="placas" query={devicesQuery} />
+        {reassignLookupError ? <div role="alert" className="text-sm text-rose-800">
+          {formatApiError(reassignLookupError)}
+          <button type="button" onClick={() => { void activeForPatientQuery.refetch(); if (reassignDeviceId) void activeForDeviceQuery.refetch(); }}>Reintentar asignaciones</button>
+        </div> : null}
         {reassignPartialFailure && (
           <div
             role="alert"
@@ -422,6 +436,8 @@ export const AssignmentsPage: React.FC = () => {
             . Elige otra placa.
           </div>
         )}
+        {reassignDeviceId && activeForReassignedPatient?.deviceId === reassignDeviceId ?
+          <p role="status" className="text-sm text-amber-900">Esta placa ya está asignada al paciente. Selecciona una placa diferente.</p> : null}
       </FormDialog>
 
       <ConfirmDialog

@@ -49,7 +49,7 @@ export function useUpdatePatient() {
   });
 }
 
-/** Pacientes habilitados para seleccionar en formularios (una sola página razonable). */
+/** Catálogo habilitado paginado; los formularios permiten solicitar más opciones. */
 export function usePatientOptions() {
   return useCursorList<Patient>({
     queryKey: ['patients', 'options', { enabled: true }],

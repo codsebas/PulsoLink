@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { z } from 'zod';
 import { Users, PlusCircle, Pencil, Power } from 'lucide-react';
 import { DataTable, type Column } from '../../components/admin/DataTable';
@@ -88,6 +89,10 @@ export const PatientsPage: React.FC = () => {
   };
 
   const columns: Column<Patient>[] = [
+    { key: 'monitoring', header: 'Monitoreo', render: (patient) => <Link
+      to={`/monitoring/${encodeURIComponent(patient.id)}`}
+      className="font-semibold text-sky-800 hover:underline focus-visible:outline focus-visible:outline-2"
+      aria-label={`Ver monitoreo de ${patient.displayName}`}>Ver monitoreo</Link> },
     { key: 'code', header: 'Código', render: (p) => <span className="font-mono font-semibold">{p.code}</span> },
     { key: 'displayName', header: 'Nombre visible', render: (p) => p.displayName },
     {

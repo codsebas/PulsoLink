@@ -22,8 +22,9 @@ export function useCursorList<T>({
     queryKey,
     enabled,
     initialPageParam: undefined as string | undefined,
-    queryFn: async ({ pageParam }) => {
+    queryFn: async ({ pageParam, signal }) => {
       return apiList<T>(endpoint, {
+        signal,
         params: { ...params, cursor: pageParam as string | undefined },
       });
     },

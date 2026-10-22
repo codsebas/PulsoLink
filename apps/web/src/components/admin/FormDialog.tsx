@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertCircle, X } from 'lucide-react';
 import { formatApiError } from './api-error';
+import { useDialog } from './useDialog';
 
 interface FormDialogProps {
   open: boolean;
@@ -29,12 +30,13 @@ export const FormDialog: React.FC<FormDialogProps> = ({
   children,
   footer,
 }) => {
+  const dialog = useDialog(open, isSubmitting, onClose);
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50"
-      role="dialog"
+    <dialog
+      {...dialog}
+      className="m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-md overflow-y-auto overscroll-contain rounded-xl bg-white p-0 shadow-xl backdrop:bg-slate-900/50"
       aria-modal="true"
       aria-label={title}
     >
@@ -83,6 +85,6 @@ export const FormDialog: React.FC<FormDialogProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </dialog>
   );
 };

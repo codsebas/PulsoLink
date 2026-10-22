@@ -267,15 +267,28 @@ Reglas:
 
 ## Aprovisionamiento
 
-Las identidades se crean o actualizan con:
+Las identidades ausentes se crean con este comando desde `apps/api`:
 
 ```powershell
 npx tsx src/scripts/provision-auth-users.ts
 ```
 
-Requiere las variables `PROVISION_*` documentadas en `apps/api/.env.example`.
-El script solo escribe en Firebase Auth, imprime correo, UID y rol, y nunca
-muestra contraseñas. Los perfiles `users/{uid}` y los dispositivos de demo se
+Requiere `PROVISION_TARGET_PROJECT` igual a `FIREBASE_PROJECT_ID` y las variables
+`PROVISION_ADMIN_*` / `PROVISION_VIEWER_*` de `apps/api/.env.example`, incluidas
+contraseñas de al menos diez caracteres. `PROVISION_OPERATOR_*` se conserva solo
+como alias legado de consulta (`viewer`); si ambos nombres aportan valores
+distintos, falla antes de crear identidades. Admin y viewer deben ser cuentas
+distintas.
+
+Al repetir no se cambian contraseñas, nombres ni estado de cuentas existentes.
+Una identidad deshabilitada provoca un error; se requiere revisión administrativa
+para rehabilitarla. Este comando no es una herramienta de reset ni de migración
+de roles. Comprueba ambas identidades antes de crear la primera, pero Firebase
+Auth no ofrece una transacción de varias cuentas: un fallo parcial requiere
+repetir conservando las altas que ya se completaron.
+
+El script solo escribe en Firebase Auth, imprime UID/rol y nunca contraseñas ni
+correos. Los perfiles `users/{uid}` y los dispositivos de demo se
 crean con `provision-demo.ts`.
 
 Las contraseñas solo se envían a Firebase Auth; nunca se guardan en Firestore,

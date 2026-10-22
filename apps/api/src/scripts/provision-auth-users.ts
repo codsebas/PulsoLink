@@ -4,12 +4,14 @@
  *   npx tsx src/scripts/provision-auth-users.ts
  *
  * Variables de entorno:
- *   FIREBASE_PROJECT_ID
+ *   FIREBASE_PROJECT_ID, PROVISION_TARGET_PROJECT (mismo proyecto explícito)
  *   PROVISION_ADMIN_EMAIL, PROVISION_ADMIN_PASSWORD, PROVISION_ADMIN_NAME
- *   PROVISION_OPERATOR_EMAIL, PROVISION_OPERATOR_PASSWORD, PROVISION_OPERATOR_NAME
+ *   PROVISION_VIEWER_EMAIL, PROVISION_VIEWER_PASSWORD, PROVISION_VIEWER_NAME
+ *   PROVISION_OPERATOR_* sigue como alias legado de viewer; no cambia roles.
  *   Opcionales: FIREBASE_AUTH_EMULATOR_HOST, FIRESTORE_EMULATOR_HOST
  *
- * Este script SOLO crea/actualiza identidades en Firebase Authentication. NO
+ * Este script SOLO crea identidades ausentes en Firebase Authentication. NO
+ * cambia contraseñas, nombres ni estado de identidades ya existentes. NO
  * escribe en Firestore: los documentos `users/{uid}` los provisiona el script
  * `provision-demo.ts` (@gioore) a partir de `DEMO_PROFILES_JSON`.
  *
@@ -23,6 +25,7 @@
  * contraseñas) para encadenarla con el script de @gioore.
  */
 import { getAuth } from '../config/firebase.js';
+import { z } from 'zod';
 
 interface Target {
   label: string;
@@ -47,10 +50,10 @@ const TARGETS: Target[] = [
     role: 'admin',
   },
   {
-    label: 'operador',
-    emailVariable: 'PROVISION_OPERATOR_EMAIL',
-    passwordVariable: 'PROVISION_OPERATOR_PASSWORD',
-    nameVariable: 'PROVISION_OPERATOR_NAME',
+    label: 'consulta',
+    emailVariable: 'PROVISION_VIEWER_EMAIL',
+    passwordVariable: 'PROVISION_VIEWER_PASSWORD',
+    nameVariable: 'PROVISION_VIEWER_NAME',
     role: 'viewer',
   },
 ];
@@ -58,7 +61,11 @@ const TARGETS: Target[] = [
 const MINIMUM_PASSWORD_LENGTH = 10;
 
 function getRequired(variable: string): string {
-  const value = process.env[variable]?.trim();
+  const primary = process.env[variable]?.trim();
+  const legacy = variable.startsWith('PROVISION_VIEWER_')
+    ? process.env[variable.replace('PROVISION_VIEWER_', 'PROVISION_OPERATOR_')]?.trim() : undefined;
+  if (primary && legacy && primary !== legacy) throw new Error('Alias de consulta incompatibles.');
+  const value = primary || legacy;
   if (!value) {
     throw new Error(`Falta la variable de entorno ${variable}.`);
   }
@@ -78,13 +85,15 @@ interface ResolvedTarget extends Target {
 }
 
 function resolveTargets(): ResolvedTarget[] {
-  return TARGETS.map((target) => {
-    const email = getRequired(target.emailVariable);
+  const targets = TARGETS.map((target) => {
+    const email = z.string().email().parse(getRequired(target.emailVariable)).toLowerCase();
     const password = getRequired(target.passwordVariable);
     assertPassword(target.passwordVariable, password);
-    const displayName = getRequired(target.nameVariable);
+    const displayName = z.string().min(1).max(100).parse(getRequired(target.nameVariable));
     return { ...target, email, password, displayName };
   });
+  if (targets[0].email === targets[1].email) throw new Error('Admin y viewer deben ser identidades distintas.');
+  return targets;
 }
 
 type Auth = ReturnType<typeof getAuth>;
@@ -106,11 +115,7 @@ async function provisionIdentity(
 ): Promise<{ uid: string; created: boolean }> {
   const existing = await findUserOrNull(auth, target.email);
   if (existing) {
-    await auth.updateUser(existing.uid, {
-      password: target.password,
-      displayName: target.displayName,
-      disabled: false,
-    });
+    if (existing.disabled) throw new Error('Identidad existente deshabilitada; requiere revisión administrativa.');
     return { uid: existing.uid, created: false };
   }
 
@@ -126,6 +131,9 @@ async function provisionIdentity(
 async function main(): Promise<void> {
   // Proyecto explícito obligatorio, igual que en provision-demo.ts.
   process.env.FIREBASE_PROJECT_ID = getRequired('FIREBASE_PROJECT_ID');
+  if (getRequired('PROVISION_TARGET_PROJECT') !== process.env.FIREBASE_PROJECT_ID) {
+    throw new Error('El proyecto de destino no coincide.');
+  }
 
   // Evita mezclar identidades reales con perfiles del emulador local.
   if (
@@ -137,13 +145,16 @@ async function main(): Promise<void> {
 
   const targets = resolveTargets();
   const auth = getAuth();
+  // Detectar bloqueos conocidos en ambas identidades antes de la primera alta.
+  const identities = await Promise.all(targets.map(target => findUserOrNull(auth, target.email)));
+  if (identities.some(identity => identity?.disabled)) throw new Error('Hay una identidad deshabilitada.');
   const profiles: ProvisionedProfile[] = [];
 
   for (const target of targets) {
     const { uid, created } = await provisionIdentity(auth, target);
     profiles.push({ uid, displayName: target.displayName, role: target.role });
-    const action = created ? 'creado' : 'actualizado';
-    console.log(`${target.label}: email=${target.email} uid=${uid} role=${target.role} ${action}`);
+    const action = created ? 'creado' : 'conservado';
+    console.log(`${target.label}: uid=${uid} role=${target.role} ${action}`);
   }
 
   console.log('');

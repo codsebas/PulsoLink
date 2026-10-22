@@ -81,3 +81,8 @@ La API y el frontend pueden ejecutarse localmente usando Firebase real.
 Esta configuración no publica Express ni Vite en Internet, ni acredita la
 integración con la placa física. El despliegue HTTPS y la prueba de hardware
 siguen siendo pasos de integración del equipo.
+
+**Ampliación del 22 de octubre:** [cuentas repetibles y aceptación de negocio
+en cloud](firebase-aceptacion-cloud.md), con protocolo oficial de reasignación,
+concurrencia, permisos y persistencia tras reinicio de la API local. La evidencia
+amplía la comprobación básica de este documento y distingue cloud de emuladores.

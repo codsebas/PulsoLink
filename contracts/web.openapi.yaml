@@ -399,7 +399,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
     patch:
       operationId: updatePatient
       summary: Editar o deshabilitar patients
@@ -445,7 +445,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: X-CSRF-Token
           in: header
           required: true
@@ -654,7 +654,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
     patch:
       operationId: updateDevice
       summary: Editar o deshabilitar devices
@@ -700,7 +700,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: X-CSRF-Token
           in: header
           required: true
@@ -914,7 +914,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
     patch:
       operationId: updateUser
       summary: Editar o deshabilitar users
@@ -960,7 +960,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: X-CSRF-Token
           in: header
           required: true
@@ -1060,16 +1060,16 @@ paths:
           schema:
             type: string
             format: date-time
-            description: Fecha ISO 8601 UTC normalizada por backend.
-            pattern: Z$
+            description: Fecha ISO 8601 UTC o con offset normalizada por backend.
+            pattern: (Z|[+-]\d{2}:\d{2})$
         - name: to
           in: query
           required: false
           schema:
             type: string
             format: date-time
-            description: Fecha ISO 8601 UTC normalizada por backend.
-            pattern: Z$
+            description: Fecha ISO 8601 UTC o con offset normalizada por backend.
+            pattern: (Z|[+-]\d{2}:\d{2})$
         - name: patientId
           in: query
           required: false
@@ -1077,7 +1077,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: deviceId
           in: query
           required: false
@@ -1085,7 +1085,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: status
           in: query
           required: false
@@ -1154,12 +1154,12 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 128
-                  pattern: ^[^/]+$
+                  pattern: ^(?!\.{1,2}$)[^/]+$
                 deviceId:
                   type: string
                   minLength: 1
                   maxLength: 128
-                  pattern: ^[^/]+$
+                  pattern: ^(?!\.{1,2}$)[^/]+$
   /assignments/{id}:
     get:
       operationId: getAssignment
@@ -1202,7 +1202,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
   /assignments/{id}/close:
     post:
       operationId: closeAssignment
@@ -1249,7 +1249,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: X-CSRF-Token
           in: header
           required: true
@@ -1327,16 +1327,16 @@ paths:
           schema:
             type: string
             format: date-time
-            description: Fecha ISO 8601 UTC normalizada por backend.
-            pattern: Z$
+            description: Fecha ISO 8601 UTC o con offset normalizada por backend.
+            pattern: (Z|[+-]\d{2}:\d{2})$
         - name: to
           in: query
           required: false
           schema:
             type: string
             format: date-time
-            description: Fecha ISO 8601 UTC normalizada por backend.
-            pattern: Z$
+            description: Fecha ISO 8601 UTC o con offset normalizada por backend.
+            pattern: (Z|[+-]\d{2}:\d{2})$
         - name: patientId
           in: query
           required: false
@@ -1344,7 +1344,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: deviceId
           in: query
           required: false
@@ -1352,7 +1352,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: assignmentId
           in: query
           required: false
@@ -1360,7 +1360,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: status
           in: query
           required: false
@@ -1429,7 +1429,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 128
-                  pattern: ^[^/]+$
+                  pattern: ^(?!\.{1,2}$)[^/]+$
   /sessions/{id}:
     get:
       operationId: getSession
@@ -1472,7 +1472,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
   /sessions/{id}/start:
     post:
       operationId: startSession
@@ -1520,7 +1520,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: X-CSRF-Token
           in: header
           required: true
@@ -1573,7 +1573,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: X-CSRF-Token
           in: header
           required: true
@@ -1631,7 +1631,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
   /patients/{id}/latest:
     get:
       operationId: getPatientLatest
@@ -1687,7 +1687,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
   /sessions/{id}/measurements:
     get:
       operationId: getSessionMeasurements
@@ -1747,7 +1747,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: limit
           in: query
           required: false
@@ -1768,16 +1768,16 @@ paths:
           schema:
             type: string
             format: date-time
-            description: Fecha ISO 8601 UTC normalizada por backend.
-            pattern: Z$
+            description: Fecha ISO 8601 UTC o con offset normalizada por backend.
+            pattern: (Z|[+-]\d{2}:\d{2})$
         - name: to
           in: query
           required: false
           schema:
             type: string
             format: date-time
-            description: Fecha ISO 8601 UTC normalizada por backend.
-            pattern: Z$
+            description: Fecha ISO 8601 UTC o con offset normalizada por backend.
+            pattern: (Z|[+-]\d{2}:\d{2})$
   /patients/{id}/measurements:
     get:
       operationId: getPatientMeasurements
@@ -1839,7 +1839,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: limit
           in: query
           required: false
@@ -1860,16 +1860,16 @@ paths:
           schema:
             type: string
             format: date-time
-            description: Fecha ISO 8601 UTC normalizada por backend.
-            pattern: Z$
+            description: Fecha ISO 8601 UTC o con offset normalizada por backend.
+            pattern: (Z|[+-]\d{2}:\d{2})$
         - name: to
           in: query
           required: false
           schema:
             type: string
             format: date-time
-            description: Fecha ISO 8601 UTC normalizada por backend.
-            pattern: Z$
+            description: Fecha ISO 8601 UTC o con offset normalizada por backend.
+            pattern: (Z|[+-]\d{2}:\d{2})$
   /patients/{id}/access:
     post:
       operationId: recordPatientAccess
@@ -1904,7 +1904,7 @@ paths:
                         type: string
                         minLength: 1
                         maxLength: 128
-                        pattern: ^[^/]+$
+                        pattern: ^(?!\.{1,2}$)[^/]+$
                       duplicate:
                         type: boolean
         "201":
@@ -1928,7 +1928,7 @@ paths:
                         type: string
                         minLength: 1
                         maxLength: 128
-                        pattern: ^[^/]+$
+                        pattern: ^(?!\.{1,2}$)[^/]+$
                       duplicate:
                         type: boolean
         "400":
@@ -1955,7 +1955,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: X-CSRF-Token
           in: header
           required: true
@@ -2046,16 +2046,16 @@ paths:
           schema:
             type: string
             format: date-time
-            description: Fecha ISO 8601 UTC normalizada por backend.
-            pattern: Z$
+            description: Fecha ISO 8601 UTC o con offset normalizada por backend.
+            pattern: (Z|[+-]\d{2}:\d{2})$
         - name: to
           in: query
           required: false
           schema:
             type: string
             format: date-time
-            description: Fecha ISO 8601 UTC normalizada por backend.
-            pattern: Z$
+            description: Fecha ISO 8601 UTC o con offset normalizada por backend.
+            pattern: (Z|[+-]\d{2}:\d{2})$
         - name: actorId
           in: query
           required: false
@@ -2063,7 +2063,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
         - name: action
           in: query
           required: false
@@ -2081,7 +2081,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 128
-            pattern: ^[^/]+$
+            pattern: ^(?!\.{1,2}$)[^/]+$
 components:
   schemas:
     ErrorResponse:
@@ -2100,10 +2100,53 @@ components:
           properties:
             code:
               type: string
+              description: "Código de error legible por máquina según el catálogo de la API web."
+              enum:
+                - VALIDATION_ERROR
+                - INVALID_CURSOR
+                - NO_CHANGES
+                - UNAUTHENTICATED
+                - INVALID_CREDENTIALS
+                - DEVICE_DISABLED
+                - FORBIDDEN
+                - CSRF_INVALID
+                - RESOURCE_DISABLED
+                - USER_DISABLED
+                - AUTH_USER_DISABLED
+                - DEVICE_ID_MISMATCH
+                - NOT_FOUND
+                - PATIENT_NOT_FOUND
+                - DEVICE_NOT_FOUND
+                - SESSION_NOT_FOUND
+                - ASSIGNMENT_NOT_FOUND
+                - USER_NOT_FOUND
+                - AUDIT_NOT_FOUND
+                - USER_OPERATION_NOT_FOUND
+                - ASSIGNMENT_CONFLICT
+                - ASSIGNMENT_IN_USE
+                - ASSIGNMENT_NOT_ACTIVE
+                - INVALID_SESSION_STATE
+                - IDEMPOTENCY_CONFLICT
+                - SESSION_NOT_ACTIVE
+                - DEVICE_BUSY
+                - DEVICE_SOURCE_CHANGED
+                - PROVISIONING_CONFLICT
+                - PAYLOAD_TOO_LARGE
+                - RATE_LIMITED
+                - TOO_MANY_ATTEMPTS
+                - AUTH_UNAVAILABLE
+                - AUDIT_UNAVAILABLE
+                - AUTH_SYNC_PENDING
+                - SERVICE_UNAVAILABLE
+                - INTERNAL_SERVER_ERROR
             message:
               type: string
+              description: "Mensaje descriptivo en español para el cliente."
             requestId:
               type: string
+              description: "Identificador único de correlación de la solicitud."
+            details:
+              description: "Información adicional opcional sobre el error (p. ej. lista de campos en VALIDATION_ERROR)."
     User:
       type: object
       additionalProperties: false
@@ -2118,7 +2161,7 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         displayName:
           type: string
           minLength: 1
@@ -2147,7 +2190,7 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         displayName:
           type: string
         role:
@@ -2170,7 +2213,7 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         code:
           type: string
           minLength: 1
@@ -2207,7 +2250,7 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         code:
           type: string
           minLength: 1
@@ -2228,7 +2271,7 @@ components:
             - "null"
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         lastSeenAt:
           type:
             - string
@@ -2252,17 +2295,17 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         patientId:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         deviceId:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         startedAt:
           type: string
           format: date-time
@@ -2279,14 +2322,14 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         endedBy:
           type:
             - string
             - "null"
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
     Measurements:
       type: object
       additionalProperties: false
@@ -2429,27 +2472,27 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         patientId:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         deviceId:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         assignmentId:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         sessionId:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         receivedAt:
           type: string
           format: date-time
@@ -2495,22 +2538,22 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         patientId:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         deviceId:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         assignmentId:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         source:
           type: string
           enum:
@@ -2600,12 +2643,12 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         actorId:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         action:
           type: string
         targetType:
@@ -2614,7 +2657,7 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-          pattern: ^[^/]+$
+          pattern: ^(?!\.{1,2}$)[^/]+$
         occurredAt:
           type: string
           format: date-time
@@ -2637,31 +2680,60 @@ components:
         Path=/, Secure en HTTPS.
   responses:
     BadRequest:
-      description: "VALIDATION_ERROR: JSON, campos, filtros o cursor inválidos."
+      description: "Error de solicitud del cliente (400). Catálogo de códigos devueltos:
+        - VALIDATION_ERROR: Cuerpo con JSON malformado, tipos de datos inválidos, campos obligatorios ausentes o intervalo temporal inconsistente (from >= to).
+        - INVALID_CURSOR: Cursor de paginación corrupto, expirado o ligado a una consulta/filtro diferente.
+        - NO_CHANGES: La solicitud de actualización no modifica los valores existentes.
+        - INVALID_SESSION_STATE: Transición o estado de sesión incompatible."
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     Unauthorized:
-      description: "UNAUTHENTICATED: credencial o sesión ausente, inválida o vencida."
+      description: "Autenticación requerida o fallida (401). Catálogo de códigos devueltos:
+        - UNAUTHENTICATED: Sesión ausente, cookie inválida/vencida/revocada o identidad no registrada en Firestore.
+        - INVALID_CREDENTIALS: Correo no registrado o contraseña incorrecta en login.
+        - DEVICE_DISABLED: Dispositivo deshabilitado en acceso con credencial."
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     Forbidden:
-      description: "FORBIDDEN: rol insuficiente, usuario/dispositivo deshabilitado, CSRF u origen inválidos."
+      description: "Acceso no autorizado o prohibido (403). Catálogo de códigos devueltos:
+        - FORBIDDEN: Rol insuficiente (p. ej. rol viewer intentando mutaciones administrativas o consultando recursos deshabilitados) o acceso no permitido.
+        - CSRF_INVALID: Token CSRF ausente o inválido, u origen no permitido (Origin/Referer no coincide con la lista autorizada).
+        - RESOURCE_DISABLED: Paciente o dispositivo deshabilitados al intentar crear asignaciones o acceder a recursos protegidos.
+        - USER_DISABLED / AUTH_USER_DISABLED: Perfil o cuenta de usuario deshabilitado en el sistema.
+        - DEVICE_ID_MISMATCH: La identidad declarada no coincide con el recurso o contexto autenticado."
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     NotFound:
-      description: "NOT_FOUND: recurso no encontrado."
+      description: "Recurso no encontrado (404). Catálogo explícito de códigos devueltos según el tipo de recurso solicitado:
+        - PATIENT_NOT_FOUND: Paciente no encontrado por su identificador.
+        - DEVICE_NOT_FOUND: Dispositivo o placa no encontrado por su identificador.
+        - SESSION_NOT_FOUND: Sesión no encontrada por su identificador.
+        - ASSIGNMENT_NOT_FOUND: Asignación no encontrada por su identificador.
+        - USER_NOT_FOUND: Usuario no encontrado por su identificador.
+        - AUDIT_NOT_FOUND: Registro u operación de auditoría no encontrado.
+        - USER_OPERATION_NOT_FOUND: Operación de usuario pendiente no encontrada.
+        - NOT_FOUND: Recurso genérico no encontrado."
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     Conflict:
-      description: Conflicto de estado o idempotencia.
+      description: "Conflicto de estado, concurrencia o idempotencia (409). Catálogo de códigos devueltos:
+        - ASSIGNMENT_CONFLICT: Conflicto de asignación; paciente o placa ya asignados a otra relación activa.
+        - ASSIGNMENT_IN_USE: Asignación con sesión abierta activa al intentar cerrarla, o placa/paciente en uso al intentar deshabilitarlos.
+        - INVALID_SESSION_STATE: Transición de estado de sesión no permitida (p. ej. finalizar sesión created o iniciar sesión finished).
+        - IDEMPOTENCY_CONFLICT: Clave o reintento conflictivo con carga útil o estado diferente.
+        - SESSION_NOT_ACTIVE: Sesión no activa para el dispositivo o asignación.
+        - ASSIGNMENT_NOT_ACTIVE: Asignación inactiva o incompatible con la sesión.
+        - DEVICE_BUSY: Dispositivo ocupado con otra operación o sesión en curso.
+        - DEVICE_SOURCE_CHANGED: Incompatibilidad en el origen (real/simulated) del dispositivo.
+        - RESOURCE_DISABLED: Recurso deshabilitado durante la resolución transaccional de concurrencia."
       content:
         application/json:
           schema:

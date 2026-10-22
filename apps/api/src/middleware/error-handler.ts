@@ -60,6 +60,7 @@ export function errorHandler(
       VALIDATION_ERROR: 400,
       USER_NOT_FOUND: 404,
       USER_OPERATION_NOT_FOUND: 404,
+      AUDIT_NOT_FOUND: 404,
       AUTH_SYNC_PENDING: 503,
       NO_CHANGES: 400,
     };

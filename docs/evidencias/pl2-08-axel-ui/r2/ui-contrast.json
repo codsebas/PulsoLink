@@ -1,0 +1,47 @@
+{
+  "environment": "macOS (zsh); Node 24.14.1; Google Chrome; Auth/Firestore Standard emulados (demo-pulsolink-axel-ui)",
+  "browser": "155.0.8059.85",
+  "fabricatedResponses": false,
+  "checkedAt": "2026-10-22T20:40:34.808Z",
+  "node": "v24.14.1",
+  "commit": "394b3a3dae8c71de749932409081b695e5cf08bf",
+  "results": [
+    {
+      "id": "UI-03a",
+      "expected": "409 ASSIGNMENT_CONFLICT de la API y mensaje accionable en el diálogo",
+      "actual": "HTTP 409 ASSIGNMENT_CONFLICT; mensaje visible",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-03b",
+      "expected": "409 ASSIGNMENT_IN_USE de la API y mensaje accionable en el diálogo",
+      "actual": "HTTP 409 ASSIGNMENT_IN_USE; mensaje visible",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-03c",
+      "expected": "Mensaje para 409 DEVICE_BUSY",
+      "actual": "No alcanzable desde la web con el modelo 2.0: se rechaza antes con ASSIGNMENT_CONFLICT o ASSIGNMENT_IN_USE (CON-10, CONC-04).",
+      "state": "SKIPPED"
+    },
+    {
+      "id": "UI-07",
+      "expected": "Inicio de la asignación en hora de America/Guatemala, no en UTC",
+      "actual": "API 2026-10-22T20:40:28.863Z; esperado \"22/10/26, 2:40:28 p. m.\" visible=true; UTC \"22/10/26, 8:40:28 p. m.\" visible=false",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-02",
+      "expected": "Sesión perdida durante el polling: redirección a /login sin datos del expediente",
+      "actual": "redirigida=true en 2 s; expediente visible=false",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-06",
+      "expected": "Tras Salir, el botón Atrás no muestra datos del expediente",
+      "actual": "ruta=/login; expediente visible=false; historial visible=false",
+      "state": "PASS"
+    }
+  ],
+  "status": "passed"
+}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, AlertCircle } from 'lucide-react';
 import { formatApiError } from './api-error';
+import { useDialog } from './useDialog';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -29,11 +30,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  const dialog = useDialog(open, isPending, onCancel);
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50"
+    <dialog
+      {...dialog}
+      className="m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-sm overflow-y-auto overscroll-contain rounded-xl bg-white p-0 shadow-xl backdrop:bg-slate-900/50"
       role="alertdialog"
       aria-modal="true"
       aria-label={title}
@@ -60,6 +63,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <div className="flex justify-end gap-2">
           <button
             type="button"
+            autoFocus
             onClick={onCancel}
             disabled={isPending}
             className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg text-sm font-semibold text-slate-700 disabled:opacity-50 transition-colors"
@@ -78,6 +82,6 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 };

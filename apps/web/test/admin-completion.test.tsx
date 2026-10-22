@@ -98,3 +98,21 @@ it('no cierra una asignación cuando falla la consulta de ocupación', async () 
   expect(calls.every(method => method === 'GET')).toBe(true);
   client.clear();
 });
+
+it('muestra nombre y código de pacientes y placas deshabilitados en el historial de asignaciones', async () => {
+  const json = (body: unknown) => new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json' } });
+  const empty = { data: [], pagination: { hasMore: false, nextCursor: null } };
+  vi.stubGlobal('fetch', vi.fn(async (input) => {
+    const url = new URL(String(input), 'http://localhost');
+    if (url.pathname.endsWith('/assignments')) return json({ data: [{ id: 'asg-old', patientId: 'pat-off', deviceId: 'dev-off',
+      startedAt: '2026-10-20T10:00:00Z', endedAt: '2026-10-21T10:00:00Z' }], pagination: { hasMore: false, nextCursor: null } });
+    if (url.pathname.endsWith('/patients/pat-off')) return json({ data: { id: 'pat-off', code: 'P-900', displayName: 'Ficticio Archivado', enabled: false } });
+    if (url.pathname.endsWith('/devices/dev-off')) return json({ data: { id: 'dev-off', code: 'SIM-900', enabled: false } });
+    return json(empty); // los catálogos habilitados no incluyen a los deshabilitados
+  }));
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(<QueryClientProvider client={client}><AssignmentsPage /></QueryClientProvider>);
+  await waitFor(() => expect(screen.getByText('Ficticio Archivado (P-900) · deshabilitado')).toBeTruthy());
+  expect(screen.getByText('SIM-900 · deshabilitada')).toBeTruthy();
+  client.clear();
+});

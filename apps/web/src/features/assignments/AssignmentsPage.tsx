@@ -13,6 +13,7 @@ import type { Assignment } from '../../lib/contract-types';
 import { formatDateTime } from '../../lib/format';
 import { OptionPagination } from '../../components/admin/OptionPagination';
 import { formatApiError } from '../../components/admin/api-error';
+import { useEntityLabels } from './useEntityLabels';
 
 function useLookupOptions() {
   const patientsQuery = usePatientOptions();
@@ -72,7 +73,13 @@ export const AssignmentsPage: React.FC = () => {
   const [closeTarget, setCloseTarget] = useState<Assignment | null>(null);
   const closeMutation = useCloseAssignment();
 
-  const rows = listQuery.data?.pages.flatMap((page) => page.data) ?? [];
+  const rows = useMemo(() => listQuery.data?.pages.flatMap((page) => page.data) ?? [], [listQuery.data]);
+  const { patientLabel, deviceLabel } = useEntityLabels(
+    rows,
+    patientNames,
+    deviceCodes,
+    !patientsQuery.isLoading && !devicesQuery.isLoading,
+  );
 
   const patientOptions = useMemo(
     () =>
@@ -172,7 +179,7 @@ export const AssignmentsPage: React.FC = () => {
       header: 'Paciente',
       render: (a) => (
         <div>
-          <div className="font-medium">{patientNames.get(a.patientId) ?? '—'}</div>
+          <div className="font-medium">{patientLabel(a.patientId) ?? '—'}</div>
           <div className="text-xs text-slate-400 font-mono">{a.patientId}</div>
         </div>
       ),
@@ -182,7 +189,7 @@ export const AssignmentsPage: React.FC = () => {
       header: 'Placa',
       render: (a) => (
         <div>
-          <div className="font-medium font-mono">{deviceCodes.get(a.deviceId) ?? '—'}</div>
+          <div className="font-medium font-mono">{deviceLabel(a.deviceId) ?? '—'}</div>
           <div className="text-xs text-slate-400 font-mono">{a.deviceId}</div>
         </div>
       ),

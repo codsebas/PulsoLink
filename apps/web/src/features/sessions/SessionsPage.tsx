@@ -16,6 +16,7 @@ import {
   type SessionFilters,
 } from './api';
 import { useAssignments } from '../assignments/api';
+import { useEntityLabels } from '../assignments/useEntityLabels';
 import { usePatientOptions } from '../patients/api';
 import { useDeviceOptions } from '../devices/api';
 import type { Session } from '../../lib/contract-types';
@@ -65,7 +66,13 @@ export const SessionsPage: React.FC = () => {
   const finishMutation = useFinishSession();
   const [finishTarget, setFinishTarget] = useState<Session | null>(null);
 
-  const rows = listQuery.data?.pages.flatMap((page) => page.data) ?? [];
+  const rows = useMemo(() => listQuery.data?.pages.flatMap((page) => page.data) ?? [], [listQuery.data]);
+  const { patientLabel, deviceLabel } = useEntityLabels(
+    rows,
+    patientNames,
+    deviceCodes,
+    !patientsQuery.isLoading && !devicesQuery.isLoading,
+  );
 
   const patientOptions = useMemo(
     () => Array.from(patientNames.entries()).map(([value, label]) => ({ value, label })),
@@ -135,13 +142,13 @@ export const SessionsPage: React.FC = () => {
     {
       key: 'patient',
       header: 'Paciente',
-      render: (s) => patientNames.get(s.patientId) ?? <span className="font-mono text-xs">{s.patientId}</span>,
+      render: (s) => patientLabel(s.patientId) ?? <span className="font-mono text-xs">{s.patientId}</span>,
     },
     {
       key: 'device',
       header: 'Placa',
       render: (s) => (
-        <span className="font-mono font-medium">{deviceCodes.get(s.deviceId) ?? s.deviceId}</span>
+        <span className="font-mono font-medium">{deviceLabel(s.deviceId) ?? s.deviceId}</span>
       ),
     },
     {

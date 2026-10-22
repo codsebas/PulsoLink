@@ -78,11 +78,18 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
   const patient = useQuery({ queryKey: ['patient', patientId], queryFn: ({ signal }) => apiClient<Patient>(`/patients/${encodeURIComponent(patientId)}`, { signal }), enabled: ready });
   const active = useQuery({ queryKey: ['patient', patientId, 'active-session'], enabled: ready && patient.isSuccess,
     queryFn: ({ signal }) => apiList<PatientSession>('/sessions', { signal, params: { patientId, status: 'active', limit: 1 } }),
-    refetchInterval: (query) => (visible && query.state.data?.data[0]?.status === 'active' ? 2000 : false),
+    // La ausencia de sesión es temporal: otra pantalla puede iniciarla después.
+    // Solo esta consulta pequeña continúa en reposo; no descarga el historial.
+    refetchInterval: (query) => {
+      if (!visible) return false;
+      if (query.state.error instanceof ApiClientError && [401, 403, 404].includes(query.state.error.statusCode)) return false;
+      return query.state.data?.data[0]?.status === 'active' ? 2000 : 5000;
+    },
+    refetchIntervalInBackground: false,
   });
   const activeSession = active.data?.data[0];
-  // Solo hay sesión activa mientras la placa transmite: el polling se detiene solo
-  // y nunca vuelve a bajar las páginas ya acumuladas del historial.
+  // Última muestra e historial solo se refrescan con una sesión activa y la
+  // pestaña visible; las sesiones nuevas se descubren por separado.
   const plan = pollingPlan({ visible, sessionActive: Boolean(activeSession) });
   const latest = usePatientLatest(patientId, { enabled: ready && patient.isSuccess && active.isSuccess, poll: plan.latest !== false });
   const history = usePatientHistory(patientId, range, { enabled: ready && patient.isSuccess, poll: plan.history !== false });

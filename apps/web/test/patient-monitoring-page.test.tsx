@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PatientMonitoringPage } from '../src/features/patient-monitoring/PatientMonitoringPage';
 import type { PatientMeasurement } from '../src/features/patient-monitoring/patient-monitoring.types';
 import { reading } from './helpers';
@@ -29,7 +29,9 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 }
 
-function installFetch(overrides: { measurements?: (url: URL) => unknown } = {}) {
+const activeSession = { id: 'session-1', patientId, deviceId: 'device-1', assignmentId: 'assignment-1', status: 'active' };
+
+function installFetch(overrides: { measurements?: (url: URL) => unknown; sessions?: () => unknown[] } = {}) {
   const calls: string[] = [];
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const raw = typeof input === 'string' ? input : input instanceof URL ? input.toString() : String(input);
@@ -46,7 +48,7 @@ function installFetch(overrides: { measurements?: (url: URL) => unknown } = {}) 
       const body = overrides.measurements ? overrides.measurements(url) : { data: readings.slice(0, 20), pagination: { nextCursor: null, hasMore: false } };
       return json(body);
     }
-    if (path.includes('/sessions')) return json({ data: [{ id: 'session-1', patientId, deviceId: 'device-1', assignmentId: 'assignment-1', status: 'active' }], pagination: { nextCursor: null, hasMore: false } });
+    if (path.includes('/sessions')) return json({ data: overrides.sessions?.() ?? [activeSession], pagination: { nextCursor: null, hasMore: false } });
     if (path.endsWith(`/patients/${patientId}`)) return json({ data: { id: patientId, code: 'P-1', displayName: 'Paciente de prueba', enabled: true, createdAt: '2026-10-19T09:00:00.000Z', updatedAt: '2026-10-19T09:00:00.000Z' } });
     return json({ error: { code: 'NOT_FOUND', message: 'No encontrado' } }, 404);
   }) as typeof fetch;
@@ -72,8 +74,66 @@ describe('pantalla de monitoreo con la capa de datos', () => {
   });
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
     globalThis.fetch = original;
+    delete (document as unknown as { hidden?: boolean }).hidden;
   });
+
+  it('descubre una sesión iniciada externamente y vuelve a esperar al finalizarla', async () => {
+    // Solo el intervalo es controlado; React Query y waitFor conservan sus
+    // notificaciones reales. Evita depender de la carga del runner de Windows.
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    let sessions: unknown[] = [];
+    const calls = installFetch({ sessions: () => sessions });
+    renderPage();
+    await screen.findByText('Sin sesión activa · consulta histórica');
+    await screen.findByText(/20 lecturas cargadas/);
+    const count = (path: string) => calls.filter(call => call.includes(path)).length;
+    const idleLatest = count('/latest');
+    const idleHistory = count('/measurements');
+    // Cambia solo el servidor: sin botones, invalidaciones ni eventos de foco.
+    sessions = [activeSession];
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+    await screen.findByText('Monitoreo activo', {}, { timeout: 6500 });
+    expect(count('/measurements')).toBe(idleHistory);
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+    await waitFor(() => expect(count('/latest')).toBeGreaterThan(idleLatest), { timeout: 3500 });
+    sessions = [];
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+    await screen.findByText('Sin sesión activa · consulta histórica', {}, { timeout: 3500 });
+    const endedLatest = count('/latest');
+    await act(async () => { await vi.advanceTimersByTimeAsync(2500); });
+    expect(count('/latest')).toBe(endedLatest);
+    expect(count('/measurements')).toBe(idleHistory);
+    expect(count('/access')).toBe(1);
+    // La segunda sesión también debe descubrirse después de terminar la primera.
+    sessions = [{ ...activeSession, id: 'session-2' }];
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+    await screen.findByText('Monitoreo activo', {}, { timeout: 6500 });
+  }, 25000);
+
+  it('pausa el descubrimiento en una pestaña oculta y lo reanuda al volver', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    let sessions: unknown[] = [];
+    const calls = installFetch({ sessions: () => sessions });
+    renderPage();
+    await screen.findByText('Sin sesión activa · consulta histórica');
+    act(() => {
+      Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    const sessionCalls = calls.filter(call => call.includes('/sessions')).length;
+    sessions = [activeSession];
+    await act(async () => { await vi.advanceTimersByTimeAsync(5500); });
+    expect(calls.filter(call => call.includes('/sessions'))).toHaveLength(sessionCalls);
+    expect(screen.queryByText('Monitoreo activo')).toBeNull();
+    act(() => {
+      Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+    await screen.findByText('Monitoreo activo', {}, { timeout: 6500 });
+  }, 15000);
 
   it('muestra la última muestra y el historial sin pedir el expediente completo', async () => {
     const calls = installFetch();

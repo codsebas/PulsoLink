@@ -62,3 +62,4 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 - [PL2-08: permisos, consistencia y concurrencia de la API (Axel), 21-10-2026](pl2-08-axel-2026-10-21.md): matriz completa 90/90 en 3 ejecuciones con emuladores (65 casos propios + 25 de Hugo); diferencias de `error.code` con el contrato; sin nube ni hardware.
 
 - [PL2-08 sección E: contraste API ↔ web (Axel), 22-10-2026](pl2-08-axel-ui-2026-10-22.md): 5 casos en Chrome con emuladores, 3/3 ejecuciones; 4 casos cubiertos por #33; sin nube ni hardware.
+- [PL2-08: QA de Hugo en Windows y contraste web, 22-10-2026](pl2-08-hugo-windows-2026-10-22.md): matriz API combinada 90/90 en la segunda corrida y sección E en Edge (5 aprobados, UI-03c omitido); registra el bloqueo A-17 del primer intento y la revisión posterior de #57.

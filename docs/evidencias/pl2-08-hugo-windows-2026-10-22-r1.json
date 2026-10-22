@@ -1,0 +1,549 @@
+{
+  "contract": "2.0.0",
+  "generatedAt": "2026-10-22T23:18:48.942Z",
+  "environment": "Windows PowerShell; Node 24.19.0; Firebase Auth/Firestore emulators; demo-pulsolink-hugo-20261022",
+  "requestTimeoutMs": 5000,
+  "jointConcurrencyTimeoutMs": 30000,
+  "results": [
+    {
+      "id": "A-01",
+      "expected": "401 UNAUTHENTICATED sin credencial",
+      "actual": "HTTP 401 UNAUTHENTICATED",
+      "state": "PASS"
+    },
+    {
+      "id": "A-02",
+      "expected": "401 UNAUTHENTICATED con credencial incorrecta",
+      "actual": "HTTP 401 UNAUTHENTICATED",
+      "state": "PASS"
+    },
+    {
+      "id": "A-03",
+      "expected": "200 config: identidad, sesión e intervalos",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "A-04",
+      "expected": "403 DEVICE_ID_MISMATCH heartbeat",
+      "actual": "HTTP 403 DEVICE_ID_MISMATCH requestId=req-1792710984745",
+      "state": "PASS"
+    },
+    {
+      "id": "A-05",
+      "expected": "200 heartbeat, solo data.serverTime",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "A-06",
+      "expected": "403 DEVICE_ID_MISMATCH medición",
+      "actual": "HTTP 403 DEVICE_ID_MISMATCH requestId=req-1792710984888",
+      "state": "PASS"
+    },
+    {
+      "id": "A-07",
+      "expected": "201 medición nueva, duplicate=false",
+      "actual": "HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "A-08",
+      "expected": "200 duplicado, misma referencia/fecha",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "A-09",
+      "expected": "409 IDEMPOTENCY_CONFLICT",
+      "actual": "HTTP 409 IDEMPOTENCY_CONFLICT requestId=req-1792710985130",
+      "state": "PASS"
+    },
+    {
+      "id": "A-10",
+      "expected": "201 calidad no_contact con valores null",
+      "actual": "HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "A-11",
+      "expected": "201 calidad unavailable con valores null",
+      "actual": "HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "A-12",
+      "expected": "201 calidad invalid con valores null",
+      "actual": "HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "A-13",
+      "expected": "400 VALIDATION_ERROR unidades inválidas",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792710985449",
+      "state": "PASS"
+    },
+    {
+      "id": "A-14",
+      "expected": "400 VALIDATION_ERROR campos solo del servidor",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792710985493",
+      "state": "PASS"
+    },
+    {
+      "id": "A-15",
+      "expected": "400 VALIDATION_ERROR secuencia no entera",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792710985541",
+      "state": "PASS"
+    },
+    {
+      "id": "A-16",
+      "expected": "400 VALIDATION_ERROR calidad incompatible con valor",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792710985588",
+      "state": "PASS"
+    },
+    {
+      "id": "A-17",
+      "expected": "Ver matriz PL2-08 de Hugo",
+      "actual": "Sin respuesta en concurrencia.",
+      "state": "BLOCKED"
+    },
+    {
+      "id": "B-01",
+      "expected": "403 viewer no administra pacientes",
+      "actual": "HTTP 403 FORBIDDEN requestId=req-1792710994443",
+      "state": "PASS"
+    },
+    {
+      "id": "B-02",
+      "expected": "403 viewer no consulta auditoría",
+      "actual": "HTTP 403 FORBIDDEN requestId=req-1792710994474",
+      "state": "PASS"
+    },
+    {
+      "id": "B-03",
+      "expected": "200 viewer consulta historial",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "B-04",
+      "expected": "Historial fixture: >=2 placas, IDs inmutables, sin duplicados, paginación completa",
+      "actual": "54 lecturas; 2 placas; completo=true",
+      "state": "PASS"
+    },
+    {
+      "id": "B-05",
+      "expected": "Paciente B no contiene lecturas de A",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "B-06",
+      "expected": "CRUD asignaciones disponible (precondición recorrido CON-17/CONC-08)",
+      "actual": "HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "JOINT-CON-17",
+      "expected": "Reasignación por HTTP: historia inmutable de dos placas, aislamiento y duplicado después del cierre",
+      "actual": "Ciclo HTTP completo; A conserva dos placas, B solo su muestra; duplicado/conflicto correctos tras reasignar D1.",
+      "state": "PASS"
+    },
+    {
+      "id": "JOINT-CONC-08",
+      "expected": "3 rondas: finalizar frente a 5 muestras, sin escrituras posteriores ni huérfanas",
+      "actual": "3 rondas de finish + 5 muestras completadas; ACK/rechazos contrastados con historia y finishedAt.",
+      "state": "PASS"
+    },
+    {
+      "id": "AUTH-01",
+      "expected": "401 UNAUTHENTICATED sin cookie",
+      "actual": "HTTP 401 UNAUTHENTICATED requestId=req-1792711022608",
+      "state": "PASS"
+    },
+    {
+      "id": "AUTH-02",
+      "expected": "401 con cookie de sesión alterada",
+      "actual": "HTTP 401 UNAUTHENTICATED requestId=req-1792711022624",
+      "state": "PASS"
+    },
+    {
+      "id": "AUTH-03",
+      "expected": "403 sin X-CSRF-Token y sin documento creado",
+      "actual": "HTTP 403 CSRF_INVALID requestId=req-1792711022657; creado=false",
+      "state": "PASS"
+    },
+    {
+      "id": "AUTH-04",
+      "expected": "403 con token CSRF anterior al login",
+      "actual": "HTTP 403 CSRF_INVALID requestId=req-1792711022849",
+      "state": "PASS"
+    },
+    {
+      "id": "AUTH-05",
+      "expected": "403 con Origin no permitido",
+      "actual": "HTTP 403 CSRF_INVALID requestId=req-1792711022881",
+      "state": "PASS"
+    },
+    {
+      "id": "AUTH-07",
+      "expected": "204 logout sin sesión (idempotente)",
+      "actual": "HTTP 204",
+      "state": "PASS"
+    },
+    {
+      "id": "AUTH-09",
+      "expected": "400 VALIDATION_ERROR si el login trae un rol",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792711022944",
+      "state": "PASS"
+    },
+    {
+      "id": "AUTH-06",
+      "expected": "401 (sesión revocada) o 403 USER_DISABLED; nunca 2xx",
+      "actual": "HTTP 401 UNAUTHENTICATED requestId=req-1792711023425",
+      "state": "PASS"
+    },
+    {
+      "id": "AUTH-08",
+      "expected": "Rol degradado: nunca 201; 401 o 403 (P-06)",
+      "actual": "HTTP 403 FORBIDDEN requestId=req-1792711023905",
+      "state": "PASS"
+    },
+    {
+      "id": "AUTH-10",
+      "expected": "error.requestId presente en los errores de AUTH-01..06",
+      "actual": "6/6 con requestId",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-01",
+      "expected": "GET /auth/me: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711023918; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-02",
+      "expected": "GET /patients: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711023998; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-03",
+      "expected": "POST /patients: sin sesión 401 / viewer 403 / admin 201",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711024110; viewer HTTP 403 FORBIDDEN requestId=req-1792711024144; admin HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-04",
+      "expected": "GET /patients/{id}: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711024206; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-05",
+      "expected": "PATCH /patients/{id}: sin sesión 401 / viewer 403 / admin 200; sin cambios tras el rechazo al viewer",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711024317; viewer HTTP 403 FORBIDDEN requestId=req-1792711024351; admin HTTP 200; sinCambios=true",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-06",
+      "expected": "GET /devices: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711024461; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-07",
+      "expected": "POST /devices: sin sesión 401 / viewer 403 / admin 201",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711024573; viewer HTTP 403 FORBIDDEN requestId=req-1792711024606; admin HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-08",
+      "expected": "GET /devices/{id}: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711024669; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-09",
+      "expected": "PATCH /devices/{id}: sin sesión 401 / viewer 403 / admin 200; sin cambios tras el rechazo al viewer",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711024765; viewer HTTP 403 FORBIDDEN requestId=req-1792711024798; admin HTTP 200; sinCambios=true",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-10",
+      "expected": "GET /users: sin sesión 401 / viewer 403 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711024924; viewer HTTP 403 FORBIDDEN requestId=req-1792711024958; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-11",
+      "expected": "POST /users: sin sesión 401 / viewer 403 / admin 201",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711025020; viewer HTTP 403 FORBIDDEN requestId=req-1792711025053; admin HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-12",
+      "expected": "GET /users/{id} (el propio viewer): sin sesión 401 / viewer 403 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711025198; viewer HTTP 403 FORBIDDEN requestId=req-1792711025229; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-13",
+      "expected": "PATCH /users/{id}: sin sesión 401 / viewer 403 / admin 200; sin cambios tras el rechazo al viewer",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711025276; viewer HTTP 403 FORBIDDEN requestId=req-1792711025309; admin HTTP 200; sinCambios=true",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-14",
+      "expected": "GET /assignments: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711025531; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-15",
+      "expected": "POST /assignments: sin sesión 401 / viewer 403 / admin 201",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711025615; viewer HTTP 403 FORBIDDEN requestId=req-1792711025644; admin HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-16",
+      "expected": "GET /assignments/{id}: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711025723; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-18",
+      "expected": "GET /sessions: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711025834; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-19",
+      "expected": "POST /sessions: sin sesión 401 / viewer 403 / admin 201",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711025915; viewer HTTP 403 FORBIDDEN requestId=req-1792711025932; admin HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-20",
+      "expected": "GET /sessions/{id}: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711026027; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-21",
+      "expected": "POST /sessions/{id}/start: sin sesión 401 / viewer 403 / admin 200; sin cambios tras el rechazo al viewer",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711026138; viewer HTTP 403 FORBIDDEN requestId=req-1792711026172; admin HTTP 200; sinCambios=true",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-23",
+      "expected": "GET /sessions/{id}/latest: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711026314; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-24",
+      "expected": "GET /patients/{id}/latest: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711026442; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-25",
+      "expected": "GET /sessions/{id}/measurements: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711026713; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-26",
+      "expected": "GET /patients/{id}/measurements: sin sesión 401 / viewer 200 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711026858; viewer HTTP 200; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-22",
+      "expected": "POST /sessions/{id}/finish: sin sesión 401 / viewer 403 / admin 200; sin cambios tras el rechazo al viewer",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711027001; viewer HTTP 403 FORBIDDEN requestId=req-1792711027034; admin HTTP 200; sinCambios=true",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-17",
+      "expected": "POST /assignments/{id}/close: sin sesión 401 / viewer 403 / admin 200; sin cambios tras el rechazo al viewer",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711027177; viewer HTTP 403 FORBIDDEN requestId=req-1792711027212; admin HTTP 200; sinCambios=true",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-27",
+      "expected": "POST /patients/{id}/access: sin sesión 401 / viewer 201 / admin 201",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711027353; viewer HTTP 201; admin HTTP 201",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-28",
+      "expected": "GET /audit-logs: sin sesión 401 / viewer 403 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711027528; viewer HTTP 403 FORBIDDEN requestId=req-1792711027546; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-29",
+      "expected": "GET /patients?enabled=false: sin sesión 401 / viewer 403 / admin 200",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711027608; viewer HTTP 403 FORBIDDEN requestId=req-1792711027626; admin HTTP 200",
+      "state": "PASS"
+    },
+    {
+      "id": "ROL-30",
+      "expected": "PATCH /patients/{inexistente}: sin sesión 401 / viewer 403 / admin 404",
+      "actual": "sin sesión HTTP 401 UNAUTHENTICATED requestId=req-1792711027672; viewer HTTP 403 FORBIDDEN requestId=req-1792711027706; admin HTTP 404 PATIENT_NOT_FOUND requestId=req-1792711027770",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-01",
+      "expected": "400 VALIDATION_ERROR con enabled/createdAt del cliente",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792711028090",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-04",
+      "expected": "assignedBy = admin autenticado; el cuerpo no lo fija (400)",
+      "actual": "assignedBy=actor; forjado HTTP 400 VALIDATION_ERROR requestId=req-1792711028186",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-02",
+      "expected": "400 VALIDATION_ERROR con participantCode",
+      "actual": "HTTP 400 VALIDATION_ERROR requestId=req-1792711028217",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-03",
+      "expected": "201; patientId/deviceId/assignmentId/source resueltos en servidor",
+      "actual": "paciente=true placa=true asignación=true origen=simulated estado=created",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-06",
+      "expected": "409 ASSIGNMENT_IN_USE al cerrar con sesión abierta",
+      "actual": "HTTP 409 ASSIGNMENT_IN_USE requestId=req-1792711028376",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-07",
+      "expected": "409 ASSIGNMENT_IN_USE al deshabilitar paciente ocupado",
+      "actual": "HTTP 409 ASSIGNMENT_IN_USE requestId=req-1792711028440",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-08",
+      "expected": "409 ASSIGNMENT_IN_USE al deshabilitar placa ocupada",
+      "actual": "HTTP 409 ASSIGNMENT_IN_USE requestId=req-1792711028504",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-10",
+      "expected": "409 ASSIGNMENT_CONFLICT con placa ocupada",
+      "actual": "HTTP 409 ASSIGNMENT_CONFLICT requestId=req-1792711028568",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-09",
+      "expected": "Rechazo sin asignación creada (P-05: 403 RESOURCE_DISABLED)",
+      "actual": "HTTP 403 RESOURCE_DISABLED requestId=req-1792711028632; activas=0",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-11",
+      "expected": "finish sobre created 409; start ×2 mismo startedAt; finish ×2 mismo finishedAt; start sobre finished 409",
+      "actual": "finish(created) HTTP 409 INVALID_SESSION_STATE requestId=req-1792711028760; start×2 iguales=true; finish×2 iguales=true; start(finished) HTTP 409 INVALID_SESSION_STATE requestId=req-1792711029176",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-05",
+      "expected": "close ×2: 200 ambas con mismos endedAt/endedBy",
+      "actual": "HTTP 200; HTTP 200; iguales=true",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-12",
+      "expected": "Sin password, secreto, hash ni tokens en POST /users ni GET /devices/{id}",
+      "actual": "sin campos sensibles",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-13",
+      "expected": "Un evento por mutación administrativa, con actorId; contexto sin lecturas ni secretos",
+      "actual": "patient.create=1 patient.update=1 device.create=1 device.update=1 assignment.create=1 session.create=1 session.start=1 session.finish=1 assignment.close=1 user.create=1 user.update=1; contextoExtra=0",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-14",
+      "expected": "201 y luego 200 duplicate:true con el mismo eventId",
+      "actual": "HTTP 201; HTTP 200 duplicate=true",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-15",
+      "expected": "10 consultas de latest no añaden eventos patient.view",
+      "actual": "latest=10/10; eventos 1→1",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-16",
+      "expected": "400 al reutilizar el cursor con otro paciente (código registrado; contrato: VALIDATION_ERROR)",
+      "actual": "HTTP 400 INVALID_CURSOR requestId=req-1792711030204",
+      "state": "PASS"
+    },
+    {
+      "id": "CON-18",
+      "expected": "Calidad no válida se guarda con value null (nunca 0); válidas numéricas",
+      "actual": "16 no válidas, 16 con null; 74 válidas",
+      "state": "PASS"
+    },
+    {
+      "id": "CONC-01",
+      "expected": "Misma placa, pacientes distintos: un 201, resto 409 ASSIGNMENT_CONFLICT, 1 activa (3 rondas de 5)",
+      "actual": "aprobadas 3/3; r1: 409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/201 activas=1; r2: 409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/201 activas=1; r3: 201/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT activas=1",
+      "state": "PASS"
+    },
+    {
+      "id": "CONC-02",
+      "expected": "Mismo paciente, placas distintas: 1 asignación activa del paciente (3 rondas de 5)",
+      "actual": "aprobadas 3/3; r1: 409:ASSIGNMENT_CONFLICT/201/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT activas=1; r2: 409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/201/409:ASSIGNMENT_CONFLICT activas=1; r3: 409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/201 activas=1",
+      "state": "PASS"
+    },
+    {
+      "id": "CONC-03",
+      "expected": "Petición idéntica repetida: un 201, resto 409, una asignación (3 rondas de 5)",
+      "actual": "aprobadas 3/3; r1: 409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/201 activas=1; r2: 409:ASSIGNMENT_CONFLICT/201/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT activas=1; r3: 201/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT/409:ASSIGNMENT_CONFLICT activas=1",
+      "state": "PASS"
+    },
+    {
+      "id": "CONC-04",
+      "expected": "Dos sesiones abiertas en la misma asignación: como máximo una (P-05: 409 ASSIGNMENT_IN_USE) (3 rondas de 5)",
+      "actual": "aprobadas 3/3; r1: 409:ASSIGNMENT_IN_USE/409:ASSIGNMENT_IN_USE/201/409:ASSIGNMENT_IN_USE/409:ASSIGNMENT_IN_USE abiertas=1; r2: 409:ASSIGNMENT_IN_USE/201/409:ASSIGNMENT_IN_USE/409:ASSIGNMENT_IN_USE/409:ASSIGNMENT_IN_USE abiertas=1; r3: 201/409:ASSIGNMENT_IN_USE/409:ASSIGNMENT_IN_USE/409:ASSIGNMENT_IN_USE/409:ASSIGNMENT_IN_USE abiertas=1",
+      "state": "PASS"
+    },
+    {
+      "id": "CONC-05",
+      "expected": "Inicio repetido: todas 200 con el mismo startedAt; placa reservada por la sesión (3 rondas de 5)",
+      "actual": "aprobadas 3/3; r1: 200/200/200/200/200 startedAt=1 reservada=true; r2: 200/200/200/200/200 startedAt=1 reservada=true; r3: 200/200/200/200/200 startedAt=1 reservada=true",
+      "state": "PASS"
+    },
+    {
+      "id": "CONC-06",
+      "expected": "Cierre contra nueva sesión: nunca asignación cerrada con sesión abierta (3 rondas de 5)",
+      "actual": "aprobadas 3/3; r1: cierre HTTP 200, sesión HTTP 409 ASSIGNMENT_NOT_ACTIVE requestId=req-1792711098307, cerrada=true abiertas=0; r2: cierre HTTP 200, sesión HTTP 409 ASSIGNMENT_NOT_ACTIVE requestId=req-1792711101490, cerrada=true abiertas=0; r3: cierre HTTP 200, sesión HTTP 409 ASSIGNMENT_NOT_ACTIVE requestId=req-1792711104731, cerrada=true abiertas=0",
+      "state": "PASS"
+    },
+    {
+      "id": "CONC-07",
+      "expected": "Deshabilitar contra asignar: nunca placa deshabilitada con asignación activa (3 rondas de 5)",
+      "actual": "aprobadas 3/3; r1: deshabilitar HTTP 200, asignar HTTP 403 RESOURCE_DISABLED requestId=req-1792711107941, deshabilitada=true activas=0; r2: deshabilitar HTTP 409 ASSIGNMENT_IN_USE requestId=req-1792711111457, asignar HTTP 201, deshabilitada=false activas=1; r3: deshabilitar HTTP 200, asignar HTTP 403 RESOURCE_DISABLED requestId=req-1792711114989, deshabilitada=true activas=0",
+      "state": "PASS"
+    },
+    {
+      "id": "CONC-09",
+      "expected": "Apertura simultánea con el mismo viewId: un 201, resto 200 duplicate:true, un evento (3 rondas de 5)",
+      "actual": "aprobadas 3/3; r1: 201/200/200/200/200 eventId=1 eventos=1; r2: 201/200/200/200/200 eventId=1 eventos=1; r3: 200/200/200/200/201 eventId=1 eventos=1",
+      "state": "PASS"
+    }
+  ]
+}

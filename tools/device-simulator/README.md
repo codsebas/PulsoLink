@@ -72,7 +72,7 @@ npm run typecheck --workspace=tools/device-simulator
 npm run build --workspace=tools/device-simulator
 ```
 
-[Procedimiento y matriz HTTP #32](../../docs/qa/pl2-08-hugo.md): `npm run qa --workspace=tools/device-simulator` verifica credenciales, identidad, calidades, duplicados, conflictos, concurrencia, permisos e historia; exige QA_ALLOW_WRITES=true y un fixture desechable. El fixture se prepara con un script del backend protegido para emuladores; el cliente QA nunca accede a Firebase directamente.
+[Procedimiento y matriz HTTP #32](../../docs/qa/pl2-08-hugo.md): `npm run qa --workspace=tools/device-simulator` verifica credenciales, identidad, calidades, duplicados, conflictos, concurrencia, permisos e historia; exige QA_ALLOW_WRITES=true y un fixture desechable. JOINT-CONC-08 usa un límite de 30000 ms solo para esa carrera; los demás casos usan `REQUEST_TIMEOUT_MS` (5000 ms por defecto). El reporte identifica ambos valores. El fixture se prepara con un script del backend protegido para emuladores; el cliente QA nunca accede a Firebase directamente.
 
 [Resultados y límites](../../docs/evidencias/hugo-pl2-2026-10-20.md). Pasar pruebas aisladas del emisor no acredita la API objetivo, la nube ni el hardware. La demostración local oficial ya se ejecutó sobre abc4d45; nube y hardware conservan su aceptación independiente.
 

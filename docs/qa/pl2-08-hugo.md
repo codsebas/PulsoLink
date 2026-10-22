@@ -6,7 +6,7 @@ Complementa [la matriz de Axel](pl2-08-matriz-api-permisos.md); no sustituye sus
 
 ## Estado actualizado: 21 de octubre de 2026
 
-Sobre main abc4d45, A-01–17, B-01–06 y ambos casos conjuntos pasan con timeout de QA 30000 ms. Las antiguas rutas faltantes ya están integradas; los resultados de ad4dede se conservan como antecedentes. [Aceptación actual, comandos y límites](../evidencias/hugo-integrado-2026-10-21.md). El simulador conserva su timeout predeterminado de 5000 ms.
+La matriz usa el timeout base `REQUEST_TIMEOUT_MS` (5000 ms por defecto). Solo **JOINT-CONC-08** recibe un límite de 30000 ms por la contención observada en emuladores; con el timeout base sus respuestas tardaron 5251–7445 ms. El reporte JSON declara ambos presupuestos. Este ajuste de QA no cambia el timeout del simulador ni el de los otros casos HTTP. Las rutas faltantes de la primera matriz ya están integradas; sus resultados se conservan como antecedentes. [Aceptación previa, comandos y límites](../evidencias/hugo-integrado-2026-10-21.md).
 
 ## Ejecución y fixture
 
@@ -95,7 +95,7 @@ Antes de cualquier mutación comprueban listado de asignaciones, identidad auten
 
 **JOINT-CON-17:** admin crea paciente A y asigna D1, crea/inicia sesión por API; simulador emite; finalizar y cerrar asignación; asignar D2 y repetir. Consultar todas las páginas del historial; comparar IDs y fechas del primer tramo con los originales y verificar aislamiento B. Repetir A-08/A-09 después de finalizar/reasignar: referencia original/conflicto respectivamente. B-04 prueba historia presembrada, no acredita estas mutaciones. Bloqueo histórico en ad4dede; aprobado por HTTP sobre abc4d45.
 
-**JOINT-CONC-08:** con sesión nueva por cada ronda, lanzar `finish` y cinco muestras nuevas mediante `Promise.all`; tres rondas. Admitir escritura previa al cierre o 409 SESSION_NOT_ACTIVE; leer estado final e historia, verificar ninguna receivedAt posterior a finishedAt ni escritura huérfana. No ejecutar sobre sesiones de otro integrante. Bloqueo histórico superado en abc4d45. Los tests de repositorios existentes pasan este invariante, pero no sustituyen el recorrido oficial.
+**JOINT-CONC-08:** con sesión nueva por cada ronda, lanzar `finish` y cinco muestras nuevas mediante `Promise.all`; tres rondas. Admitir escritura previa al cierre o 409 SESSION_NOT_ACTIVE; leer estado final e historia, verificar ninguna receivedAt posterior a finishedAt ni escritura huérfana. No ejecutar sobre sesiones de otro integrante. Solo este caso recibe `JOINT_CONCURRENCY_TIMEOUT_MS=30000`; el resto conserva el timeout base (5000 ms por defecto). Los tests de repositorios existentes pasan este invariante, pero no sustituyen el recorrido oficial.
 
 La implementación espera las seis respuestas con `Promise.allSettled` antes de limpiar recursos. Cada ronda exige primero una ingestión válida y coteja los ACK/rechazos con las lecturas persistidas. CON-17 también reasigna D1 al paciente B y confirma que no cambia la pertenencia histórica de A. Se usan páginas de una lectura para obligar a verificar cursores. Seis pruebas con un doble deliberado comprueban el propio ejecutor: bloqueo sin mutaciones, fixture ocupado, ambos órdenes de carrera, corrupción de IDs históricos y escritura posterior a finishedAt. Esas pruebas no acreditan el backend real.
 

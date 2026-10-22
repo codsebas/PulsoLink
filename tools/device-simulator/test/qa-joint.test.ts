@@ -1,16 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runJointCases, type HttpClient, type Reply } from '../src/qa-joint.js';
+import { JOINT_CONCURRENCY_TIMEOUT_MS, runJointCases, type HttpClient, type Reply } from '../src/qa-joint.js';
 
 // This double tests the QA runner's ability to detect defects, NOT the real backend.
 function fixture(options: { missing?: boolean; busy?: boolean; corruptHistory?: boolean; acceptedRace?: boolean; lateWrite?: boolean } = {}) {
   let counter = 0; let tick = 0;
   const sessions = new Map<string, any>(); const assignments = new Map<string, any>();
-  const rows: any[] = []; const requests: string[] = [];
+  const rows: any[] = []; const requests: string[] = []; const requestTimeouts: { request: string; timeoutMs?: number }[] = [];
   const time = () => new Date(1800000000000 + ++tick).toISOString();
   const reply = (status: number, data: any): Reply => ({ status, body: { data: structuredClone(data) } });
-  const admin: HttpClient = async (path, method = 'GET', body: any) => {
+  const admin: HttpClient = async (path, method = 'GET', body: any, timeoutMs) => {
     requests.push(`${method} ${path}`);
+    requestTimeouts.push({ request: `${method} ${path}`, timeoutMs });
     const url = new URL(path, 'http://test'); const parts = url.pathname.split('/').filter(Boolean);
     if (parts[0] === 'assignments' && method === 'GET') {
       if (options.missing) return { status: 404, body: {} };
@@ -46,8 +47,9 @@ function fixture(options: { missing?: boolean; busy?: boolean; corruptHistory?: 
     }
     throw new Error('Unexpected test request');
   };
-  const device = async (index: number, path: string, body?: any): Promise<Reply> => {
+  const device = async (index: number, path: string, body?: any, timeoutMs?: number): Promise<Reply> => {
     requests.push(`device${index} ${path}`);
+    requestTimeouts.push({ request: `device${index} ${path} sequence=${body?.sequence ?? ''}`, timeoutMs });
     if (path === 'config') return reply(200, { deviceId: `d${index}`, activeSessionId: options.busy ? 'preexisting' : null });
     const existing = rows.find(r => r.deviceId === body.deviceId && r.bootId === body.bootId && r.sequence === body.sequence);
     if (existing) {
@@ -59,7 +61,7 @@ function fixture(options: { missing?: boolean; busy?: boolean; corruptHistory?: 
     const row = { ...body, id: `m-${++counter}`, patientId: s.patientId, assignmentId: s.assignmentId, receivedAt: time() };
     rows.push(row); return reply(201, { measurementId: row.id, receivedAt: row.receivedAt, duplicate: false });
   };
-  return { deps: { admin, devices: ['d0', 'd1'] as [string, string], device }, requests, sessions, assignments };
+  return { deps: { admin, devices: ['d0', 'd1'] as [string, string], device }, requests, requestTimeouts, sessions, assignments };
 }
 test('missing CRUD blocks both joint cases without mutations', async () => {
   const f = fixture({ missing: true }); const result = await runJointCases(f.deps);
@@ -86,4 +88,16 @@ test('runner catches historical ID corruption and cleans up its own sessions', a
 test('runner catches a persisted measurement after finishedAt', async () => {
   const f = fixture({ acceptedRace: true, lateWrite: true }); const result = await runJointCases(f.deps);
   assert.equal(result[1].state, 'FAIL'); assert.match(result[1].actual, /posteriores/);
+});
+test('only JOINT-CONC-08 receives the extended QA timeout', async () => {
+  const f = fixture(); const result = await runJointCases(f.deps);
+  assert.deepEqual(result.map(r => r.state), ['PASS', 'PASS']);
+  assert.equal(JOINT_CONCURRENCY_TIMEOUT_MS, 30_000);
+  const finishRequests = f.requestTimeouts.filter(r => r.request.startsWith('POST /sessions/') && r.request.endsWith('/finish'));
+  assert.equal(finishRequests.length, 6);
+  assert.ok(finishRequests.slice(0, 3).every(r => r.timeoutMs === undefined));
+  assert.ok(finishRequests.slice(3).every(r => r.timeoutMs === JOINT_CONCURRENCY_TIMEOUT_MS));
+  const concurrentMeasurements = f.requestTimeouts.filter(r => r.request.startsWith('device0 measurements sequence=') && /sequence=[2-6]$/.test(r.request));
+  assert.equal(concurrentMeasurements.length, 15);
+  assert.ok(concurrentMeasurements.every(r => r.timeoutMs === JOINT_CONCURRENCY_TIMEOUT_MS));
 });

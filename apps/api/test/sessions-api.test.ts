@@ -157,6 +157,12 @@ describe('Contrato B: dispositivos y sesiones', () => {
     expect(disabled.status).toBe(403);
     expect((await agent.post('/api/v1/sessions').set('Origin', origin).set('X-CSRF-Token', csrf)
       .send({ participantCode: 'P-001', deviceId: 'device-1' })).status).toBe(400);
+    for (const assignmentId of ['.', '..']) {
+      const invalid = await agent.post('/api/v1/sessions').set('Origin', origin).set('X-CSRF-Token', csrf)
+        .send({ assignmentId });
+      expect(invalid.status).toBe(400);
+      expect(invalid.body.error.code).toBe('VALIDATION_ERROR');
+    }
     start.mockRejectedValueOnce(new PersistenceError('DEVICE_BUSY', 'El dispositivo ya está reservado.'));
     const busy = await agent.post('/api/v1/sessions/session-1/start').set('Origin', origin).set('X-CSRF-Token', csrf);
     expect(busy.status).toBe(409);

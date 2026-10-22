@@ -520,7 +520,7 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     Conflict:
-      description: "Conflicto de estado o idempotencia (409). Códigos posibles: IDEMPOTENCY_CONFLICT (clave deviceId+bootId+sequence repetida con distinto contenido), SESSION_NOT_ACTIVE (sesión no activa para este dispositivo), ASSIGNMENT_NOT_ACTIVE (asignación no activa o incompatible), ASSIGNMENT_IN_USE, ASSIGNMENT_CONFLICT, INVALID_SESSION_STATE, DEVICE_BUSY, DEVICE_SOURCE_CHANGED, RESOURCE_DISABLED."
+      description: "Conflicto de estado o idempotencia (409). Códigos posibles: IDEMPOTENCY_CONFLICT (clave deviceId+bootId+sequence repetida con distinto contenido), SESSION_NOT_ACTIVE (sesión no activa para este dispositivo), ASSIGNMENT_NOT_ACTIVE (asignación no activa o incompatible), ASSIGNMENT_IN_USE, ASSIGNMENT_CONFLICT, INVALID_SESSION_STATE, DEVICE_BUSY, DEVICE_SOURCE_CHANGED."
       content:
         application/json:
           schema:

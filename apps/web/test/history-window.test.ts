@@ -37,25 +37,28 @@ describe('ventana continua y navegación acotada', () => {
     expect(api.calls.slice(callsBefore)).toEqual([{ cursor: undefined, limit: 20 }]);
   });
 
-  it('HIST-02 permite visitar las 1120 lecturas con memoria y páginas acotadas', async () => {
+  it('HIST-02 recorre las 1120 lecturas sin descartar lo recién cargado', async () => {
     const api = server(1120);
     let window = await recentHistoryWindow(undefined, api.fetchPage);
     const visited = new Set<string>();
     let steps = 0;
     do {
       windowReadings(window).forEach(row => visited.add(`${row.sessionId}/${row.id}`));
-      expect(windowReadings(window).length).toBeLessThanOrEqual(MAX_HISTORY_SAMPLES);
+      // Criterio de QA (HIST-02): la navegación conserva todo lo cargado. Nada
+      // de lo que la persona usuaria abrió se recorta ni se esconde; el límite
+      // de memoria acota el tramo que crece solo con el refresco en vivo.
+      expect(windowReadings(window).length).toBe(visited.size);
       expect(window.pages.length).toBeLessThanOrEqual(MAX_HISTORY_PAGES);
       if (!window.nextCursor) break;
       window = await olderHistoryWindow(window, api.fetchPage);
       expect(++steps).toBeLessThan(15);
     } while (true);
     expect(visited.size).toBe(1120);
+    expect(windowReadings(window)).toHaveLength(1120);
     expect(windowReadings(window).at(-1)!.id).toBe('m1');
-    expect(window.browsingOlder).toBe(true);
     const recent = await recentHistoryWindow(window, api.fetchPage);
     expect(windowReadings(recent)[0].id).toBe('m1120');
-    expect(recent.browsingOlder).toBe(false);
+    expect(windowReadings(recent)).toHaveLength(1120);
   });
 
   it('recupera 47 muestras de una ausencia sin descargar páginas antiguas sanas', async () => {

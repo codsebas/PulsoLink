@@ -63,17 +63,21 @@ export interface ServerRequest {
  * paginación del cliente sin depender de Firestore.
  */
 export function createHistoryServer(dataset: PatientMeasurement[]) {
-  const sorted = [...dataset].sort(serverOrder);
+  const rows = [...dataset];
   const requests: ServerRequest[] = [];
   return {
     requests,
+    /** Agrega lecturas que llegan durante la sesión (pestaña oculta, reconexión). */
+    add(readings: PatientMeasurement[]) {
+      rows.push(...readings);
+    },
     handle(url: URL) {
       const limit = Number(url.searchParams.get('limit') ?? 50);
       const from = url.searchParams.get('from');
       const to = url.searchParams.get('to');
       const cursor = url.searchParams.get('cursor');
       requests.push({ url, limit, from, to, cursor });
-      const filtered = sorted.filter(
+      const filtered = [...rows].sort(serverOrder).filter(
         (row) => (!from || row.receivedAt >= from) && (!to || row.receivedAt < to)
       );
       let start = 0;
@@ -115,6 +119,10 @@ export function installHistoryFetch(dataset: PatientMeasurement[]) {
   return {
     server,
     calls,
+    /** Agrega lecturas al servidor simulado sin reinstalar el `fetch`. */
+    add(readings: PatientMeasurement[]) {
+      server.add(readings);
+    },
     restore() {
       globalThis.fetch = original;
     },

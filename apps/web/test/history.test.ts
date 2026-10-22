@@ -60,4 +60,13 @@ describe('historial del paciente', () => {
     expect(rangeKey(range)).toBe(rangeKey({ ...range }));
     expect(rangeKey({ from: 'a' })).not.toBe(rangeKey({ to: 'a' }));
   });
+
+  it('la cobertura no recorta el historial acumulado', () => {
+    const readings = Array.from({ length: 1120 }, (_, index) =>
+      reading({ id: `m${index}`, receivedAt: new Date(Date.parse('2026-10-19T10:00:00.000Z') - index * 1000).toISOString() })
+    );
+    const coverage = coverageOf(readings, { hasMore: false, pagesLoaded: 12 });
+    expect(coverage).toMatchObject({ loaded: 1120, complete: true, truncated: false, dropped: 0 });
+    expect(coverage.oldestReceivedAt).toBe(readings[1119].receivedAt);
+  });
 });

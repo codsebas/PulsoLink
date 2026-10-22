@@ -13,7 +13,7 @@ Entregar a quien integra el dashboard una capa de datos confiable para indicador
 | --- | --- |
 | `api.ts` | Accesos HTTP tipados: `fetchPatientLatest`, `fetchPatientMeasurements`, `fetchPatient`, `fetchActiveSession`, `recordPatientAccess`. Tamaño de página (100) y ventana en vivo (20) definidos aquí. |
 | `keys.ts` | Claves de consulta. Toda clave incluye paciente y rango, de modo que cambiar de expediente o de intervalo nunca mezcla ni conserva datos del anterior. |
-| `history.ts` | Funciones puras: identidad de lectura (`sessionId/id`), ruta del documento, orden del servidor, deduplicación, fusión de páginas y declaración de cobertura. |
+| `history.ts` | Funciones puras: identidad de lectura (`sessionId/id`), ruta del documento, orden del servidor, deduplicación, fusión de páginas, ventana del historial (`recentHistoryWindow`, `olderHistoryWindow`, `windowReadings`) y declaración de cobertura. |
 | `series.ts` | Series cronológicas por magnitud: nulos conservados, huecos por desconexión o cambio de placa, y `trendPoints` para gráficas combinadas. |
 | `hooks.ts` | Hooks de TanStack Query: `usePatientAccess`, `usePatientLatest`, `usePatientLiveWindow`, `usePatientHistory`, `useDocumentVisible` y el plan de polling. |
 
@@ -23,9 +23,11 @@ El servidor entrega `receivedAt DESC` y desempata por la ruta completa del docum
 
 - **Identidad de lectura:** `sessionId/id`. El ID de medición solo es único dentro de su sesión; deduplicar por `id` perdería historial.
 - **Fusión de páginas:** `mergeMeasurements` deduplica por identidad y conserva el orden del servidor. Las páginas se acumulan, no se reemplazan: el botón «Cargar más antiguas» añade la siguiente página del cursor.
-- **Ventana en vivo:** las 20 lecturas más recientes se refrescan como máximo cada 10 s. Es lo único que baja de forma periódica; las páginas acumuladas no se vuelven a descargar en cada tick.
+- **Ventana única y acotada:** el historial se sostiene en una sola ventana (`HistoryWindow`) con las páginas cargadas, el cursor de continuación y el índice de la primera página que la persona usuaria abrió con «Cargar más antiguas» (`visitedFrom`).
+- **Refresco en vivo:** cada tick pide la página más reciente (20 lecturas) y, si no alcanza la frontera ya cargada, sigue pidiendo páginas hasta solaparla. Así se recupera el tramo que llegó con la pestaña oculta o durante una desconexión, sin perder muestras intermedias. Un refresco normal hace una sola petición.
+- **Navegación hacia atrás:** `olderHistoryWindow` sigue el cursor del servidor y **conserva todo lo cargado**. Lo recién descargado no se descarta ni se esconde, y el recorrido llega al inicio real del expediente (criterio de QA HIST-02).
 - **Última muestra:** `latest` se refresca cada 2 s mientras haya sesión activa y la pestaña esté visible. `deviceOnline` (≤45 s), `stale` (>10 s) y `connectionState` los decide el backend; el frontend solo los presenta.
-- **Límite de memoria y render:** se conservan como máximo 1000 lecturas por expediente. Si se supera, la cobertura declara cuántas quedaron fuera; nunca se trunca en silencio.
+- **Límite de memoria:** `MAX_HISTORY_SAMPLES` (1000) y `MAX_HISTORY_PAGES` (50) acotan el tramo que crece solo con el refresco automático. Con navegación activa la ventana conserva todo lo que la persona usuaria pidió ver: el recorte por un lado abriría un hueco o escondería las páginas recién descargadas.
 - **Cobertura declarada:** lecturas cargadas, páginas cargadas, intervalo exacto (`oldestReceivedAt`–`newestReceivedAt`), si hay más páginas y si se alcanzó el inicio del intervalo.
 
 ## Filtros temporales
@@ -58,4 +60,21 @@ El diseño visual del dashboard (jerarquía de tarjetas, colores, navegación) s
 
 ## Verificación
 
-Las verificaciones de esta capa están en `apps/web/test/` (paginación con empates temporales, filtros, nulos y calidad, series con huecos, aislamiento de caché, plan de polling e integración de la pantalla) y en `apps/web/test/monitoring-api.integration.test.ts`, que se omite salvo que se provea una sesión real. El detalle de comandos y resultados está en [evidencias](../evidencias/monitoreo-pl2-07.md).
+Las verificaciones de esta capa están en `apps/web/test/` (paginación con empates temporales, filtros, nulos y calidad, series con huecos, aislamiento de caché, plan de polling, continuidad de la ventana e integración de la pantalla) y en `apps/web/test/monitoring-api.integration.test.ts`, que se omite salvo que se provea una sesión real.
+
+Los criterios de aceptación de QA tienen dos puertas:
+
+```bash
+# Recorrido real contra el backend y el navegador (entorno en vivo de QA)
+node tools/qa/hugo-history-acceptance.cjs
+
+# Puerta local sin dependencias: mismo escenario sobre la capa de datos
+node tools/qa/history-continuity-acceptance.cjs
+```
+
+La puerta local corre `apps/web/test/history-acceptance.test.ts` contra el modelo de servidor del historial y verifica:
+
+- **HIST-01:** con 162 lecturas, tras dos refrescos con lecturas nuevas (pestaña oculta) el historial queda sin huecos y con las 162 lecturas; un refresco normal no genera consultas extra.
+- **HIST-02:** con 1120 lecturas, «Cargar más antiguas» llega al inicio real del expediente (12 páginas, 1120 lecturas visibles) y la cobertura declara `complete: true` sin truncar nada.
+
+El detalle de comandos y resultados está en [evidencias](../evidencias/monitoreo-pl2-07.md).

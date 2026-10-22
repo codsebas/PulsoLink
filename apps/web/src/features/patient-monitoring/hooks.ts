@@ -165,8 +165,8 @@ export function usePatientHistory(
     enabled,
     queryFn: ({ signal }) => recentHistoryWindow(client.getQueryData<HistoryWindow>(queryKey),
       (cursor, limit) => fetchPatientMeasurements(patientId, { ...range, cursor, limit }, signal)),
-    refetchInterval: query => visible && options.poll && !older.isPending && !older.isError &&
-      !query.state.data?.browsingOlder ? HISTORY_POLL_MS : false,
+    refetchInterval: () => visible && options.poll && !older.isPending && !older.isError
+      ? HISTORY_POLL_MS : false,
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -179,8 +179,7 @@ export function usePatientHistory(
     // el temporizador de polling todavía no haya llegado a su siguiente tick.
     const resumed = visible && !wasVisible.current;
     wasVisible.current = visible;
-    if (enabled && resumed && options.poll && !older.isPending && !older.isError &&
-      !client.getQueryData<HistoryWindow>(queryKey)?.browsingOlder) {
+    if (enabled && resumed && options.poll && !older.isPending && !older.isError) {
       void client.refetchQueries({ queryKey, exact: true, type: 'active' });
     }
   }, [enabled, visible, options.poll, client, queryKey]);

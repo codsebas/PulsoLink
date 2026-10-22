@@ -68,17 +68,23 @@ describe('integración del hook de historial', () => {
     const seen = new Set<string>();
     for (let page = 0; page < 12; page++) {
       result.current.readings.forEach(row => seen.add(row.id));
-      expect(result.current.readings.length).toBeLessThanOrEqual(1000);
+      // Criterio de QA (HIST-02): la ventana conserva todo lo cargado, así que
+      // la persona usuaria puede recorrer el expediente entero sin que se
+      // recorten las páginas recién descargadas.
+      expect(result.current.readings.length).toBe(seen.size);
       expect(result.current.coverage.loaded).toBe(result.current.readings.length);
       if (!result.current.hasMore) break;
       act(() => result.current.loadMore());
       await waitFor(() => expect(result.current.isFetching).toBe(false));
     }
     expect(seen.size).toBe(1120);
+    expect(result.current.readings).toHaveLength(1120);
     expect(f.client.getQueryCache().getAll()).toHaveLength(1);
     act(() => result.current.refresh());
     await waitFor(() => expect(result.current.readings[0].id).toBe('m1120'));
-    expect(result.current.hasMore).toBe(true);
+    // Se alcanzó el inicio real del expediente: no quedan páginas por detrás.
+    expect(result.current.hasMore).toBe(false);
+    expect(result.current.readings).toHaveLength(1120);
   });
 
   it('aborta una página pendiente al salir sin reconstruir la caché del expediente', async () => {

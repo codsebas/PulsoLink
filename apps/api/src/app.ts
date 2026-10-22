@@ -18,6 +18,7 @@ import { createPatientAdminRouter } from './modules/patients/patients.admin.rout
 import { createAssignmentsRouter } from './modules/assignments/assignments.routes.js';
 import { usersRouter } from './modules/users/users.routes.js';
 import { auditRouter } from './modules/audit/audit.routes.js';
+import { readingTestRouter } from './modules/dev/reading-test.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -46,6 +47,11 @@ export function createApp(): Express {
   app.use('/api/v1/users', requireUser, csrfProtection, usersRouter);
   app.use('/api/v1/audit-logs', requireUser, auditRouter);
   app.use('/api/v1/device', deviceMeasurementsRouter);
+
+  // Diagnóstico LAN temporal: no montar en production ni test.
+  if (env.NODE_ENV === 'development') {
+    app.use('/api/v1/dev', readingTestRouter);
+  }
 
   // Manejador 404 para rutas no encontradas
   app.use(notFoundHandler);

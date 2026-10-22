@@ -12,8 +12,8 @@ Issue #30. Base `a1c12bc` (incluye #56). Datos ficticios únicamente.
 
 ## Verificación
 
-Regresión focalizada con Node 24.22.1: cuatro pruebas aprobadas (opciones 101, cursor opaco, Escape, envío pendiente y retorno del foco simulado). La contención nativa de Tab exige navegador y no se acredita mediante jsdom.
+Regresiones con Node 24.22.1: opciones 101, cursor opaco, Escape, envío pendiente, retorno del foco simulado, bloqueo de reasignación ante un error y reintento del cursor fallido. La contención nativa de Tab se verificó también en Edge, junto a Escape y devolución del foco.
 
 La primera suite completa con Node 26 tuvo 31 aprobadas, una fallida por espera inicial de un segundo y dos integraciones omitidas; no se considera una aprobación global ni una ejecución del entorno objetivo.
 
-Los resultados finales del recorrido integrado y la matriz por criterio se registran en la entrega #33. No se solicita cierre automático por este documento ni se sustituyen las revisiones de Lis, Axel y coordinación.
+La ejecución integrada de #33 terminó con salida 0 y 16 casos aprobados, incluidos creación de pacientes/placas, opciones después de 100, sesiones, reasignación con lecturas oficiales de dos placas, historia original inmutable, conflictos de deshabilitación y usuarios/auditoría. Resultados y capturas: `marielos-pl2-09.md` y su reporte JSON. No se solicita cierre automático ni se sustituyen las revisiones de Lis, Axel y coordinación.

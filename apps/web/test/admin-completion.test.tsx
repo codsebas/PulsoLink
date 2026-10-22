@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { PropsWithChildren } from 'react';
 import { FormDialog } from '../src/components/admin/FormDialog';
@@ -8,6 +8,8 @@ import { ConfirmDialog } from '../src/components/admin/ConfirmDialog';
 import { OptionPagination } from '../src/components/admin/OptionPagination';
 import { usePatientOptions } from '../src/features/patients/api';
 import { useDeviceOptions } from '../src/features/devices/api';
+import { AssignmentsPage } from '../src/features/assignments/AssignmentsPage';
+vi.mock('../src/features/auth/useSessionUser', () => ({ useSessionUser: () => ({ data: { role: 'admin' } }) }));
 
 beforeEach(() => {
   // jsdom does not implement the browser's modal/focus algorithms.
@@ -41,6 +43,13 @@ describe('diálogos administrativos', () => {
 });
 
 describe('opciones posteriores a la primera página', () => {
+  it('reintenta el cursor fallido en lugar de volver a cargar las páginas sanas', () => {
+    const fetchNextPage = vi.fn(), refetch = vi.fn();
+    render(<OptionPagination label="pacientes" query={{ isFetching: false, isError: true,
+      isFetchNextPageError: true, fetchNextPage, refetch }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar pacientes' }));
+    expect(fetchNextPage).toHaveBeenCalledOnce(); expect(refetch).not.toHaveBeenCalled();
+  });
   for (const [label, hook, endpoint] of [['pacientes', usePatientOptions, '/patients'], ['placas', useDeviceOptions, '/devices']] as const) {
     it(`conserva los primeros 100 ${label} y usa el cursor opaco para cargar el 101`, async () => {
       const urls: URL[] = [];
@@ -67,4 +76,25 @@ describe('opciones posteriores a la primera página', () => {
       view.unmount(); act(() => client.clear());
     });
   }
+});
+
+it('no cierra una asignación cuando falla la consulta de ocupación', async () => {
+  const calls: string[] = [];
+  vi.stubGlobal('fetch', vi.fn(async (input, init) => {
+    const url = new URL(String(input), 'http://localhost'); calls.push(init?.method ?? 'GET');
+    if (url.pathname.endsWith('/assignments')) return new Response(JSON.stringify({ error: { code: 'SERVICE_UNAVAILABLE', message: 'Temporal' } }), { status: 503, headers: { 'content-type': 'application/json' } });
+    return new Response(JSON.stringify({ data: [{ id: 'one', code: 'DEMO', displayName: 'Ficticio' }], pagination: { hasMore: false, nextCursor: null } }), { headers: { 'content-type': 'application/json' } });
+  }));
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(<QueryClientProvider client={client}><AssignmentsPage /></QueryClientProvider>);
+  fireEvent.click(screen.getByRole('button', { name: 'Reasignar' }));
+  const dialog = within(screen.getByRole('dialog'));
+  await waitFor(() => expect(dialog.getByLabelText(/Paciente/).querySelector('option[value="one"]')).toBeTruthy());
+  fireEvent.change(dialog.getByLabelText(/Paciente/), { target: { value: 'one' } });
+  fireEvent.change(dialog.getByLabelText(/Nueva placa/), { target: { value: 'one' } });
+  await waitFor(() => expect(screen.getByText('Reintentar asignaciones')).toBeTruthy());
+  const submit = screen.getByRole('dialog').querySelector('button[type="submit"]') as HTMLButtonElement;
+  expect(submit.disabled).toBe(true);
+  expect(calls.every(method => method === 'GET')).toBe(true);
+  client.clear();
 });

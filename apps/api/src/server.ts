@@ -1,8 +1,11 @@
 import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { UsersService } from './modules/users/users.service.js';
+import { resolve } from 'node:path';
 
-const app = createApp();
+const app = createApp(env.NODE_ENV === 'production'
+  ? { webDistPath: resolve(__dirname, '../../web/dist') }
+  : {});
 
 const server = app.listen(env.PORT, () => {
   console.log(`✅ [PulsoLink API] Servidor ejecutándose en http://localhost:${env.PORT}`);

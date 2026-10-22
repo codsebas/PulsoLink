@@ -6,6 +6,8 @@
 
 **Alcance de esta entrega:** estado actual, alternativas de alojamiento y plantillas de variables. No se desplegaron servicios, habilitó facturación ni abrió un túnel público.
 
+**Actualización de alojamiento:** el entrypoint de producción ahora sirve el build React junto con la API. Para desplegar ambos en el servicio existente, usar la [guía específica de Render](render.md) y `npm run build:deploy`; el inventario de GitHub de la sección 2 conserva el corte de esta revisión.
+
 ## 1. Recomendación para el equipo
 
 **Para dejar la demostración disponible sin depender de una computadora: Render Starter, con web y API bajo un mismo origen HTTPS.** La referencia oficial consultada sitúa esa instancia en **USD 7/mes**; transferencia, servicios adicionales e impuestos deben revisarse aparte. Esta es una recomendación de simplicidad y previsibilidad para el prototipo, no un benchmark medido. [Referencia de precio del propio proveedor](https://render.com/articles/render-vs-railway).
@@ -66,7 +68,7 @@ flowchart LR
 
 El origen puede ser la URL asignada por el proveedor; un dominio comprado no es requisito para empezar. DNS/TLS y la cadena de certificados elegida deben probarse en el ESP8266 real.
 
-**El código actual todavía necesita un cambio de alojamiento:** Express solo monta la API y no sirve `apps/web/dist`. Se debe preparar, mediante PR, una de estas opciones:
+**Alojamiento implementado:** el entrypoint de producción proporciona `apps/web/dist` a Express, que sirve los estáticos y el fallback SPA después de los routers API. La [guía de Render](render.md) indica los comandos actuales. Las opciones arquitectónicas son:
 
 1. Servir el build React desde Express con fallback SPA, preservando los 404 JSON de `/api/v1`.
 2. Servir React con un proxy del mismo origen que reenvíe `/api/v1` a Express.
@@ -186,7 +188,7 @@ Para hosting:
 Estos pasos describen el trabajo siguiente; esta entrega no configura ni cobra servicios.
 
 1. Resolver el PR #60 antes de usar su runtime/scripts como parte de la entrega. Mientras tanto, fijar **Node 24** explícitamente en el proveedor: el `engines` de main aún permite 22.
-2. Preparar el servicio de estáticos/proxy del mismo origen y fallback SPA, con tests del límite `/api/v1`.
+2. Usar el alojamiento web de Express y su fallback SPA, con tests del límite `/api/v1`, como indica la guía de Render.
 3. Mantener raíz del monorepo para instalar con su lockfile. Evitar instalar solo una subcarpeta suponiendo que tiene un lock independiente.
 4. Construir API y web; fijar el inicio del proceso y el puerto del proveedor.
 5. Configurar variables y credenciales en el proveedor; permitir acceso público al transporte HTTP de la ruta de dispositivo, dejando la autenticación real a Express.
@@ -198,12 +200,11 @@ Comandos de referencia, cada uno por separado:
 ```powershell
 npm ci
 npm run typecheck
-npm run build --workspace=apps/api
-npm run build --workspace=apps/web
+npm run build:deploy
 npm run start --workspace=apps/api
 ```
 
-El último comando **solo inicia la API actual**. No debe describirse como despliegue completo de la SPA hasta incorporar estáticos/proxy. No usar `npm run dev` ni `vite preview` como proceso final de alojamiento.
+Con `NODE_ENV=production`, el último comando inicia API y web compilada en el mismo proceso. Requiere el build anterior; desarrollo mantiene el servidor Vite separado. No usar `npm run dev` ni `vite preview` como proceso final de alojamiento.
 
 Para Cloud Run, el contenedor debe escuchar en el puerto inyectado y en una interfaz accesible, no solo loopback. La plataforma termina TLS y reenvía al contenedor. [Contrato de contenedor de Cloud Run](https://docs.cloud.google.com/run/docs/container-contract).
 

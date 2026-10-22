@@ -4,6 +4,8 @@
 
 **Hosting y pruebas externas:** [alternativas, variables de entorno y recorrido HTTPS de NodeMCU](docs/setup/hosting-y-pruebas-externas.md). Incluye plantillas activas para desarrollo y producción, requisitos de mismo origen y límites del firmware HTTP actual.
 
+**Render, un solo servicio:** [configuración de web y API juntas](docs/setup/render.md). Compilar con `npm run build:deploy` antes de iniciar en production permite entrar por `/login` en el mismo origen de `/api/v1`.
+
 **Identidad de la NodeMCU:** [aprovisionamiento seguro de placa y credencial oficial](docs/setup/placa-fisica-aprovisionamiento.md), con simulación previa, aplicación explícita e idempotencia. El procedimiento no sustituye la carga ni la demostración del firmware físico.
 
 **Entrega PL2 de Gerson (PR #39 mergeado):** [base Firebase reproducible](docs/setup/firebase-pl2.md), [repositorios, interfaces y migración](docs/arquitectura/persistencia-pl2-integracion.md) y [propuesta de dashboard](docs/diseno/dashboard-pacientes-pl2.md). El [seguimiento de aceptación y pendientes](docs/planificacion/aceptacion-gerson-pl2-2026-10-20.md) distingue lo entregado, los PR abiertos y los criterios por confirmar de #25/#26/#29/#34; el merge no certifica el recorrido integral ni la aprobación de diseño.

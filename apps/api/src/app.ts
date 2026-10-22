@@ -19,8 +19,9 @@ import { createAssignmentsRouter } from './modules/assignments/assignments.route
 import { usersRouter } from './modules/users/users.routes.js';
 import { auditRouter } from './modules/audit/audit.routes.js';
 import { readingTestRouter } from './modules/dev/reading-test.routes.js';
+import { createWebRouter } from './web.js';
 
-export function createApp(): Express {
+export function createApp(options: { webDistPath?: string } = {}): Express {
   const app = express();
 
   // Seguridad y cabeceras
@@ -52,6 +53,9 @@ export function createApp(): Express {
   if (env.NODE_ENV === 'development') {
     app.use('/api/v1/dev', readingTestRouter);
   }
+
+  // El entrypoint de production proporciona el build; desarrollo sigue usando Vite.
+  if (options.webDistPath) app.use(createWebRouter(options.webDistPath));
 
   // Manejador 404 para rutas no encontradas
   app.use(notFoundHandler);

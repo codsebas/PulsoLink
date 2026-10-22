@@ -20,7 +20,11 @@ try {
         }
     }
     $env:FIREBASE_PROJECT_ID = 'demo-pulsolink'
-    npx -y firebase-tools@15.34.0 emulators:exec --config firebase/emulators.test.json --project demo-pulsolink --only firestore,auth 'node tools/firebase/verify-patient-browser.cjs'
+    if ($env:PULSOLINK_FIREBASE_CLI) {
+        node $env:PULSOLINK_FIREBASE_CLI emulators:exec --config firebase/emulators.test.json --project demo-pulsolink --only firestore,auth 'node tools/firebase/verify-patient-browser.cjs'
+    } else {
+        npx -y firebase-tools@15.34.0 emulators:exec --config firebase/emulators.test.json --project demo-pulsolink --only firestore,auth 'node tools/firebase/verify-patient-browser.cjs'
+    }
     if ($LASTEXITCODE -ne 0) { throw 'Falló la prueba integrada de navegador.' }
 } finally {
     # Firebase CLI can leave its Java child on Windows. Only clean a child

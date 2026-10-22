@@ -1,0 +1,29 @@
+{
+  "environment": "Windows, Node 24, Edge, Auth/Firestore Standard emulados",
+  "fabricatedResponses": false,
+  "faultInjection": "Se aborta la petición de una página histórica y se restablece la red",
+  "checkedAt": "2026-10-22T06:33:14.928Z",
+  "node": "v24.22.1",
+  "commit": "e9768186d431fe7e4945593a815bc643b4f822ed",
+  "workingTree": true,
+  "checks": [
+    "viewport-360x800-overflow-keyboard",
+    "viewport-768x1024-overflow-keyboard",
+    "viewport-1440x900-overflow-keyboard",
+    "computed-reduced-motion",
+    "keyboard-scrollable-history",
+    "aborted-cursor-preserves-rows-retry-recovers",
+    "viewer-admin-controls-hidden-http403",
+    "native-focus-tab-escape-return",
+    "patient-create-monitoring-link",
+    "empty-patient-real-api",
+    "device-forms-create",
+    "options-after-100-assignment",
+    "session-create-start-finish",
+    "reassign-preserves-previous-session",
+    "official-two-device-history-immutable-and-visible",
+    "disable-conflict-history-retained",
+    "admin-users-audit"
+  ],
+  "status": "passed"
+}

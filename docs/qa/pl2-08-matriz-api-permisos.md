@@ -3,7 +3,7 @@
 Issue: [#32](https://github.com/codsebas/PulsoLink/issues/32).
 Responsables: `@HugoX2024` (matriz HTTP general, contrato A, registro de defectos) y `@AxelHerrera11` (esta sección: permisos, consistencia, concurrencia y contraste con la web).
 Supervisión de backend: `@codsebas`.
-Estado del documento: **secciones A–D ejecutadas el 2026-10-21: 65/65 casos aprobados en 3 ejecuciones** ([evidencia](../evidencias/pl2-08-axel-2026-10-21.md)). Sección E pendiente (segunda ronda). Las rutas 2.0.0 ya están en `main` (PR #38, #41 y #49). Los casos que Hugo ya ejecutó con su matriz se marcan como *Cubierto por Hugo* y no se repiten. La ejecución automatizada de esta sección se integra en `npm run qa` de `tools/device-simulator`.
+Estado del documento: **secciones A–D ejecutadas el 2026-10-21: 65/65 casos aprobados en 3 ejecuciones** ([evidencia](../evidencias/pl2-08-axel-2026-10-21.md)). Sección E completada el 2026-10-22: 5 casos ejecutados y aprobados en 3 ejecuciones con navegador ([evidencia](../evidencias/pl2-08-axel-ui-2026-10-22.md)) y 4 cubiertos por la QA de interfaz de #33. Las rutas 2.0.0 ya están en `main` (PR #38, #41 y #49). Los casos que Hugo ya ejecutó con su matriz se marcan como *Cubierto por Hugo* y no se repiten. La ejecución automatizada de esta sección se integra en `npm run qa` de `tools/device-simulator`.
 
 ## Fuentes
 
@@ -144,18 +144,18 @@ Implementación: `tools/device-simulator/src/qa-permissions.ts`, integrado en `n
 
 ## E. Contraste API ↔ web
 
-Comprueba que la web refleja lo que responde la API, no solo que oculte botones. La QA visual completa corresponde a [#33](https://github.com/codsebas/PulsoLink/issues/33); aquí solo se contrasta la consistencia con la API. **Se ejecuta en una segunda ronda**, después de las secciones A–D.
+Comprueba que la web refleja lo que responde la API, no solo que oculte botones. La QA visual completa corresponde a [#33](https://github.com/codsebas/PulsoLink/issues/33); aquí solo se contrasta la consistencia con la API. Ejecutada con `PULSOLINK_UI_CONTRAST_ONLY=true` en `tools/firebase/verify-patient-browser.cjs` (módulo `tools/qa/ui-contrast-acceptance.cjs`); los casos ya verificados en #33 no se repiten.
 
 | ID | Caso | Esperado | Estado |
 | --- | --- | --- | --- |
-| UI-01 | Viewer en pantallas administrativas | No ve acciones de alta, edición ni asignación; si fuerza la URL o la petición, la API responde 403 (ROL-03 a ROL-22) | Pendiente (segunda ronda) |
-| UI-02 | 401 durante el polling (cookie vencida) | La web redirige a `/login` y no sigue mostrando datos como vigentes | Pendiente (segunda ronda) |
-| UI-03 | 409 de negocio | `ASSIGNMENT_CONFLICT`, `ASSIGNMENT_IN_USE` y `DEVICE_BUSY` muestran un mensaje comprensible, no un error genérico | Pendiente (segunda ronda) |
-| UI-04 | `connectionState` | Los tres estados del panel coinciden con `meta.connectionState` de `latest` | Pendiente (segunda ronda) |
-| UI-05 | `null` en la interfaz | Valores `null` se muestran como "sin dato" con su estado, nunca 0 | Pendiente (segunda ronda) |
-| UI-06 | Logout limpia la caché | Tras cerrar sesión, volver atrás no muestra datos de pacientes | Pendiente (segunda ronda) |
-| UI-07 | Horas | La API entrega UTC y la web muestra `America/Guatemala` | Pendiente (segunda ronda) |
-| UI-08 | Apertura auditada una vez | Abrir un expediente genera un solo `POST /patients/{id}/access`; el polling no lo repite | Pendiente (segunda ronda) |
+| UI-01 | Viewer en pantallas administrativas | No ve acciones de alta, edición ni asignación; si fuerza la URL o la petición, la API responde 403 (ROL-03 a ROL-22) | Cubierto por #33 ([Mar-03, #61](../evidencias/marielos-pl2-09.md): controles admin ocultos al viewer y HTTP 403 en `/users` y `/audit-logs`) |
+| UI-02 | 401 durante el polling (cookie vencida) | La web redirige a `/login` y no sigue mostrando datos como vigentes | Aprobado (3/3 ejecuciones): sin cookie, el dashboard redirige a `/login` en ~2 s y oculta el expediente ([evidencia](../evidencias/pl2-08-axel-ui-2026-10-22.md)) |
+| UI-03 | 409 de negocio | `ASSIGNMENT_CONFLICT`, `ASSIGNMENT_IN_USE` y `DEVICE_BUSY` muestran un mensaje comprensible, no un error genérico | Aprobado (3/3): `ASSIGNMENT_CONFLICT` y `ASSIGNMENT_IN_USE` muestran su mensaje en el diálogo ([evidencia](../evidencias/pl2-08-axel-ui-2026-10-22.md)); `ASSIGNMENT_IN_USE` al deshabilitar, cubierto por [Mar-03, #61](../evidencias/marielos-pl2-09.md). `DEVICE_BUSY`: omitido, no alcanzable desde la web en el modelo 2.0 |
+| UI-04 | `connectionState` | Los tres estados del panel coinciden con `meta.connectionState` de `latest` | Cubierto por #33 ([Mar-03, #61](../evidencias/marielos-pl2-09.md): tres estados del panel en navegador) |
+| UI-05 | `null` en la interfaz | Valores `null` se muestran como "sin dato" con su estado, nunca 0 | Cubierto por #33 ([Mar-03, #61](../evidencias/marielos-pl2-09.md): "—" y estado de calidad, nunca 0) |
+| UI-06 | Logout limpia la caché | Tras cerrar sesión, volver atrás no muestra datos de pacientes | Aprobado (3/3): tras Salir, el botón Atrás vuelve a `/login` sin datos ([evidencia](../evidencias/pl2-08-axel-ui-2026-10-22.md)); acceso directo posterior, cubierto por [Mar-03, #61](../evidencias/marielos-pl2-09.md) |
+| UI-07 | Horas | La API entrega UTC y la web muestra `America/Guatemala` | Aprobado (3/3): la tabla muestra la hora de America/Guatemala (UTC−6), no la UTC de la API ([evidencia](../evidencias/pl2-08-axel-ui-2026-10-22.md)) |
+| UI-08 | Apertura auditada una vez | Abrir un expediente genera un solo `POST /patients/{id}/access`; el polling no lo repite | Cubierto por #33 ([Mar-03, #61](../evidencias/marielos-pl2-09.md): un solo `POST /access`, un evento `patient.view` y el polling no lo repite) |
 
 ## Puntos por confirmar
 

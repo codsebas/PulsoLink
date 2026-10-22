@@ -60,3 +60,5 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 - [Tres pendientes de Hugo: retorno, reasignación y latencia](hugo-seguimiento-2026-10-21.md): cambio de placa visible aprobado; retorno falla con 145/167 filas; timeout5s reproducido y reintentos transaccionales medidos.
 
 - [PL2-08: permisos, consistencia y concurrencia de la API (Axel), 21-10-2026](pl2-08-axel-2026-10-21.md): matriz completa 90/90 en 3 ejecuciones con emuladores (65 casos propios + 25 de Hugo); diferencias de `error.code` con el contrato; sin nube ni hardware.
+
+- [PL2-08 sección E: contraste API ↔ web (Axel), 22-10-2026](pl2-08-axel-ui-2026-10-22.md): 5 casos en Chrome con emuladores, 3/3 ejecuciones; 4 casos cubiertos por #33; sin nube ni hardware.

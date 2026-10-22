@@ -115,6 +115,23 @@ async function main() {
     await page.waitForURL('**/monitoring/monitor-patient');
     await page.getByRole('heading', { name: 'Paciente seudónimo de monitoreo', exact: true }).waitFor();
     await page.getByText(/100 lecturas cargadas en 1 página:/).waitFor();
+    if (process.env.PULSOLINK_UI_CONTRAST_ONLY === 'true') {
+      // PL2-08 sección E (Axel): contraste API ↔ web; ejecución independiente del historial largo.
+      step = 'UI contrast acceptance (PL2-08 E)';
+      const results = await require('../qa/ui-contrast-acceptance.cjs')({ browser, origin, password });
+      const output = path.resolve(process.env.PULSOLINK_EVIDENCE_DIR || path.join(root, '.cache/axel-ui-contrast'));
+      fs.mkdirSync(output, { recursive: true });
+      const failed = results.some((result) => result.state === 'FAIL');
+      fs.writeFileSync(path.join(output, 'ui-contrast.json'), JSON.stringify({
+        environment: process.env.PULSOLINK_ENVIRONMENT || 'Auth/Firestore Standard emulados', browser: browser.version(),
+        fabricatedResponses: false, checkedAt: new Date().toISOString(), node: process.version,
+        commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8', windowsHide: true }).trim(),
+        results, status: failed ? 'failed' : 'passed',
+      }, null, 2) + '\n');
+      console.log(JSON.stringify({ uiContrast: failed ? 'failed' : 'passed', results }));
+      if (failed) process.exitCode = 1;
+      return;
+    }
     step = 'history tests against authenticated API';
     // Repository integration tests receive this disposable session in memory.
     // Nothing is written to storageState, .env or a credential file.

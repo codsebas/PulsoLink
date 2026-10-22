@@ -4,6 +4,8 @@
 
 Este documento consolida la arquitectura de comunicación, los contratos formales y el estado de implementación de la API de **PulsoLink**.
 
+Para comprobar únicamente recepción de JSON por LAN, consultar la [prueba temporal `POST /api/v1/dev/reading-test`](reading-test.md). Solo existe en desarrollo, sin autenticación ni persistencia; está separada del contrato final de ingestión y no modifica `/api/v1/device/measurements`.
+
 ---
 
 ## 1. Visión General de los Contratos

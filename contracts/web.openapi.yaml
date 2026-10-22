@@ -2683,8 +2683,7 @@ components:
       description: "Error de solicitud del cliente (400). Catálogo de códigos devueltos:
         - VALIDATION_ERROR: Cuerpo con JSON malformado, tipos de datos inválidos, campos obligatorios ausentes o intervalo temporal inconsistente (from >= to).
         - INVALID_CURSOR: Cursor de paginación corrupto, expirado o ligado a una consulta/filtro diferente.
-        - NO_CHANGES: La solicitud de actualización no modifica los valores existentes.
-        - INVALID_SESSION_STATE: Transición o estado de sesión incompatible."
+        - NO_CHANGES: La solicitud de actualización no modifica los valores existentes."
       content:
         application/json:
           schema:
@@ -2692,8 +2691,7 @@ components:
     Unauthorized:
       description: "Autenticación requerida o fallida (401). Catálogo de códigos devueltos:
         - UNAUTHENTICATED: Sesión ausente, cookie inválida/vencida/revocada o identidad no registrada en Firestore.
-        - INVALID_CREDENTIALS: Correo no registrado o contraseña incorrecta en login.
-        - DEVICE_DISABLED: Dispositivo deshabilitado en acceso con credencial."
+        - INVALID_CREDENTIALS: Correo no registrado o contraseña incorrecta en login."
       content:
         application/json:
           schema:
@@ -2704,7 +2702,7 @@ components:
         - CSRF_INVALID: Token CSRF ausente o inválido, u origen no permitido (Origin/Referer no coincide con la lista autorizada).
         - RESOURCE_DISABLED: Paciente o dispositivo deshabilitados al intentar crear asignaciones o acceder a recursos protegidos.
         - USER_DISABLED / AUTH_USER_DISABLED: Perfil o cuenta de usuario deshabilitado en el sistema.
-        - DEVICE_ID_MISMATCH: La identidad declarada no coincide con el recurso o contexto autenticado."
+        - DEVICE_DISABLED: Placa deshabilitada durante una operación de sesión web."
       content:
         application/json:
           schema:
@@ -2732,8 +2730,7 @@ components:
         - SESSION_NOT_ACTIVE: Sesión no activa para el dispositivo o asignación.
         - ASSIGNMENT_NOT_ACTIVE: Asignación inactiva o incompatible con la sesión.
         - DEVICE_BUSY: Dispositivo ocupado con otra operación o sesión en curso.
-        - DEVICE_SOURCE_CHANGED: Incompatibilidad en el origen (real/simulated) del dispositivo.
-        - RESOURCE_DISABLED: Recurso deshabilitado durante la resolución transaccional de concurrencia."
+        - DEVICE_SOURCE_CHANGED: Incompatibilidad en el origen (real/simulated) del dispositivo."
       content:
         application/json:
           schema:
@@ -2745,7 +2742,7 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     TooManyRequests:
-      description: "RATE_LIMITED: demasiadas solicitudes; respetar Retry-After."
+      description: "TOO_MANY_ATTEMPTS en login o RATE_LIMITED si se limita otra ruta; respetar Retry-After."
       content:
         application/json:
           schema:
@@ -2757,7 +2754,7 @@ components:
             type: integer
             minimum: 1
     ServiceUnavailable:
-      description: "SERVICE_UNAVAILABLE: dependencia no disponible; sin detalles internos."
+      description: "AUTH_UNAVAILABLE o AUTH_SYNC_PENDING para identidad; SERVICE_UNAVAILABLE para dependencia, sin detalles internos."
       content:
         application/json:
           schema:

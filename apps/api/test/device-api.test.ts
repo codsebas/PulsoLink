@@ -343,6 +343,40 @@ describe('Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device)'
   });
 
   describe('POST /api/v1/device/measurements', () => {
+    it('acepta capturedAt con offset y lo normaliza a UTC antes de persistir', async () => {
+      const dev = createTestDevice();
+      const ingest = vi.fn().mockResolvedValue({ measurementId: 'm-offset', receivedAt: '2026-10-21T10:00:01.000Z', duplicate: false });
+      const app = createTestApp({
+        credentialsRepo: { authenticate: async () => dev.device },
+        devicesRepo: { getById: async () => dev.device, heartbeat: async () => new Date().toISOString() },
+        measurementsRepo: { ingest },
+      });
+      const response = await request(app).post('/api/v1/device/measurements')
+        .set('Authorization', `Bearer ${dev.credentialId}.${dev.secret}`)
+        .send({ ...validPayload(dev.device.deviceId), capturedAt: '2026-10-21T12:00:00+02:00' });
+      expect(response.status).toBe(201);
+      expect(ingest).toHaveBeenCalledWith(dev.device.deviceId,
+        expect.objectContaining({ capturedAt: '2026-10-21T10:00:00.000Z' }));
+    });
+
+    it('rechaza IDs de sesión . y .. por HTTP sin escribir mediciones', async () => {
+      const dev = createTestDevice();
+      const ingest = vi.fn();
+      const app = createTestApp({
+        credentialsRepo: { authenticate: async () => dev.device },
+        devicesRepo: { getById: async () => dev.device, heartbeat: async () => new Date().toISOString() },
+        measurementsRepo: { ingest },
+      });
+      for (const sessionId of ['.', '..']) {
+        const response = await request(app).post('/api/v1/device/measurements')
+          .set('Authorization', `Bearer ${dev.credentialId}.${dev.secret}`)
+          .send({ ...validPayload(dev.device.deviceId), sessionId });
+        expect(response.status).toBe(400);
+        expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      }
+      expect(ingest).not.toHaveBeenCalled();
+    });
+
     it('muestra válida se guarda y devuelve 201 (duplicate = false)', async () => {
       const dev = createTestDevice();
       const payload = validPayload(dev.device.deviceId);

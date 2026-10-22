@@ -102,6 +102,14 @@ describe.skipIf(!enabled)('PL2 API HTTP con Firestore Standard emulado', () => {
       const firstDeviceId = board.body.data.id as string;
       expect(board.body.data).not.toHaveProperty('activeAssignmentId');
       activeDeviceId = firstDeviceId;
+      const unavailablePatient = await admin.post('/api/v1/patients', { code: 'P-DISABLED', displayName: 'Paciente deshabilitado de prueba' });
+      expect(unavailablePatient.status).toBe(201);
+      expect((await admin.agent.patch(`/api/v1/patients/${unavailablePatient.body.data.id}`).set('Origin', origin)
+        .set('X-CSRF-Token', (await admin.agent.get('/api/v1/auth/csrf')).body.data.csrfToken)
+        .send({ enabled: false })).status).toBe(200);
+      const forbiddenAssignment = await admin.post('/api/v1/assignments', { patientId: unavailablePatient.body.data.id, deviceId: firstDeviceId });
+      expect(forbiddenAssignment.status).toBe(403);
+      expect(forbiddenAssignment.body.error.code).toBe('RESOURCE_DISABLED');
       expect((await viewer.agent.get('/api/v1/devices')).body.data).toEqual(expect.arrayContaining([
         expect.objectContaining({ id: firstDeviceId, enabled: true }),
       ]));
@@ -123,7 +131,12 @@ describe.skipIf(!enabled)('PL2 API HTTP con Firestore Standard emulado', () => {
       expect(sessionRes.status).toBe(201);
       const firstSessionId = sessionRes.body.data.id as string;
       expect(sessionRes.body.data).toMatchObject({ patientId, deviceId: firstDeviceId, assignmentId });
-      expect((await admin.post(`/api/v1/assignments/${assignmentId}/close`)).status).toBe(409);
+      const assignmentInUse = await admin.post(`/api/v1/assignments/${assignmentId}/close`);
+      expect(assignmentInUse.status).toBe(409);
+      expect(assignmentInUse.body.error.code).toBe('ASSIGNMENT_IN_USE');
+      const invalidFinish = await admin.post(`/api/v1/sessions/${firstSessionId}/finish`);
+      expect(invalidFinish.status).toBe(409);
+      expect(invalidFinish.body.error.code).toBe('INVALID_SESSION_STATE');
       expect((await admin.post(`/api/v1/sessions/${firstSessionId}/start`)).status).toBe(200);
 
       const sample = (deviceId: string, sessionId: string) => ({ deviceId, sessionId, capturedAt: null,
@@ -183,6 +196,10 @@ describe.skipIf(!enabled)('PL2 API HTTP con Firestore Standard emulado', () => {
       const history = await viewer.agent.get(`/api/v1/patients/${patientId}/measurements?limit=1`);
       expect(history.status).toBe(200);
       expect(history.body.pagination.hasMore).toBe(true);
+      const wrongCursor = await admin.agent.get(`/api/v1/patients/${unavailablePatient.body.data.id}/measurements`)
+        .query({ cursor: history.body.pagination.nextCursor });
+      expect(wrongCursor.status).toBe(400);
+      expect(wrongCursor.body.error.code).toBe('INVALID_CURSOR');
       const next = await viewer.agent.get(`/api/v1/patients/${patientId}/measurements`)
         .query({ limit: 1, cursor: history.body.pagination.nextCursor });
       expect(next.status).toBe(200);

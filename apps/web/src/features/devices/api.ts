@@ -59,3 +59,8 @@ export function useDeviceOptions() {
   });
 }
 
+export async function fetchDevice(id: string): Promise<Device> {
+  const res = await apiClient<Device>(`/devices/${encodeURIComponent(id)}`);
+  return res.data;
+}
+

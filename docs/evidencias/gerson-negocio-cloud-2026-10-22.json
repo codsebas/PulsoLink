@@ -1,0 +1,533 @@
+{
+  "project": "pulsolink-pruebas-2026-7c8a31",
+  "mode": "API local y Firebase cloud reales; sin hardware/hosting",
+  "sha": "a1c12bc9cab5647140f7c6605b6396f68c356f54",
+  "workingTreeDirty": true,
+  "generatedAt": "2026-10-22T06:51:24.518Z",
+  "checks": [
+    {
+      "name": "admin login",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "admin role",
+      "actual": "admin",
+      "expected": "admin"
+    },
+    {
+      "name": "viewer login",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "viewer role",
+      "actual": "viewer",
+      "expected": "viewer"
+    },
+    {
+      "name": "anonymous patients",
+      "actual": 401,
+      "expected": 401
+    },
+    {
+      "name": "viewer users",
+      "actual": 403,
+      "expected": 403
+    },
+    {
+      "name": "viewer audit",
+      "actual": 403,
+      "expected": 403
+    },
+    {
+      "name": "viewer mutation",
+      "actual": 403,
+      "expected": 403
+    },
+    {
+      "name": "missing CSRF",
+      "actual": 403,
+      "expected": 403
+    },
+    {
+      "name": "wrong origin",
+      "actual": 403,
+      "expected": 403
+    },
+    {
+      "name": "device 1 create",
+      "actual": 201,
+      "expected": 201
+    },
+    {
+      "name": "device 2 create",
+      "actual": 201,
+      "expected": 201
+    },
+    {
+      "name": "JOINT-CON-17",
+      "actual": "PASS",
+      "expected": "PASS"
+    },
+    {
+      "name": "JOINT-CONC-08",
+      "actual": "PASS",
+      "expected": "PASS"
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "viewer history",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "opening first",
+      "actual": 201,
+      "expected": 201
+    },
+    {
+      "name": "opening duplicate",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "viewer history",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "opening first",
+      "actual": 201,
+      "expected": 201
+    },
+    {
+      "name": "opening duplicate",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "viewer history",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "opening first",
+      "actual": 201,
+      "expected": 201
+    },
+    {
+      "name": "opening duplicate",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "viewer history",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "opening first",
+      "actual": 201,
+      "expected": 201
+    },
+    {
+      "name": "opening duplicate",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "viewer history",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "opening first",
+      "actual": 201,
+      "expected": 201
+    },
+    {
+      "name": "opening duplicate",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "session survives restart",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history persists after restart",
+      "actual": "975ff3af94554e2f809e74f789364c759b7d5cc19da297dcc542f972f0870905",
+      "expected": "975ff3af94554e2f809e74f789364c759b7d5cc19da297dcc542f972f0870905"
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history persists after restart",
+      "actual": "a12eaad65b28c5f8ca6e00cd8fc5340713192ded247d23d6e0e5e723d561d438",
+      "expected": "a12eaad65b28c5f8ca6e00cd8fc5340713192ded247d23d6e0e5e723d561d438"
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history persists after restart",
+      "actual": "6c4bc2dcd2e8cae63327efc0673138fae7d779a0ec38465ebb37a7dc5e4f10e7",
+      "expected": "6c4bc2dcd2e8cae63327efc0673138fae7d779a0ec38465ebb37a7dc5e4f10e7"
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history persists after restart",
+      "actual": "494a6c2c63aa5af54f1ac9dfc68dfee420a586d19cd29a96a95e53855957ac0d",
+      "expected": "494a6c2c63aa5af54f1ac9dfc68dfee420a586d19cd29a96a95e53855957ac0d"
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history page HTTP",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "history persists after restart",
+      "actual": "d293db7c11e87779ec8eefde3dc3cc5f7d8d5c845bcfb55106525d79bc5ba14b",
+      "expected": "d293db7c11e87779ec8eefde3dc3cc5f7d8d5c845bcfb55106525d79bc5ba14b"
+    },
+    {
+      "name": "direct Firestore denied",
+      "actual": 403,
+      "expected": 403
+    },
+    {
+      "name": "cleanup finish own session",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup finish own session",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup finish own session",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup finish own session",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup finish own session",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup finish own session",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup close own assignment",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup close own assignment",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup close own assignment",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup close own assignment",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup close own assignment",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup close own assignment",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup disable own device",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup disable own device",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup disable own patient",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup disable own patient",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup disable own patient",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup disable own patient",
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cleanup disable own patient",
+      "actual": 200,
+      "expected": 200
+    }
+  ],
+  "cleanup": "PASS; solo se cerraron/deshabilitaron recursos creados por esta ejecución; sin borrado histórico",
+  "jointCases": [
+    {
+      "id": "JOINT-CON-17",
+      "expected": "Reasignación por HTTP: historia inmutable de dos placas, aislamiento y duplicado después del cierre",
+      "actual": "Ciclo HTTP completo; A conserva dos placas, B solo su muestra; duplicado/conflicto correctos tras reasignar D1.",
+      "state": "PASS"
+    },
+    {
+      "id": "JOINT-CONC-08",
+      "expected": "3 rondas: finalizar frente a 5 muestras, sin escrituras posteriores ni huérfanas",
+      "actual": "3 rondas de finish + 5 muestras completadas; ACK/rechazos contrastados con historia y finishedAt.",
+      "state": "PASS"
+    }
+  ],
+  "status": "PASS",
+  "owned": {
+    "devices": [
+      "qmJexWmHCp25BD0HEwXz",
+      "GSSL8SgIbNPAoGFjhLX8"
+    ],
+    "patients": [
+      "SFDIhB5eY50mCis27AKi",
+      "wl4zu8nN5NJ4jfOcDowf",
+      "dKKRyeqZAo2XGJ7UPzGQ",
+      "nLH2AhBwYbM60NnPbpo0",
+      "ypYWkPy9kXdjH9WnzkE7"
+    ],
+    "assignments": [
+      "q6fRA6MVlLoPwUQSWraA",
+      "fnIzmVMNwrPjHeTrj4vq",
+      "Npy3rbjFePaH1BjS74d2",
+      "QppGLTN5Egbdt4dpbvDY",
+      "MZ1GVRF5JNaltD3Szwk6",
+      "X0hvM0Qp0vomuELMkCV0"
+    ],
+    "sessions": [
+      "MyGAoatkEcDQNnFzya6x",
+      "oQPL1NGVE0vaMVtguQFo",
+      "cpYJsLRRmA49r90P74zE",
+      "nkl67GgylZQxZEJlx8Ns",
+      "VVM42yB14qN6rEm7FZJ2",
+      "gpPae4kolhn22wHMLWj5"
+    ],
+    "credentialIds": [
+      "cv-04d3c4da-f174-4f4f-baa3-6a15aedce668",
+      "cv-328a570e-e7a1-4087-8f08-07f20159692a"
+    ]
+  }
+}

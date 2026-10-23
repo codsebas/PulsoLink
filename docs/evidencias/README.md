@@ -66,3 +66,5 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 - [PL2-08: QA de Hugo en Windows y contraste web, 22-10-2026](pl2-08-hugo-windows-2026-10-22.md): matriz API combinada 90/90 en la segunda corrida y sección E en Edge (5 aprobados, UI-03c omitido); registra el bloqueo A-17 del primer intento y la revisión posterior de #57.
 
 - [PL2-14: línea base de la auditoría responsiva, 22-10-2026](pl2-14-ui-responsive/baseline-accecfb/audit.json): `main` `accecfb` a 360/768/1440 en Chrome con emuladores; procedimiento y resumen en [docs/qa/pl2-14-auditoria-responsiva.md](../qa/pl2-14-auditoria-responsiva.md).
+
+- [PL2-14 entrega 1: navegación móvil, 22-10-2026](pl2-14-ui-responsive/entrega1-mobile-navigation/README.md): cabecera de 149 a 65 px en móvil y tablet; 47 mejoras y 0 regresiones frente a la línea base; aceptación de #33 17/17.

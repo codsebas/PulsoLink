@@ -7,6 +7,10 @@ module.exports = async function dashboardAcceptance({ page, output }) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.getByRole('article', { name: 'Pulso', exact: true }).waitFor();
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Horizontal overflow at ${width}`);
+    // #74: por debajo de `lg` la navegación vive en un menú desplegable; se abre antes de recorrerla.
+    const menu = page.getByRole('button', { name: 'Menú', exact: true });
+    const openedMenu = await menu.isVisible() && await menu.getAttribute('aria-expanded') === 'false';
+    if (openedMenu) await menu.click();
     const nav = page.getByRole('navigation', { name: 'Principal', exact: true });
     const links = nav.getByRole('link');
     await links.first().focus();
@@ -17,6 +21,11 @@ module.exports = async function dashboardAcceptance({ page, output }) {
       await page.keyboard.press('Tab');
     }
     await page.screenshot({ path: path.join(output, `dashboard-${width}.png`) });
+    if (openedMenu) {
+      // Con el menú abierto el resto de la página queda inerte: cerrarlo con Escape antes del siguiente ancho.
+      await page.keyboard.press('Escape');
+      assert.equal(await menu.getAttribute('aria-expanded'), 'false', `Menu did not close with Escape at ${width}`);
+    }
     results.push(`viewport-${width}x${height}-overflow-keyboard`);
   }
   await page.emulateMedia({ reducedMotion: 'reduce' });

@@ -8,6 +8,7 @@ import type { AssignmentDocument } from '../assignments/assignments.repository.j
 import type { PatientDocument } from '../patients/patients.repository.js';
 import { writeAudit } from '../audit/audit.repository.js';
 import { pendingSummary } from '../pulsoai/pulsoai.repository.js';
+import { executeForSession } from '../../shared/session-execution.js';
 
 export interface SessionDocument {
   sessionId: string;
@@ -81,7 +82,7 @@ export class SessionsRepository {
     if (actorId) documentId.parse(actorId);
     const db = this.db();
     const sessionRef = db.collection('sessions').doc(documentId.parse(sessionId));
-    return db.runTransaction(async (tx) => {
+    return executeForSession(db, sessionId, () => db.runTransaction(async (tx) => {
       const snapshot = await tx.get(sessionRef);
       if (!snapshot.exists) throw new PersistenceError('SESSION_NOT_FOUND', 'Sesión no encontrada.');
       const session = snapshot.data() as SessionDocument;
@@ -127,7 +128,7 @@ export class SessionsRepository {
       if (assignmentRef && target === 'finished') tx.update(assignmentRef, { openSessionId: null });
       if (assignmentRef) writeAudit(tx, db, { actorId: actorId!, action: target === 'active' ? 'session.start' : 'session.finish', targetType: 'session', targetId: sessionId });
       return { ...session, ...changes };
-    });
+    }));
   }
 
   // API must supply operatorId for operators; only an authorized admin may omit it.

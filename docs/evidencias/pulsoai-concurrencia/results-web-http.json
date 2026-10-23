@@ -1,0 +1,126 @@
+{
+  "status": "PASS",
+  "generatedAt": "2026-10-23T02:09:16.486Z",
+  "project": "demo-pulsoai-concurrency-ui",
+  "environment": "Auth/Firestore Standard emulators + real Groq API + Edge headless + compiled SPA",
+  "sessionId": "o13sG0FqcBQhkWrlU6Pb",
+  "apiCalls": 1,
+  "returnedModel": "openai/gpt-oss-20b",
+  "finishReason": "stop",
+  "usage": {
+    "queue_time": 0.003369567,
+    "prompt_tokens": 862,
+    "prompt_time": 0.066172168,
+    "completion_tokens": 162,
+    "completion_time": 0.173991468,
+    "total_tokens": 1024,
+    "total_time": 0.240163636,
+    "completion_tokens_details": {
+      "reasoning_tokens": 59
+    }
+  },
+  "stats": {
+    "source": "simulated",
+    "durationSeconds": 2.74,
+    "total": 3,
+    "metrics": {
+      "heartRate": {
+        "unit": "bpm",
+        "validCount": 2,
+        "mean": 77,
+        "min": 76,
+        "max": 78,
+        "quality": {
+          "valid": 2,
+          "no_contact": 1,
+          "invalid": 0,
+          "unavailable": 0
+        }
+      },
+      "spo2": {
+        "unit": "%",
+        "validCount": 2,
+        "mean": 97,
+        "min": 97,
+        "max": 97,
+        "quality": {
+          "valid": 2,
+          "no_contact": 1,
+          "invalid": 0,
+          "unavailable": 0
+        }
+      },
+      "skinTemperature": {
+        "unit": "C",
+        "validCount": 3,
+        "mean": 32,
+        "min": 31,
+        "max": 33,
+        "quality": {
+          "valid": 3,
+          "no_contact": 0,
+          "invalid": 0,
+          "unavailable": 0
+        }
+      }
+    }
+  },
+  "text": "Sesión de origen simulado: 3 registros y 2.74 segundos de duración.\n\nPulso: 2 lecturas válidas; promedio 77 bpm, mínimo 76 bpm y máximo 78 bpm.\n\nPulso: 1 sin contacto, 0 inválidas y 0 no disponibles; excluidas únicamente de los cálculos de esta magnitud, sin borrar registros.\n\nSpO₂ estimada: 2 lecturas válidas; promedio 97 %, mínimo 97 % y máximo 97 %.\n\nSpO₂ estimada: 1 sin contacto, 0 inválidas y 0 no disponibles; excluidas únicamente de los cálculos de esta magnitud, sin borrar registros.\n\nTemperatura superficial: 3 lecturas válidas; promedio 32 °C, mínimo 31 °C y máximo 33 °C.\n\nTemperatura superficial: 0 sin contacto, 0 inválidas y 0 no disponibles; excluidas únicamente de los cálculos de esta magnitud, sin borrar registros.\n\nLos agregados no permiten determinar tendencias ni la duración exacta de la falta de contacto.\n\nSpO₂ es una estimación académica y la temperatura es superficial, no corporal central. Prototipo no validado para uso clínico.",
+  "overflowAt390px": false,
+  "concurrencyRounds": [
+    {
+      "order": "finish-first",
+      "round": 1,
+      "elapsedMs": 275,
+      "accepted": 3,
+      "history": 3
+    },
+    {
+      "order": "finish-first",
+      "round": 2,
+      "elapsedMs": 185,
+      "accepted": 1,
+      "history": 1
+    },
+    {
+      "order": "finish-first",
+      "round": 3,
+      "elapsedMs": 191,
+      "accepted": 1,
+      "history": 1
+    },
+    {
+      "order": "samples-first",
+      "round": 1,
+      "elapsedMs": 297,
+      "accepted": 5,
+      "history": 5
+    },
+    {
+      "order": "samples-first",
+      "round": 2,
+      "elapsedMs": 272,
+      "accepted": 5,
+      "history": 5
+    },
+    {
+      "order": "samples-first",
+      "round": 3,
+      "elapsedMs": 307,
+      "accepted": 5,
+      "history": 5
+    }
+  ],
+  "webHttpIntegrationTests": 2,
+  "checks": [
+    "real-emulator-login",
+    "active-session-no-summary",
+    "finish-HTTP-200",
+    "durable-pending",
+    "real-Groq-strict-plan",
+    "complete-facts",
+    "persisted-ready",
+    "browser-title-and-text",
+    "reload-reuses-result"
+  ]
+}

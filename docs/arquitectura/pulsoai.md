@@ -16,6 +16,8 @@ Las pruebas libres del modelo devolvieron afirmaciones sin respaldo. Esta versi�
 
 ## Persistencia y recuperación
 
+El backend coordina las solicitudes vivas de ingestión y transición de una misma sesión con FIFO por cliente Firestore/proceso (máximo 32 en curso; saturación RATE_LIMITED/429 y Retry-After). Reduce contención propia sin reemplazar las transacciones que garantizan consistencia entre procesos. Sesiones distintas siguen en paralelo. No es una cola offline del dispositivo. Ver [plan y corrección](../planificacion/pulsoai-cierre-concurrencia.md).
+
 `sessionSummaries/{sessionId}` contiene un trabajo por sesión. El cierre crea `pending` en la misma transacción; la ingestión también lee/escribe la sesión, de modo que el cierre fija un conjunto estable. Sesiones previas no se migran automáticamente: POST de admin crea su trabajo. Estados públicos: `not_requested`, `pending`, `generating`, `ready`, `failed`, `disabled`, `insufficient_data`.
 
 Documento: sessionId, status, attempts, createdAt, updatedAt, leaseToken y availableAt internos, stats, text, generatedAt, provider/model, promptVersion/statsVersion/inputHash, errorCode sanitizado. No guardar clave ni respuesta/prompt crudos. `stats` guarda source, durationSeconds, total y metrics (heartRate/spo2/skinTemperature), cada una con unit, validCount, mean/min/max nullable y quality (valid/no_contact/invalid/unavailable).

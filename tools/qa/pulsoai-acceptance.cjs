@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
-const { randomUUID, randomBytes } = require('node:crypto');
+const { randomUUID, randomBytes, createHash } = require('node:crypto');
 const { createRequire } = require('node:module');
 const root = process.cwd();
 const requireApi = createRequire(path.join(root, 'apps/api/package.json'));
@@ -13,7 +13,7 @@ async function main() {
   assert(process.env.FIREBASE_PROJECT_ID?.startsWith('demo-'));
   assert(/^127\.0\.0\.1:\d+$/.test(process.env.FIRESTORE_EMULATOR_HOST || ''));
   assert(/^127\.0\.0\.1:\d+$/.test(process.env.FIREBASE_AUTH_EMULATOR_HOST || ''));
-  const privateEnv = requireApi('dotenv').parse(fs.readFileSync(path.join(root, 'apps/api/.env')));
+  const privateEnv = requireApi('dotenv').parse(fs.readFileSync(process.env.PULSOAI_QA_ENV_FILE || path.join(root, 'apps/api/.env')));
   assert.equal(process.env.PULSOAI_QA_ALLOW_REAL_GROQ, 'true', 'Explicit opt-in required for one real Groq request.');
   assert(privateEnv.GROQ_API_KEY);
   Object.assign(process.env, {
@@ -53,7 +53,11 @@ async function main() {
       skinTemperature: { value: 31 + i, unit: 'C', status: 'valid' },
     },
   });
-  const application = createApp({ webDistPath: path.join(root, 'apps/web/dist') });
+  // sendFile rejects dot-prefixed absolute path segments (e.g. .codex worktrees).
+  // Serve a temporary copy for QA rather than weakening production dotfile rules.
+  const publicDist = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'pulsoai-qa-web-'));
+  fs.cpSync(path.join(root, 'apps/web/dist'), publicDist, { recursive: true });
+  const application = createApp({ webDistPath: publicDist });
   server = await new Promise(resolve => { const s = application.listen(18001, '127.0.0.1', () => resolve(s)); });
   const { chromium } = require(process.env.PULSOLINK_PLAYWRIGHT_MODULE || 'playwright');
   browser = await chromium.launch({ channel: 'msedge', headless: true });
@@ -109,16 +113,94 @@ async function main() {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: path.join(out, 'mobile.png'), fullPage: true });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  // Real HTTP, unchanged 5 s budget. No worker ticks here, hence no more Groq calls.
+  const secret = randomBytes(32).toString('base64url');
+  const credentialId = 'qa-concurrency-' + randomUUID();
+  await db.collection('deviceCredentials').doc(credentialId).set({ deviceId: device.deviceId, enabled: true,
+    revokedAt: null, createdAt: new Date().toISOString(), secretHash: createHash('sha256').update(secret).digest('hex') });
+  const concurrencyRounds = [];
+  const mutation = async (route, data) => page.request.post(origin + '/api/v1' + route, {
+    headers: { Origin: origin, 'X-CSRF-Token': csrf }, data, timeout: 5000,
+  });
+  for (const order of ['finish-first', 'samples-first']) for (let round = 0; round < 3; round++) {
+    const createReply = await mutation('/sessions', { assignmentId: assignment.id });
+    assert.equal(createReply.status(), 201);
+    const id = (await createReply.json()).data.id;
+    assert.equal((await mutation('/sessions/' + id + '/start', {})).status(), 200);
+    const boot = randomUUID();
+    const payloads = Array.from({ length: 5 }, (_, sequence) => ({ deviceId: device.deviceId, sessionId: id, bootId: boot,
+      sequence, capturedAt: null, measurements: { heartRate: { value: 78, unit: 'bpm', status: 'valid' },
+        spo2: { value: 97, unit: '%', status: 'valid' }, skinTemperature: { value: 31, unit: 'C', status: 'valid' } } }));
+    const begin = Date.now();
+    const finish = () => mutation('/sessions/' + id + '/finish', {});
+    const sample = payload => page.request.post(origin + '/api/v1/device/measurements', {
+      headers: { Authorization: 'Bearer ' + credentialId + '.' + secret }, data: payload, timeout: 5000,
+    });
+    const finishing = order === 'finish-first' ? finish() : null;
+    const incoming = payloads.map(sample);
+    const replies = await Promise.all([finishing || finish(), ...incoming]);
+    const elapsedMs = Date.now() - begin;
+    assert(elapsedMs < 5000);
+    assert.equal(replies[0].status(), 200);
+    for (const reply of replies.slice(1)) {
+      assert([201, 409].includes(reply.status()));
+      if (reply.status() === 409) assert.equal((await reply.json()).error.code, 'SESSION_NOT_ACTIVE');
+    }
+    const accepted = replies.slice(1).filter(reply => reply.status() === 201).length;
+    const history = (await measurements.list(id)).data;
+    assert.equal(history.length, accepted);
+    const end = await sessions.getById(id);
+    assert(history.every(reading => reading.receivedAt <= end.finishedAt));
+    assert.equal((await jobs.get(id)).status, 'pending');
+    // Repetition does not create another job or reset closure.
+    assert.equal((await mutation('/sessions/' + id + '/finish', {})).status(), 200);
+    assert.equal((await sessions.getById(id)).finishedAt, end.finishedAt);
+    concurrencyRounds.push({ order, round: round + 1, elapsedMs, accepted, history: history.length });
+  }
+  assert.equal(apiCalls, 1);
+  // Exercise the two opt-in web HTTP integration tests with a real authenticated
+  // emulator session and >100 readings. Never put the cookie in command arguments.
+  const integrationCreate = await mutation('/sessions', { assignmentId: assignment.id });
+  assert.equal(integrationCreate.status(), 201);
+  const integrationSession = (await integrationCreate.json()).data.id;
+  assert.equal((await mutation('/sessions/' + integrationSession + '/start', {})).status(), 200);
+  const integrationBoot = randomUUID();
+  for (let i = 0; i < 105; i++) await measurements.ingest(device.deviceId, {
+    deviceId: device.deviceId, sessionId: integrationSession, bootId: integrationBoot, sequence: i, capturedAt: null,
+    measurements: { heartRate: { value: i === 104 ? null : 78, unit: 'bpm', status: i === 104 ? 'no_contact' : 'valid' },
+      spo2: { value: i === 104 ? null : 97, unit: '%', status: i === 104 ? 'no_contact' : 'valid' },
+      skinTemperature: { value: 31, unit: 'C', status: 'valid' } },
+  });
+  const cookieHeader = (await context.cookies(origin)).map(cookie => cookie.name + '=' + cookie.value).join('; ');
+  const integrationExit = await new Promise((resolve, reject) => {
+    const child = require('node:child_process').spawn(process.execPath,
+      [path.join(root, 'node_modules/vitest/vitest.mjs'), 'run', 'test/monitoring-api.integration.test.ts',
+        '--reporter=json', '--outputFile=' + path.join(out, 'web-http-tests.json')], {
+        cwd: path.join(root, 'apps/web'), windowsHide: true,
+        env: { ...process.env, PULSOLINK_API_URL: origin, PULSOLINK_SESSION_COOKIE: cookieHeader, PULSOLINK_PATIENT_ID: patient.id },
+        stdio: 'ignore',
+      });
+    child.once('error', () => reject(new Error('Web integration process failed.')));
+    const timeout = setTimeout(() => { child.kill(); reject(new Error('Web integration timeout.')); }, 90000);
+    child.once('close', code => { clearTimeout(timeout); resolve(code); });
+  });
+  const webHttpTests = JSON.parse(fs.readFileSync(path.join(out, 'web-http-tests.json'), 'utf8'));
+  if (integrationExit !== 0) console.error(JSON.stringify({ stage: 'web-http', failedTests:
+    webHttpTests.testResults.flatMap(file => file.assertionResults.filter(test => test.status !== 'passed').map(test => test.fullName)) }));
+  assert.equal(integrationExit, 0, 'two web integration tests must pass against the real local API');
+  assert.equal(webHttpTests.numPassedTests, 2);
+  assert.equal(webHttpTests.numPendingTests, 0);
+  assert.equal((await mutation('/sessions/' + integrationSession + '/finish', {})).status(), 200);
   const result = {
     status: 'PASS', generatedAt: new Date().toISOString(), project: process.env.FIREBASE_PROJECT_ID,
     environment: 'Auth/Firestore Standard emulators + real Groq API + Edge headless + compiled SPA',
     sessionId: session.sessionId, apiCalls, returnedModel, finishReason, usage,
-    stats: persisted.stats, text: persisted.text, overflowAt390px: overflow,
+    stats: persisted.stats, text: persisted.text, overflowAt390px: overflow, concurrencyRounds, webHttpIntegrationTests: 2,
     checks: ['real-emulator-login', 'active-session-no-summary', 'finish-HTTP-200', 'durable-pending',
       'real-Groq-strict-plan', 'complete-facts', 'persisted-ready', 'browser-title-and-text', 'reload-reuses-result'],
   };
   fs.writeFileSync(path.join(out, 'results.json'), JSON.stringify(result, null, 2));
-  console.log(JSON.stringify({ status: result.status, apiCalls, returnedModel, usage, overflowAt390px: overflow, output: out }));
+  console.log(JSON.stringify({ status: result.status, apiCalls, returnedModel, usage, overflowAt390px: overflow, concurrencyRounds, output: out }));
 }
 main().catch(error => {
   console.error(JSON.stringify({ status: 'FAIL', category: error?.code || error?.name || 'ERROR', assertion: error?.name === 'AssertionError' ? error.message.slice(0, 160) : undefined }));

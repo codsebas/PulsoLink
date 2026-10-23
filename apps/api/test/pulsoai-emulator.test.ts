@@ -66,4 +66,38 @@ describe.skipIf(!enabled)('PulsoAI: Firestore Standard emulator', () => {
     const third = await jobs.claim();
     await jobs.publish(third!, { status: 'disabled', availableAt: null });
   }, 30000);
+
+  it('resuelve seis carreras en ambos órdenes bajo 5 s conservando historia, idempotencia y un trabajo', async () => {
+    const times: number[] = [];
+    for (const finishFirst of [true, false]) for (let round = 0; round < 3; round++) {
+      const deviceId = randomUUID();
+      await db.collection('devices').doc(deviceId).set({ deviceId, enabled: true, source: 'simulated', activeSessionId: null });
+      const created = await sessions.create({ participantCode: 'RACE', operatorId: 'admin', deviceId });
+      await sessions.start(created.sessionId);
+      const bootId = randomUUID();
+      const inputs = Array.from({ length: 5 }, (_, sequence) => ({ sessionId: created.sessionId, bootId, sequence, capturedAt: null,
+        measurements: { heartRate: { value: 78, status: 'valid' as const, unit: 'bpm' as const },
+          spo2: { value: 97, status: 'valid' as const, unit: '%' as const },
+          skinTemperature: { value: 31, status: 'valid' as const, unit: 'C' as const } } }));
+      const start = performance.now();
+      const finished = finishFirst ? sessions.finish(created.sessionId) : undefined;
+      const ingestions = inputs.map(input => measurements.ingest(deviceId, input));
+      const result = await Promise.allSettled([finished ?? sessions.finish(created.sessionId), ...ingestions]);
+      const elapsed = performance.now() - start;
+      times.push(Math.round(elapsed));
+      expect(elapsed).toBeLessThan(5000);
+      expect(result[0].status).toBe('fulfilled');
+      const accepted = result.slice(1).filter(x => x.status === 'fulfilled').length;
+      expect(accepted).toBe(finishFirst ? 0 : 5);
+      const rows = (await measurements.list(created.sessionId)).data;
+      expect(rows).toHaveLength(accepted);
+      const end = (await sessions.getById(created.sessionId))!;
+      for (const row of rows) expect(row.receivedAt <= end.finishedAt!).toBe(true);
+      if (!finishFirst) expect((await measurements.ingest(deviceId, inputs[0])).duplicate).toBe(true);
+      else for (const failed of result.slice(1)) expect((failed as PromiseRejectedResult).reason.code).toBe('SESSION_NOT_ACTIVE');
+      expect((await jobs.get(created.sessionId))?.status).toBe('pending');
+      await db.collection('sessionSummaries').doc(created.sessionId).update({ status: 'disabled', availableAt: null });
+    }
+    console.log('PulsoAI six race rounds (ms):', JSON.stringify(times));
+  }, 30000);
 });

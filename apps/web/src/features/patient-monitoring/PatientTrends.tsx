@@ -18,10 +18,12 @@ export default function PatientTrends({ readings }: { readings: PatientMeasureme
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={points} margin={{ top: 8, right: 12, bottom: 8, left: -20 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="at" type="number" domain={['dataMin', 'dataMax']} tickFormatter={(value: number) => guatemalaDate(value).split(', ').pop() ?? ''} minTickGap={35} tick={{ fontSize: 10 }} />
-            <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} tickFormatter={(value: number) => value.toLocaleString('es-GT', { maximumFractionDigits: 2 })} />
+            <XAxis dataKey="at" type="number" domain={['dataMin', 'dataMax']} tickFormatter={(value: number) => guatemalaDate(value).split(', ').pop() ?? ''} minTickGap={35} tick={{ fontSize: 12 }} />
+            <YAxis domain={['auto', 'auto']} tick={{ fontSize: 12 }} tickFormatter={(value: number) => value.toLocaleString('es-GT', { maximumFractionDigits: 2 })} />
             <Tooltip labelFormatter={(value) => guatemalaDate(Number(value))} formatter={(value) => [formatVital(value == null ? null : Number(value)), metric.unit]} />
-            <Line type="linear" dataKey={metric.key} stroke={metric.color} strokeWidth={2} dot={points.length < 30} connectNulls={false} isAnimationActive={false} />
+            {/* Marcadores siempre visibles: son valores puntuales, no una onda continua (no PPG ni ECG). */}
+            <Line type="linear" dataKey={metric.key} stroke={metric.color} strokeWidth={1.5} strokeOpacity={0.6}
+              dot={{ r: 2, fill: metric.color, stroke: metric.color, strokeWidth: 0 }} activeDot={{ r: 4 }} connectNulls={false} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>

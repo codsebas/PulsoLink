@@ -1,5 +1,7 @@
 # PulsoLink
 
+**PulsoAI:** nombre de la IA integrada para resúmenes descriptivos de sesiones finalizadas. [Contrato y configuración](docs/arquitectura/pulsoai.md); seguimiento #72. Presentación mínima debajo de última muestra/contacto; mejoras de diseño #74. Requiere activación explícita en backend.
+
 **Firebase real de pruebas:** [configuración del entorno cloud y evidencia ejecutada](docs/setup/firebase-cloud-pruebas.md). El backend local puede conectarse a Firestore Standard y Authentication reales; el despliegue web/API y la integración física se verifican por separado.
 
 **Hosting y pruebas externas:** [alternativas, variables de entorno y recorrido HTTPS de NodeMCU](docs/setup/hosting-y-pruebas-externas.md). Incluye plantillas activas para desarrollo y producción, requisitos de mismo origen y límites del firmware HTTP actual.

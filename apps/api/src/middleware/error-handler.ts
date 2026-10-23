@@ -63,8 +63,10 @@ export function errorHandler(
       AUDIT_NOT_FOUND: 404,
       AUTH_SYNC_PENDING: 503,
       NO_CHANGES: 400,
+      RATE_LIMITED: 429,
     };
     const statusCode = statusMap[err.code] ?? 400;
+    if (err.code === 'RATE_LIMITED') res.setHeader('Retry-After', '1');
     sendError(res, err.code, err.message, statusCode, requestId);
     return;
   }

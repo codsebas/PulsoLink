@@ -36,6 +36,9 @@ y se resuelve respecto del entrypoint compilado, independientemente del cwd.
 | `FIREBASE_WEB_API_KEY` | Clave web del mismo proyecto Firebase |
 | `GOOGLE_APPLICATION_CREDENTIALS` | `/etc/secrets/serviceAccountKey.json` |
 | `VITE_API_BASE_URL` | `/api/v1`, disponible al construir React |
+| `SESSION_SUMMARY_ENABLED` | `true` para activar PulsoAI después de integrar y revisar #72; `false` para deshabilitar |
+| `GROQ_MODEL` | `openai/gpt-oss-20b` |
+| `GROQ_API_KEY` | Clave privada de Groq, únicamente en Environment del backend |
 
 Agregar en **Environment → Secret Files** un archivo llamado
 `serviceAccountKey.json`, con el contenido del JSON administrativo autorizado

@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-23T02:28:14.964Z",
+  "project": "pulsolink-pruebas-2026-7c8a31",
+  "mode": "dry-run-only",
+  "apply": false,
+  "records": 313,
+  "operatorProfiles": 0,
+  "sessionMappings": 0,
+  "unresolvedCount": 0,
+  "backupCreated": false,
+  "mutationsApplied": false
+}

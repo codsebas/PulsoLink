@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-23T02:33:23.143Z",
+  "checks": [
+    {
+      "url": "https://pulsolink-api.onrender.com/api/v1/health",
+      "status": 200,
+      "cloud": "cloud",
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "url": "https://pulsolink-api.onrender.com/login",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    }
+  ]
+}

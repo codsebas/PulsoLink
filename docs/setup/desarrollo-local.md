@@ -164,6 +164,8 @@ npx -y firebase-tools@latest emulators:exec --config firebase/emulators.test.jso
 
 Sin ambos hosts de emulador, los casos de persistencia se omiten. No presente esa omisión como una prueba integrada aprobada.
 
+El script de pruebas de la API ejecuta los archivos en serie (`--fileParallelism=false`): las suites comparten un proyecto emulado y algunas recuperan operaciones pendientes de toda la colección. Ejecutarlas en paralelo permite que una suite procese los fixtures de otra y aumenta la contención del emulador. Las carreras explícitas dentro de cada prueba siguen ejecutándose concurrentemente; no se amplían sus tiempos de espera.
+
 ### 6.3 Contratos y orden de integración
 
 Los contratos versionados son la fuente de integración: [Contrato A](../../contracts/device.openapi.yaml) para dispositivo/simulador y [Contrato B](../../contracts/web.openapi.yaml) para la web. Ambos usan el prefijo `/api/v1`.

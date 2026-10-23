@@ -1,5 +1,7 @@
 # PulsoLink — contrato de arquitectura y plan de ejecución
 
+**Ampliación del 22-10-2026:** coordinación solicita [PulsoAI](pulsoai.md), resumen descriptivo por sesión terminada, sin diagnóstico. Esta ampliación incorpora esa función al alcance; el resto de límites clínicos permanece vigente. Seguimiento #72; diseño #74.
+
 **Estado:** aprobado por la coordinación del proyecto el 18 de octubre de 2026.
 **Propósito:** servir como especificación de trabajo para el equipo y como contexto autónomo para una futura sesión de Codex abierta sobre el repositorio.
 **Repositorio:** https://github.com/codsebas/PulsoLink

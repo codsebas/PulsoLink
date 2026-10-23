@@ -2,10 +2,13 @@ import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { UsersService } from './modules/users/users.service.js';
 import { resolve } from 'node:path';
+import { startSummaryWorker } from './modules/pulsoai/pulsoai.service.js';
 
 const app = createApp(env.NODE_ENV === 'production'
   ? { webDistPath: resolve(__dirname, '../../web/dist') }
   : {});
+
+const stopSummaryWorker = startSummaryWorker();
 
 const server = app.listen(env.PORT, () => {
   console.log(`✅ [PulsoLink API] Servidor ejecutándose en http://localhost:${env.PORT}`);
@@ -29,6 +32,7 @@ const server = app.listen(env.PORT, () => {
 
 // Manejo de señales de terminación para apagado ordenado en Windows / Node
 function handleShutdown(signal: string) {
+  stopSummaryWorker();
   console.log(`\n🛑 [PulsoLink API] Recibida señal ${signal}. Cerrando servidor...`);
   server.close(() => {
     console.log('✅ [PulsoLink API] Servidor detenido correctamente.');

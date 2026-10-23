@@ -562,7 +562,7 @@ El proyecto cuenta con un conjunto de siete skills especializadas para agentes d
 
 La guía completa paso a paso para Windows PowerShell se encuentra en [docs/setup/desarrollo-local.md](docs/setup/desarrollo-local.md).
 
-**Requisito de entorno:** Node.js **24 LTS** (`engines.node >= 24.0.0` en la raíz y en cada workspace; `.node-version` fija 24.15.0).
+**Requisito de entorno:** Node.js **24 LTS** (`engines.node ^24.0.0` en la raíz y en cada workspace; `.node-version` fija 24.15.0).
 
 ### Comandos principales desde la raíz:
 

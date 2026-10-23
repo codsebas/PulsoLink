@@ -10,7 +10,7 @@ Asegúrese de contar con las siguientes herramientas instaladas y accesibles en 
 
 | Herramienta | Versión recomendada | Verificación en PowerShell |
 | :--- | :--- | :--- |
-| **Node.js** | `>= 24.0.0` (Node 24 LTS; declarado en `engines` de la raíz, `apps/api`, `apps/web` y `tools/device-simulator`; `.node-version` fija 24.15.0) | `node --version` |
+| **Node.js** | `^24.0.0` (Node 24 LTS; declarado en `engines` de la raíz, `apps/api`, `apps/web` y `tools/device-simulator`; `.node-version` fija 24.15.0) | `node --version` |
 | **npm** | `>= 10.0.0` | `npm --version` |
 | **Git** | `>= 2.40.0` | `git --version` |
 | **PowerShell** | Versión 5.1 o PowerShell 7+ | `$PSVersionTable.PSVersion` |
@@ -139,15 +139,17 @@ npm run lint
 
 ### 6.1 Estado conocido de las comprobaciones
 
-La ejecución local del 22 de octubre de 2026 con `npm run verify` (Node 26.7.0, compatible con `engines.node >= 24.0.0`) produjo el siguiente resultado:
+La ejecución local del 22 de octubre de 2026 con `npm run verify` sobre `main` `00be19f` y **Node 24.22.1** (`npx -p node@24`) produjo el siguiente resultado:
 
 | Comando | Resultado | Alcance y observaciones |
 | --- | --- | --- |
 | `npm run typecheck` | Correcto | API, web y simulador completan la comprobación sin errores de tipos. |
 | `npm run build` | Correcto | La API, la web (`vite build`) y el simulador compilan. |
-| `npm run test` | Correcto | API: 203 aprobadas y 50 omitidas; web: 43 aprobadas y 2 omitidas; simulador: 32 aprobadas. |
+| `npm run test` | Correcto | API: 203 aprobadas y 50 omitidas; web: 53 aprobadas y 2 omitidas; simulador: 32 aprobadas. |
 | `npm run verify` | Correcto | Encadena `typecheck`, `build` y `test` en los tres workspaces. |
 | `npm run lint` | Marcador | Los scripts de API y web solo imprimen `lint ok`; no sustituyen un linter real. Configurar ESLint o Biome sigue pendiente y no se acredita como verificación. |
+
+Las **50 pruebas omitidas de la API** son las que requieren los emuladores de Auth y Firestore; `verify` no las ejecuta. Para correrlas, usar el comando con `emulators:exec` de [firebase/README.md](../../firebase/README.md) (`npx -y firebase-tools@latest emulators:exec --config firebase/emulators.test.json --project demo-pulsolink --only firestore,auth 'npm run test --workspace=apps/api'`). `engines` es informativo salvo que se active `engine-strict`; la versión efectiva se comprueba con `node --version`.
 
 Los detalles reproducibles de la capa de historial están en [la evidencia de PL2-07](../evidencias/monitoreo-pl2-07.md).
 

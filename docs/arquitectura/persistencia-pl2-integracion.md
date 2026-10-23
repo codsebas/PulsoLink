@@ -74,7 +74,9 @@ npx tsx src/scripts/migrate-legacy.ts '--manifest=C:/ruta-privada/manifest.json'
 npx tsx src/scripts/migrate-legacy.ts '--manifest=C:/ruta-privada/manifest.json' --apply '--backup-dir=C:/ruta-privada/respaldos'
 ```
 
-Antes de cualquier modificación, `--apply` exige guardar fuera del checkout un respaldo lógico exclusivo de las colecciones inventariadas. Un fallo del respaldo impide las mutaciones. En nube se exige además `--allow-cloud`; solo usar después de aprobación operativa, respaldo del servicio y ventana de mantenimiento. Las pruebas de esta entrega no aplican migraciones a la nube.
+Antes de cualquier modificación, `--apply` exige guardar fuera del checkout y de OneDrive un respaldo lógico exclusivo de las colecciones inventariadas. Un fallo del respaldo impide las mutaciones. El archivo se crea exclusivo; en Windows se elimina la herencia y se permite acceso al usuario actual y SYSTEM antes de escribir; en POSIX se usa `0600`. Se sincroniza el archivo a disco antes de modificar Firestore/Auth.
+
+En nube se exige además `--allow-cloud` y `$env:MIGRATION_TARGET_PROJECT` igual a `$env:FIREBASE_PROJECT_ID`; solo usar después de aprobación operativa, respaldo del servicio y ventana de mantenimiento. Este respaldo lógico no sustituye una exportación administrada ni constituye una herramienta de restauración. No aplicar correspondencias de ejemplo al proyecto compartido; revisar el inventario en dry-run y los registros no resueltos. Las pruebas de esta entrega no aplican migraciones a la nube.
 
 El inventario incluye perfiles, pacientes, dispositivos, asignaciones, sesiones, subcolecciones, claves de ingestión, auditoría y journals. Los registros sin correspondencia permanecen sin patientId, fuera de consultas de pacientes, y aparecen como no resueltos en el informe de la función; la CLI solo imprime cantidades. El respaldo conserva los originales para revisión. No se copian credenciales administrativas ni se borran claves de ingestión.
 

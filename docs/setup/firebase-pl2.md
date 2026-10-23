@@ -34,7 +34,7 @@ Además prepara un tercer paciente seudónimo de monitoreo (`monitor-patient`) c
 
 Cada conjunto se crea en una sola transacción con un marcador: repetir la semilla no cambia reservas ni fechas. Si los IDs de demostración ya tienen otros datos, se rechaza el conflicto. No usar esta semilla para cargar datos reales.
 
-Auth y Firestore no comparten transacción. Si Auth se crea y falla Firestore, las identidades se conservan: corregir el conflicto y repetir con los mismos valores completa solo lo faltante. No borrar ni reactivar cuentas automáticamente. El anterior `provision-auth-users.ts` es legado: actualiza cuentas existentes y no debe usarse como sustituto de esta semilla repetible.
+Auth y Firestore no comparten transacción. Si Auth se crea y falla Firestore, las identidades se conservan: corregir el conflicto y repetir con los mismos valores completa solo lo faltante. No borrar ni reactivar cuentas automáticamente. `provision-auth-users.ts` conserva desde #63 las identidades existentes y exige proyecto explícito; el flujo de dos pasos para nube está en [Auth](../auth.md). La semilla de esta guía sigue siendo exclusiva de emuladores.
 
 ## Roles y compatibilidad
 

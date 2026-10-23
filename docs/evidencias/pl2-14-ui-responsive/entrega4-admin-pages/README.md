@@ -23,7 +23,7 @@ Entorno: macOS (zsh), Node.js 24.14.1, Google Chrome 155 con Playwright 1.64.1 (
 | Sección E de PL2-08 (`PULSOLINK_UI_CONTRAST_ONLY`) | Aprobada (UI-03a/b usan los diálogos de asignar y de crear sesión) |
 | Pruebas web | 67 aprobadas (4 nuevas de los componentes compartidos), 2 omitidas |
 
-## Notas de la revisión de #85 (atendidas en este mismo PR)
+## Notas de la revisión de #85 (atendidas en #88)
 
 1. **Foco independiente de `blur`:** la recuperación del foco ya no sigue `focus`/`blur`. Se registra dentro del aviso de `matchMedia`, mediante el nuevo `onBeforeChange` de `useMediaQuery`, antes de que React renderice.
    - **Fallo detectado en Chrome real:** el primer intento usaba un listener de `matchMedia` aparte y dejaba el foco en `<body>`. El navegador vacía las microtareas tras cada listener, así que React ya había renderizado. Las pruebas unitarias no lo detectaban porque `act` agrupaba los listeners. Ahora el mock renderiza tras cada listener, como el navegador, y la versión rota fallaría.

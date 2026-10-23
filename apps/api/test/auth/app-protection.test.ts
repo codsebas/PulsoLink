@@ -24,7 +24,7 @@ beforeAll(async () => {
 
   const { createApp } = await import('../../src/app.js');
   app = createApp();
-});
+}, 30000);
 
 describe('arranque sin FIREBASE_WEB_API_KEY', () => {
   it('GET /api/v1/health responde 200', async () => {

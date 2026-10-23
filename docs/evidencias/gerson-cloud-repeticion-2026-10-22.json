@@ -1,0 +1,24 @@
+{
+  "project": "pulsolink-pruebas-2026-7c8a31",
+  "mode": "API local y Firebase cloud reales; sin hardware/hosting",
+  "sha": "3db477abbdc8d5504e8fe1ce77082d7ee8f931e7",
+  "workingTreeDirty": true,
+  "generatedAt": "2026-10-23T02:28:15.378Z",
+  "checks": [
+    {
+      "name": "admin login",
+      "actual": 503,
+      "expected": 200
+    }
+  ],
+  "cleanup": "PASS; solo se cerraron/deshabilitaron recursos creados por esta ejecución; sin borrado histórico",
+  "status": "FAIL",
+  "failedStage": "start and real login",
+  "owned": {
+    "devices": [],
+    "patients": [],
+    "assignments": [],
+    "sessions": [],
+    "credentialIds": []
+  }
+}

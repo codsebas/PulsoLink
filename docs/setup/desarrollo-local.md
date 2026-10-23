@@ -10,7 +10,7 @@ Asegúrese de contar con las siguientes herramientas instaladas y accesibles en 
 
 | Herramienta | Versión recomendada | Verificación en PowerShell |
 | :--- | :--- | :--- |
-| **Node.js** | `>= 22.0.0` (LTS recomendada: Node 24) | `node --version` |
+| **Node.js** | `^24.0.0` (Node 24 LTS; declarado en `engines` de la raíz, `apps/api`, `apps/web` y `tools/device-simulator`; `.node-version` fija 24.15.0) | `node --version` |
 | **npm** | `>= 10.0.0` | `npm --version` |
 | **Git** | `>= 2.40.0` | `git --version` |
 | **PowerShell** | Versión 5.1 o PowerShell 7+ | `$PSVersionTable.PSVersion` |
@@ -116,7 +116,7 @@ Abra `http://localhost:5173` en su navegador. La pantalla de bienvenida consulta
 
 ---
 
-## 6. Compilación, Comprobación de Tipos y Lint
+## 6. Compilación, Comprobación de Tipos y Verificación
 
 Para ejecutar las comprobaciones disponibles del monorepositorio:
 
@@ -127,21 +127,31 @@ npm run typecheck
 # Compilar todas las aplicaciones a producción
 npm run build
 
-# Ejecutar validación de linters
+# Ejecutar las pruebas automatizadas de todos los workspaces
+npm run test
+
+# Verificación completa: typecheck + build + test de los tres workspaces
+npm run verify
+
+# Marcador de lint: todavía no hay un linter configurado
 npm run lint
 ```
 
 ### 6.1 Estado conocido de las comprobaciones
 
-La ejecución local registrada por integracion y QA el 16 de octubre de 2026, tras `npm ci`, produjo el siguiente resultado:
+La ejecución local del 22 de octubre de 2026 con `npm run verify` sobre `main` `00be19f` y **Node 24.22.1** (`npx -p node@24`) produjo el siguiente resultado:
 
 | Comando | Resultado | Alcance y observaciones |
 | --- | --- | --- |
-| `npm run typecheck` | Fallo | La API y el simulador completaron su comprobación. La web falla con `TS6310` porque `apps/web/tsconfig.json` referencia `tsconfig.node.json`, que declara `noEmit`. |
-| `npm run build` | Fallo | La API y el simulador completaron su compilación. La web se bloquea por el mismo `TS6310`; Vite no llega a ejecutarse. |
-| `npm run lint` | Sale correctamente | Los scripts de API y web solo imprimen mensajes `lint ok`; no sustituyen un linter real. |
+| `npm run typecheck` | Correcto | API, web y simulador completan la comprobación sin errores de tipos. |
+| `npm run build` | Correcto | La API, la web (`vite build`) y el simulador compilan. |
+| `npm run test` | Correcto | API: 203 aprobadas y 50 omitidas; web: 53 aprobadas y 2 omitidas; simulador: 32 aprobadas. |
+| `npm run verify` | Correcto | Encadena `typecheck`, `build` y `test` en los tres workspaces. |
+| `npm run lint` | Marcador | Los scripts de API y web solo imprimen `lint ok`; no sustituyen un linter real. Configurar ESLint o Biome sigue pendiente y no se acredita como verificación. |
 
-No considere el typecheck ni la compilación globales aprobados hasta resolver la configuración TypeScript de `apps/web`. Los detalles reproducibles están en [la evidencia de integración AV1-09](../evidencias/integracion-av1-09.md).
+Las **50 pruebas omitidas de la API** son las que requieren los emuladores de Auth y Firestore; `verify` no las ejecuta. Para correrlas, usar el comando con `emulators:exec` de [firebase/README.md](../../firebase/README.md) (`npx -y firebase-tools@latest emulators:exec --config firebase/emulators.test.json --project demo-pulsolink --only firestore,auth 'npm run test --workspace=apps/api'`). `engines` es informativo salvo que se active `engine-strict`; la versión efectiva se comprueba con `node --version`.
+
+Los detalles reproducibles de la capa de historial están en [la evidencia de PL2-07](../evidencias/monitoreo-pl2-07.md).
 
 ### 6.2 Pruebas de persistencia con emuladores
 

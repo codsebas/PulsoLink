@@ -74,9 +74,31 @@ describe.skipIf(!enabled)('PL2 legacy migration', () => {
       expect((await db.doc(paths.session).get()).data()?.patientId).toBeUndefined();
       expect(run('--apply', `--backup-dir=${resolve('../..', '.cache', 'refused-backup')}`).status).toBe(1);
       expect((await db.doc(paths.session).get()).data()?.patientId).toBeUndefined();
+      const synced = spawnSync(process.execPath, [resolve('../../node_modules/tsx/dist/cli.mjs'),
+        'src/scripts/migrate-legacy.ts', `--manifest=${manifestPath}`, '--apply', `--backup-dir=${directory}`],
+      { cwd: process.cwd(), env: { ...Object.fromEntries(Object.entries(process.env)
+        .filter(([key]) => key.toLowerCase() !== 'onedrive')), OneDrive: directory }, encoding: 'utf8', timeout: 30000 });
+      expect(synced.status).toBe(1);
+      expect((await db.doc(paths.session).get()).data()?.patientId).toBeUndefined();
+      expect((await readdir(directory)).filter(name => name.startsWith('pulsolink-'))).toHaveLength(0);
+      if (process.platform === 'win32') {
+        // Sin icacls no se permite guardar un respaldo con ACL heredadas.
+        const noAcl = spawnSync(process.execPath, [resolve('../../node_modules/tsx/dist/cli.mjs'),
+          'src/scripts/migrate-legacy.ts', `--manifest=${manifestPath}`, '--apply', `--backup-dir=${directory}`],
+        { cwd: process.cwd(), env: { ...Object.fromEntries(Object.entries(process.env)
+          .filter(([key]) => key.toLowerCase() !== 'path')), Path: directory }, encoding: 'utf8', timeout: 30000 });
+        expect(noAcl.status).toBe(1);
+        expect((await db.doc(paths.session).get()).data()?.patientId).toBeUndefined();
+        expect((await readdir(directory)).filter(name => name.startsWith('pulsolink-'))).toHaveLength(0);
+      }
       const applied = run('--apply', `--backup-dir=${directory}`);
       expect(applied.status).toBe(0);
       const backupName = (await readdir(directory)).find((name) => name.startsWith('pulsolink-'))!;
+      if (process.platform === 'win32') {
+        const acl = spawnSync('icacls', [join(directory, backupName)], { encoding: 'utf8' });
+        expect(acl.status).toBe(0);
+        expect(acl.stdout).not.toContain('(I)');
+      }
       const backup = JSON.parse(await readFile(join(directory, backupName), 'utf8')) as { records: Array<{path: string; data: Record<string, unknown>}> };
       expect(backup.records.find((row) => row.path === paths.session)?.data.patientId).toBeUndefined();
       expect((await db.doc(paths.session).get()).data()?.patientId).toBe(manifest.sessions[0].patientId);

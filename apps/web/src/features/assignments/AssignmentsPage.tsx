@@ -178,6 +178,7 @@ export const AssignmentsPage: React.FC = () => {
     {
       key: 'patient',
       header: 'Paciente',
+      primary: true,
       render: (a) => (
         <div>
           <div className="font-medium">{patientLabel(a.patientId) ?? '—'}</div>
@@ -222,9 +223,7 @@ export const AssignmentsPage: React.FC = () => {
                   <Unlink className="w-3.5 h-3.5" aria-hidden="true" />
                   Cerrar
                 </button>
-              ) : (
-                <span className="text-xs text-slate-400">—</span>
-              ),
+              ) : null, // Cerrada: sin acciones; la tabla muestra "—" y la tarjeta omite el pie.
           } satisfies Column<Assignment>,
         ]
       : []),

@@ -130,6 +130,7 @@ export const SessionsPage: React.FC = () => {
     {
       key: 'id',
       header: 'Sesión',
+      primary: true,
       render: (s) => (
         <Link
           to={`/sessions/${s.id}`}
@@ -172,7 +173,8 @@ export const SessionsPage: React.FC = () => {
           {
             key: 'actions',
             header: 'Acciones',
-            render: (s: Session) => (
+            // Sin acciones (p. ej. sesión finalizada) devuelve null: la tarjeta móvil omite el pie.
+            render: (s: Session) => (s.status !== 'created' && s.status !== 'active' ? null : (
               <div className="flex gap-2">
                 {s.status === 'created' && (
                   <button
@@ -196,7 +198,7 @@ export const SessionsPage: React.FC = () => {
                   </button>
                 )}
               </div>
-            ),
+            )),
           } satisfies Column<Session>,
         ]
       : []),

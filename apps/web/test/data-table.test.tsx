@@ -23,7 +23,9 @@ function mockViewport(wide: boolean) {
     addEventListener: (_: string, fn: () => void) => listeners.push(fn),
     removeEventListener: (_: string, fn: () => void) => { listeners = listeners.filter((l) => l !== fn); },
   })));
-  return (next: boolean) => { state.wide = next; act(() => listeners.forEach((fn) => fn())); };
+  // Como el navegador, React puede renderizar entre un listener y el siguiente
+  // (vacía las microtareas tras cada uno): un `act` por listener lo reproduce.
+  return (next: boolean) => { state.wide = next; [...listeners].forEach((fn) => act(() => fn())); };
 }
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
@@ -114,6 +116,13 @@ describe('DataTable', () => {
     const headings = screen.getAllByRole('heading', { level: 2 });
     expect(headings.map((h) => h.textContent)).toEqual(['Paciente uno', 'Paciente dos']);
     expect(screen.getByRole('listitem', { name: 'Paciente dos' })).toBeTruthy();
+  });
+
+  it('el nivel del encabezado de las tarjetas es configurable', () => {
+    mockViewport(false);
+    render(<DataTable columns={columns} rows={rows} getKey={(r) => r.id} titleLevel={3} />);
+    expect(screen.queryAllByRole('heading', { level: 2 })).toHaveLength(0);
+    expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['Paciente uno', 'Paciente dos']);
   });
 
   it('si el foco estaba dentro al cruzar el breakpoint, pasa al contenedor en vez de perderse', () => {

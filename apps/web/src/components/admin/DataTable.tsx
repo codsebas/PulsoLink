@@ -7,6 +7,11 @@ import { useMediaQuery } from '../../lib/useMediaQuery';
 export interface Column<T> {
   key: string;
   header: string;
+  /**
+   * Contenido de la celda. Para "nada que mostrar" devolver `null`, `undefined`,
+   * `false` o `''`: la tabla dibuja "—" y la tarjeta omite el campo vacío o el pie
+   * de acciones. Un fragmento o un `<div>` vacíos no se detectan como vacíos.
+   */
   render: (row: T) => React.ReactNode;
   className?: string;
   /** Encabeza la tarjeta en móvil. Si ninguna columna lo indica, se usa la primera. */
@@ -30,6 +35,8 @@ interface DataTableProps<T> {
   onLoadMore?: () => void;
   emptyMessage?: string;
   emptyHint?: string;
+  /** Nivel del encabezado de cada tarjeta móvil; por defecto `h2`, bajo el `h1` de la página. */
+  titleLevel?: 2 | 3 | 4;
 }
 
 /** Breakpoint `sm` de Tailwind: por debajo, cada fila se muestra como tarjeta. */
@@ -84,7 +91,8 @@ function TableView<T>({ columns, rows, getKey }: ViewProps<T>) {
 
 const roleOf = <T,>(column: Column<T>) => column.mobile ?? (column.key === 'actions' ? 'actions' : 'detail');
 
-function CardView<T>({ columns, rows, getKey }: ViewProps<T>) {
+function CardView<T>({ columns, rows, getKey, titleLevel }: ViewProps<T> & { titleLevel: 2 | 3 | 4 }) {
+  const Heading = `h${titleLevel}` as const;
   const visible = columns.filter((column) => roleOf(column) !== 'hidden');
   const primary = visible.find((column) => column.primary) ?? visible.find((column) => roleOf(column) === 'detail');
   const details = visible.filter((column) => column !== primary && roleOf(column) === 'detail');
@@ -100,9 +108,9 @@ function CardView<T>({ columns, rows, getKey }: ViewProps<T>) {
           {primary && (
             // Encabezado para navegar entre tarjetas con lector de pantalla. Si el título
             // es un enlace (p. ej. el ID de sesión), también ocupa 44 px de alto.
-            <h2 id={titleId} className="min-w-0 break-words text-base font-semibold text-slate-900 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center">
+            <Heading id={titleId} className="min-w-0 break-words text-base font-semibold text-slate-900 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center">
               {primary.render(row)}
-            </h2>
+            </Heading>
           )}
           {details.length > 0 && (
             <dl className="mt-3 grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
@@ -147,18 +155,24 @@ export function DataTable<T>({
   onLoadMore,
   emptyMessage = 'No hay registros.',
   emptyHint,
+  titleLevel = 2,
 }: DataTableProps<T>) {
-  const wide = useMediaQuery(WIDE_TABLE_QUERY, true);
   // Al cruzar el breakpoint se desmonta una vista y se monta la otra. Si el foco
-  // estaba dentro, se lleva al contenedor en vez de perderlo en <body>.
+  // estaba dentro, se lleva al contenedor en vez de perderlo en <body>. Se registra
+  // dentro del aviso de `matchMedia`, antes de que React renderice, para no
+  // depender de si el navegador dispara `blur` al quitar el elemento enfocado.
   const containerRef = useRef<HTMLDivElement>(null);
-  const hadFocus = useRef(false);
+  const focusInside = useRef(false);
+  const wide = useMediaQuery(WIDE_TABLE_QUERY, true, () => {
+    focusInside.current = Boolean(containerRef.current?.contains(document.activeElement));
+  });
   const previousWide = useRef(wide);
   useLayoutEffect(() => {
     if (previousWide.current === wide) return;
     previousWide.current = wide;
     const container = containerRef.current;
-    if (hadFocus.current && container && !container.contains(document.activeElement)) container.focus();
+    if (focusInside.current && container && !container.contains(document.activeElement)) container.focus();
+    focusInside.current = false;
   }, [wide]);
   if (isLoading) return <LoadingState />;
   if (error) return <ErrorState error={error} onRetry={onRetry} />;
@@ -177,11 +191,9 @@ export function DataTable<T>({
     <div
       ref={containerRef}
       tabIndex={-1}
-      onFocus={() => { hadFocus.current = true; }}
-      onBlur={(event) => { hadFocus.current = event.currentTarget.contains(event.relatedTarget as Node | null); }}
       className="space-y-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-700"
     >
-      {wide ? <TableView columns={columns} rows={rows} getKey={getKey} /> : <CardView columns={columns} rows={rows} getKey={getKey} />}
+      {wide ? <TableView columns={columns} rows={rows} getKey={getKey} /> : <CardView columns={columns} rows={rows} getKey={getKey} titleLevel={titleLevel} />}
 
       {hasMore && onLoadMore && (
         <div className="flex justify-center">

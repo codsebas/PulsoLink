@@ -562,6 +562,8 @@ El proyecto cuenta con un conjunto de siete skills especializadas para agentes d
 
 La guía completa paso a paso para Windows PowerShell se encuentra en [docs/setup/desarrollo-local.md](docs/setup/desarrollo-local.md).
 
+**Requisito de entorno:** Node.js **24 LTS** (`engines.node >= 24.0.0` en la raíz y en cada workspace; `.node-version` fija 24.15.0).
+
 ### Comandos principales desde la raíz:
 
 ```powershell
@@ -579,11 +581,14 @@ npm run dev --workspace=tools/device-simulator  # Simulador IoT
 # 4. Comprobaciones de calidad y compilación
 npm run typecheck   # Validación de tipos TypeScript en todos los workspaces
 npm run build       # Compilación de producción
-npm run lint        # Verificación de linters
+npm run lint        # Marcador: el repositorio aún no tiene un linter configurado
 
 # 5. Pruebas automatizadas (sin emuladores; las de integración se omiten)
 npm run test --workspace=apps/api
 npm run test --workspace=apps/web
+
+# 6. Verificación completa exigida antes de abrir un PR
+npm run verify      # typecheck + build + test en todos los workspaces
 ```
 
 ### Enlaces a la documentación del sistema:

@@ -92,9 +92,9 @@ export const PatientsPage: React.FC = () => {
     { key: 'monitoring', header: 'Monitoreo', render: (patient) => <Link
       to={`/monitoring/${encodeURIComponent(patient.id)}`}
       className="font-semibold text-sky-800 hover:underline focus-visible:outline focus-visible:outline-2"
-      aria-label={`Ver monitoreo de ${patient.displayName}`}>Ver monitoreo</Link> },
+      aria-label={`Ver monitoreo de ${patient.displayName}`}>Ver monitoreo</Link>, mobile: 'actions' },
     { key: 'code', header: 'Código', render: (p) => <span className="font-mono font-semibold">{p.code}</span> },
-    { key: 'displayName', header: 'Nombre visible', render: (p) => p.displayName },
+    { key: 'displayName', header: 'Nombre visible', render: (p) => p.displayName, primary: true },
     {
       key: 'enabled',
       header: 'Estado',

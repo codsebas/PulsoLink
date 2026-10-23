@@ -68,3 +68,5 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 - [PL2-14: línea base de la auditoría responsiva, 22-10-2026](pl2-14-ui-responsive/baseline-accecfb/audit.json): `main` `accecfb` a 360/768/1440 en Chrome con emuladores; procedimiento y resumen en [docs/qa/pl2-14-auditoria-responsiva.md](../qa/pl2-14-auditoria-responsiva.md).
 
 - [PL2-14 entrega 1: navegación móvil, 22-10-2026](pl2-14-ui-responsive/entrega1-mobile-navigation/README.md): cabecera de 149 a 65 px en móvil y tablet; 47 mejoras y 0 regresiones frente a la línea base; aceptación de #33 17/17.
+
+- [PL2-14 entrega 2: tablas en móvil, 22-10-2026](pl2-14-ui-responsive/entrega2-responsive-tables/README.md): tarjetas por debajo de `sm` en las 6 tablas administrativas; 11 mejoras y 0 regresiones frente a la entrega 1; aceptación de #33 17/17.

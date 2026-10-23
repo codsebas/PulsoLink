@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-23T02:41:34.291Z",
-  "base": "abc4d45 + corrección retry",
-  "environment": "Linux; Node 26.7.0; main 3db477a; Auth/Firestore emulados; Chromium 156 (Playwright 1.64.1); adaptación local del runner (sin channel msedge)",
+  "generatedAt": "2026-10-23T03:15:17.511Z",
+  "base": "00be19f0c032700d93c8c93663560841d1c79845",
+  "environment": "Linux; Node 24.22.1; main 00be19f; Auth/Firestore emulados; Chromium 156 (Playwright 1.64.1); copia local del runner sin channel msedge y con base tomada de git",
   "results": [
     {
       "id": "HIST-01",

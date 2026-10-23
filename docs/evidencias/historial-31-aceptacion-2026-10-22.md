@@ -2,7 +2,7 @@
 
 Fecha: 22 de octubre de 2026 (Guatemala). Autor: `@Javifa2324`. Issues: #31 (responsable), #29, #33 y #34.
 
-Repetición independiente de la aceptación de historial sobre `main` (`3db477a`) después de la corrección del ejecutor en #61 y de la ventana acotada de #56. **No se modificó código de producto, pruebas ni el ejecutor oficial.**
+Repetición independiente de la aceptación de historial sobre `main` (`00be19f`, con #79 y #81 integrados) después de la corrección del ejecutor en #61 y de la ventana acotada de #56. **No se modificó código de producto, pruebas ni el ejecutor oficial.**
 
 ## Resultado
 
@@ -15,7 +15,7 @@ Salida del ejecutor: `exit 0`. Resultado crudo en [results.json](hugo-history-ac
 
 ## Entorno
 
-- Linux, Node 26.7.0 (cumple `engines.node >= 24.0.0`), npm 11.19.0.
+- Linux, **Node 24.22.1** (`engines.node ^24.0.0`), npm 11.19.0.
 - Firebase CLI 15.34.0; Firestore Emulator 1.22.0 y Auth Emulator, proyecto desechable `demo-pulsolink-hugo`.
 - API en `http://localhost:3001` y web en `http://localhost:5173`, con Auth/Firestore emulados.
 - Chromium 156 (Playwright 1.64.1) headless. Datos sintéticos; sin nube ni placa física.
@@ -23,19 +23,21 @@ Salida del ejecutor: `exit 0`. Resultado crudo en [results.json](hugo-history-ac
 ## Comandos ejecutados
 
 ```bash
-npm test --workspace=apps/web        # 43 aprobadas, 2 omitidas; exit 0
+npm test --workspace=apps/web        # 53 aprobadas, 2 omitidas; exit 0
 npm run typecheck --workspace=apps/web  # exit 0
 node tools/qa/hugo-history-acceptance.cjs # exit 0; HIST-01 PASS, HIST-02 PASS
 ```
 
 ## Adaptación local declarada
 
-`tools/qa/hugo-history-acceptance.cjs` abre Microsoft Edge con `chromium.launch({channel:'msedge'})`. Edge no está disponible en este entorno Linux. Para ejecutar la misma lógica se usó una **copia local del ejecutor** en la que solo se quitó `channel:'msedge'`, dejando `chromium.launch({headless:true})` con el Chromium de Playwright. No se cambiaron escenarios, esperas, aserciones, datos ni el archivo versionado del repositorio.
+`tools/qa/hugo-history-acceptance.cjs` abre Microsoft Edge con `chromium.launch({channel:'msedge'})`. Edge no está disponible en este entorno Linux. Para ejecutar la misma lógica se usó una **copia local del ejecutor** con dos ajustes declarados: se quitó `channel:'msedge'` para usar el Chromium de Playwright y la etiqueta `base` se toma de `git rev-parse HEAD` (el archivo versionado la fija en `abc4d45 + corrección retry`). No se cambiaron escenarios, esperas, aserciones ni datos.
 
-El JSON generado conserva la etiqueta fija del ejecutor (`base: "abc4d45 + corrección retry"`). La ejecución real se hizo sobre `main` `3db477a`.
+El `results.json` incluido registra la base real: `00be19f0c032700d93c8c93663560841d1c79845`.
+
+`@AxelHerrera11` repitió el recorrido de forma independiente en macOS con Node 24.14.1 y Chrome, con el mismo resultado PASS (ver la discusión del PR #82).
 
 ## Límites
 
-- No se repitió en Windows/Edge; la lógica y las aserciones son las del ejecutor oficial, pero el binario del navegador fue Chromium en Linux.
+- No se repitió en Windows/Edge; la lógica y las aserciones son las del ejecutor oficial, pero el binario del navegador fue Chromium en Linux. La ejecución sí se hizo con Node 24.22.1, el runtime exigido por `engines`.
 - Los emuladores no acreditan índices ni latencia de Firestore Standard real.
 - Datos sintéticos. No sustituye la aceptación visual del dashboard de #29 ni la revisión de accesibilidad de #33.

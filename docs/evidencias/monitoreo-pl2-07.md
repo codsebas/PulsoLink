@@ -79,4 +79,4 @@ npm run lint
 
 ## Aceptación de navegador posterior (22 de octubre de 2026)
 
-La repetición independiente de HIST-01/HIST-02 sobre `main` `3db477a` terminó con `exit 0`: HIST-01 mostró las 162 lecturas y HIST-02 recorrió 1120 lecturas con un máximo de 1000 simultáneas. Se usaron Auth/Firestore emulados y Chromium/Playwright; el ejecutor oficial se copió localmente solo para sustituir el canal `msedge`, no disponible en Linux. Detalle, comandos y capturas en [historial-31-aceptacion-2026-10-22.md](historial-31-aceptacion-2026-10-22.md).
+La repetición independiente de HIST-01/HIST-02 sobre `main` `00be19f` y Node 24.22.1 terminó con `exit 0`: HIST-01 mostró las 162 lecturas y HIST-02 recorrió 1120 lecturas con un máximo de 1000 simultáneas. Se usaron Auth/Firestore emulados y Chromium/Playwright; el ejecutor oficial se copió localmente solo para sustituir el canal `msedge`, no disponible en Linux, y para tomar la base de git. Detalle, comandos y capturas en [historial-31-aceptacion-2026-10-22.md](historial-31-aceptacion-2026-10-22.md).

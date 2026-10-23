@@ -14,7 +14,8 @@ const MIN_FONT_PX = 12;
 function measurePage({ minTarget, minFont }) {
   const vw = window.innerWidth;
   const visible = el => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none'; };
-  const label = el => (el.getAttribute('aria-label') || el.textContent || el.getAttribute('name') || el.id || el.tagName).trim().replace(/\s+/g, ' ').slice(0, 40);
+  // Etiqueta accesible visible: nunca valores de campos ni atributos `name` (p. ej. el de la contraseña).
+  const label = el => (el.getAttribute('aria-label') || el.labels?.[0]?.textContent || el.textContent || el.tagName).trim().replace(/\s+/g, ' ').slice(0, 40);
   const clipped = el => { for (let p = el.parentElement; p; p = p.parentElement) { if (['auto', 'scroll', 'hidden', 'clip'].includes(getComputedStyle(p).overflowX)) return true; } return false; };
   const all = [...document.querySelectorAll('body *')].filter(visible);
   const overflowing = all.filter(el => el.getBoundingClientRect().right > vw + 1 && !clipped(el));

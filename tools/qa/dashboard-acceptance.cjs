@@ -7,6 +7,9 @@ module.exports = async function dashboardAcceptance({ page, output }) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.getByRole('article', { name: 'Pulso', exact: true }).waitFor();
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Horizontal overflow at ${width}`);
+    // #74: por debajo de `lg` la navegación vive en un menú desplegable; se abre antes de recorrerla.
+    const menu = page.getByRole('button', { name: 'Menú', exact: true });
+    if (await menu.isVisible() && await menu.getAttribute('aria-expanded') === 'false') await menu.click();
     const nav = page.getByRole('navigation', { name: 'Principal', exact: true });
     const links = nav.getByRole('link');
     await links.first().focus();

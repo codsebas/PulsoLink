@@ -54,7 +54,7 @@ describe('MobileMenu', () => {
     expect(toggle().getAttribute('aria-expanded')).toBe('true');
     const nav = panel()!;
     expect(toggle().getAttribute('aria-controls')).toBe(nav.id);
-    expect(document.activeElement).toBe(screen.getByRole('link', { name: 'Estado' }));
+    expect(document.activeElement).toBe(screen.getByRole('link', { name: 'Pacientes' }));
     expect(nav.textContent).toContain('Admin QA');
     expect(nav.textContent).toContain('Administración');
   });

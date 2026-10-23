@@ -30,7 +30,8 @@ module.exports = async function dashboardAcceptance({ page, output }) {
   }
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert(await page.locator('header .animate-pulse').evaluate(el => getComputedStyle(el).animationName === 'none'), 'Reduced motion: pulse remains animated');
-  assert(await page.locator('header .animate-ping').evaluate(el => getComputedStyle(el).animationName === 'none'), 'Reduced motion: ping remains animated');
+  // #74: el punto animado vivía en el enlace "Prototipo", ya retirado; se comprueba cualquier otro que exista.
+  assert((await page.locator('header .animate-ping').evaluateAll(els => els.map(el => getComputedStyle(el).animationName))).every(name => name === 'none'), 'Reduced motion: ping remains animated');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   results.push('computed-reduced-motion');
   await page.getByRole('region', { name: 'Tabla de lecturas, desplazamiento horizontal' }).focus();

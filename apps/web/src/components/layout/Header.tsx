@@ -50,10 +50,11 @@ export const Header: React.FC = () => {
           </div>
         </Link>
 
-        <div className="flex items-center gap-1 lg:hidden">
-          {user && <LogoutButton onClick={() => void logout()} busy={isLoggingOut} touch />}
-          <MobileMenu items={items} user={user} />
-        </div>
+        <MobileMenu
+          items={items}
+          user={user}
+          actions={user && <LogoutButton onClick={() => void logout()} busy={isLoggingOut} touch />}
+        />
 
         <nav className="hidden lg:flex w-full min-w-0 max-w-full items-center gap-1.5 overflow-x-auto pb-2" aria-label="Principal">
           {items.map((item) => (

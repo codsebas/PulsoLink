@@ -1,0 +1,47 @@
+{
+  "environment": "Windows PowerShell; Node 24.19.0; Microsoft Edge; Firebase Auth/Firestore local emulators; demo-pulsolink-hugo-ui-20261022",
+  "browser": "155.0.4283.62",
+  "fabricatedResponses": false,
+  "checkedAt": "2026-10-22T23:26:02.549Z",
+  "node": "v24.19.0",
+  "commit": "553c3860b92c9eeda5cfa9995f06a974f05ffac8",
+  "results": [
+    {
+      "id": "UI-03a",
+      "expected": "409 ASSIGNMENT_CONFLICT de la API y mensaje accionable en el diálogo",
+      "actual": "HTTP 409 ASSIGNMENT_CONFLICT; mensaje visible",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-03b",
+      "expected": "409 ASSIGNMENT_IN_USE de la API y mensaje accionable en el diálogo",
+      "actual": "HTTP 409 ASSIGNMENT_IN_USE; mensaje visible",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-03c",
+      "expected": "Mensaje para 409 DEVICE_BUSY",
+      "actual": "No alcanzable desde la web con el modelo 2.0: se rechaza antes con ASSIGNMENT_CONFLICT o ASSIGNMENT_IN_USE (CON-10, CONC-04).",
+      "state": "SKIPPED"
+    },
+    {
+      "id": "UI-07",
+      "expected": "Inicio de la asignación en hora de America/Guatemala, no en UTC",
+      "actual": "API 2026-10-22T23:25:55.638Z; esperado \"22/10/26, 5:25:55 p. m.\" visible=true; UTC \"22/10/26, 11:25:55 p. m.\" visible=false",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-02",
+      "expected": "Sesión perdida durante el polling: redirección a /login sin datos del expediente",
+      "actual": "redirigida=true en 1.9 s; expediente visible=false",
+      "state": "PASS"
+    },
+    {
+      "id": "UI-06",
+      "expected": "Tras Salir, el botón Atrás no muestra datos del expediente",
+      "actual": "ruta=/login; expediente visible=false; historial visible=false",
+      "state": "PASS"
+    }
+  ],
+  "status": "passed"
+}

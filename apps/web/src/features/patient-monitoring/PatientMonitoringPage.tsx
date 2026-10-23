@@ -105,7 +105,7 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
   const coverage = history.coverage;
   const refresh = () => { void active.refetch(); void latest.refetch(); history.refresh(); };
   return <main className="min-w-0 space-y-6 break-words">
-    <Link to="/monitoring" className="text-sm font-medium text-sky-700 hover:underline">← Pacientes</Link>
+    <Link to="/monitoring" className="inline-flex items-center text-sm font-medium text-sky-700 hover:underline max-lg:min-h-11">← Pacientes</Link>
     <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold text-sky-700">{patient.data.data.code}</p>
       <h1 className="mt-1 text-2xl font-bold text-slate-900">{patient.data.data.displayName}</h1><p className="mt-2 text-sm text-slate-600">Signos vitales e historia del paciente a través de sus placas.</p></div>
       <button type="button" onClick={refresh} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium">Actualizar</button></div>

@@ -11,4 +11,19 @@
     outline: 2px solid #0369a1;
     outline-offset: 2px;
   }
+
+  /*
+   * PL2-14 (#74): en pantallas táctiles (por debajo de `lg`, como el menú móvil)
+   * botones, selectores y campos ocupan al menos 44×44 px. Con `:where` la regla
+   * tiene especificidad cero: cualquier clase que fije su tamaño la sustituye.
+   * Los enlaces dentro de texto no cambian; los enlaces de bloque usan `max-lg:min-h-11`.
+   */
+  @media (max-width: 1023.98px) {
+    :where(button, select, input:not([type='checkbox']):not([type='radio']):not([type='hidden']), [role='button']) {
+      min-height: 2.75rem;
+    }
+    :where(button, [role='button']) {
+      min-width: 2.75rem;
+    }
+  }
 }

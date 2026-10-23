@@ -211,5 +211,3 @@ main().catch(error => {
   if (server) await new Promise(resolve => server.close(resolve));
   try { await requireApi('firebase-admin/app').deleteApp(requireApi('firebase-admin/app').getApp()); } catch {}
 });
-
-

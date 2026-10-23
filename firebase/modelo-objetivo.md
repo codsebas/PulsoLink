@@ -60,4 +60,3 @@ Antes de migrar hacer inventario y respaldo, probar en emuladores/datos seudóni
 # Ampliación PulsoAI (22-10-2026)
 
 Colección de servidor `sessionSummaries/{sessionId}`, un trabajo recuperable y un resultado por sesión. Cierre y alta pending atómicos; lease transaccional, estadísticas completas y publicación condicionada al lease. Admin/viewer consultan vía API; solo admin solicita/reintenta. No hay acceso cliente ni reglas nuevas. Edición Standard, índice simple por availableAt. Campos, estados y límites en [PulsoAI](../docs/arquitectura/pulsoai.md).
-

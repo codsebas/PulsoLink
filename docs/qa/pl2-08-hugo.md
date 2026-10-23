@@ -4,7 +4,9 @@ Responsable: HugoX2024. Issues #32 y #44; apoyo #33 y #35.
 Fuentes: contratos A/B 2.0.0, arquitectura aprobada y AGENTS.md.
 Complementa [la matriz de Axel](pl2-08-matriz-api-permisos.md); no sustituye sus casos de permisos/CSRF/concurrencia.
 
-## Estado actualizado: 21 de octubre de 2026
+## Estado actualizado: 22 de octubre de 2026
+
+La matriz combinada de Hugo y Axel se ejecutó en Windows/PowerShell: 89/90 PASS en el primer intento (A-17 bloqueado por falta de respuesta) y 90/90 PASS al repetir con emuladores reiniciados. La sección E también se contrastó en Edge: 5 PASS y UI-03c omitido por no ser alcanzable desde la web en el modelo 2.0. [Evidencia, reportes JSON y límites](../evidencias/pl2-08-hugo-windows-2026-10-22.md).
 
 La matriz usa el timeout base `REQUEST_TIMEOUT_MS` (5000 ms por defecto). Solo **JOINT-CONC-08** recibe un límite de 30000 ms por la contención observada en emuladores; con el timeout base sus respuestas tardaron 5251–7445 ms. El reporte JSON declara ambos presupuestos. Este ajuste de QA no cambia el timeout del simulador ni el de los otros casos HTTP. Las rutas faltantes de la primera matriz ya están integradas; sus resultados se conservan como antecedentes. [Aceptación previa, comandos y límites](../evidencias/hugo-integrado-2026-10-21.md).
 

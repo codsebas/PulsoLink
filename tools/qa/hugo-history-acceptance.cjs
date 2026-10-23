@@ -7,7 +7,8 @@ const path = require('node:path');
 async function main() {
   assert.equal(process.env.QA_ALLOW_WRITES, 'true');
   const output = path.resolve(process.env.QA_HISTORY_OUTPUT || 'docs/evidencias/hugo-history-acceptance'); await fs.mkdir(output,{recursive:true});
-  const browser = await chromium.launch({channel:'msedge',headless:true});
+  const browserChannel = process.env.PULSOLINK_BROWSER_CHANNEL || 'msedge';
+  const browser = await chromium.launch({channel:browserChannel,headless:true});
   const context = await browser.newContext(); const page = await context.newPage(); page.setDefaultTimeout(15000);
   const base='http://localhost:5173'; const results=[]; let session; let assignment; let csrf;
   async function call(route,method='GET',data) {
@@ -47,6 +48,6 @@ async function main() {
     const final=await page.locator('tbody tr').count();
     results.push({id:'HIST-02',expected:'Navegación permite inspeccionar las 1120 lecturas; máximo 1000 simultáneas',actual:`${pages} páginas; ${visited.size} lecturas inspeccionadas; ${final} visibles; máximo ${maxVisible}`,state:visited.size===1120 && maxVisible<=1000?'PASS':'FAIL',issue:29});await page.screenshot({path:path.join(output,'history-1120.png')});
   } catch {results.push({id:'HIST-SETUP',state:'FAIL',actual:'Ejecución interrumpida; no se acredita el caso restante'});}
-  finally {try{if(session)await call(`/sessions/${session}/finish`,'POST');if(assignment)await call(`/assignments/${assignment}/close`,'POST');}catch{results.push({id:'CLEANUP',state:'FAIL'});}await browser.close();await fs.writeFile(path.join(output,'results.json'),JSON.stringify({generatedAt:new Date().toISOString(),base:'abc4d45 + corrección retry',environment:process.env.QA_ENVIRONMENT,results},null,2)+'\n');console.log(JSON.stringify(results));process.exitCode=results.some(r=>r.state==='FAIL')?1:0;}
+  finally {try{if(session)await call(`/sessions/${session}/finish`,'POST');if(assignment)await call(`/assignments/${assignment}/close`,'POST');}catch{results.push({id:'CLEANUP',state:'FAIL'});}await browser.close();await fs.writeFile(path.join(output,'results.json'),JSON.stringify({generatedAt:new Date().toISOString(),base:'abc4d45 + corrección retry',environment:process.env.QA_ENVIRONMENT,browserChannel,results},null,2)+'\n');console.log(JSON.stringify(results));process.exitCode=results.some(r=>r.state==='FAIL')?1:0;}
 }
 main().catch(()=>{console.error('Preparación de QA de historia no disponible');process.exitCode=1;});

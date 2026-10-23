@@ -13,7 +13,7 @@ export const Footer: React.FC = () => {
             href="https://github.com/codsebas/PulsoLink"
             target="_blank"
             rel="noreferrer"
-            className="hover:text-slate-800 underline transition-colors"
+            className="inline-flex items-center hover:text-slate-800 underline transition-colors max-lg:min-h-11"
           >
             Repositorio GitHub
           </a>

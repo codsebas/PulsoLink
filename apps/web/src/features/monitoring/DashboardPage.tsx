@@ -114,8 +114,8 @@ export function DashboardPage() {
 
       {!error && (sessionQuery.isPending || latestQuery.isFetching) && (
         <div className="flex items-center gap-2 text-xs text-slate-500" role="status">
-          <RefreshCw className="h-4 w-4 animate-spin" aria-hidden="true" />
-          Actualizando monitoreo...
+          <RefreshCw className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+          Actualizando monitoreo…
         </div>
       )}
 

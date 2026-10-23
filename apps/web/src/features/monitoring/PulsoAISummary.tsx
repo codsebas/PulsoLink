@@ -38,7 +38,7 @@ export function PulsoAISummaryView({ result, busy, error, canRequest, onRequest 
     </h2>
     <div role="status" aria-live="polite">
       {error ? <p>No se pudo consultar PulsoAI. Intente actualizar la página.</p>
-        : !result ? <p>Cargando resumen de la sesión...</p>
+        : !result ? <p>Cargando resumen de la sesión…</p>
         : status === 'ready' && result.text ? <p className="whitespace-pre-line">{result.text}</p>
         : <p>{messages[result.status]}</p>}
     </div>
@@ -59,7 +59,7 @@ export function PulsoAISummaryView({ result, busy, error, canRequest, onRequest 
     </div>}
     {canRequest && canRetry && <button type="button" onClick={onRequest} disabled={busy || waiting}
       className="rounded border border-slate-300 px-3 py-2 text-sm disabled:opacity-50">
-      {busy ? 'Solicitando...' : status === 'not_requested' ? 'Generar resumen con PulsoAI' : 'Reintentar PulsoAI'}
+      {busy ? 'Solicitando…' : status === 'not_requested' ? 'Generar resumen con PulsoAI' : 'Reintentar PulsoAI'}
     </button>}
     <p className="text-xs text-slate-500">Prototipo académico no validado para uso clínico. SpO₂ estimada y temperatura superficial.</p>
   </section>;

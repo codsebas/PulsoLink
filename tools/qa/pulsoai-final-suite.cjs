@@ -35,7 +35,7 @@ try {
   const http = JSON.parse(fs.readFileSync(path.join(root, '.cache/pulsoai-browser/web-http-tests.json')));
   assert(http.success && http.numPassedTests === 2 && http.numPendingTests === 0);
   vitest('api', 'apps/api', 0);
-  vitest('web', 'apps/web', 2); // Closed by the authenticated HTTP runner below.
+  vitest('web', 'apps/web', 2); // Already executed by the authenticated HTTP runner above.
   const simulator = path.join(root, 'tools/device-simulator');
   const files = fs.readdirSync(path.join(simulator, 'test')).filter(f => f.endsWith('.test.ts'))
     .map(f => path.join(simulator, 'test', f));

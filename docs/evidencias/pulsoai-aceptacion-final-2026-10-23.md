@@ -51,11 +51,13 @@ No se rebajaron las aserciones ni el presupuesto de concurrencia de 5 segundos.
 | Simulador | 32 aprobadas, 0 omitidas |
 | Navegador con Groq real | PASS; una llamada, `openai/gpt-oss-20b`, `stop`, 1019 tokens |
 | Carreras HTTP de cierre/ingestión | 6 aprobadas, entre 102 y 245 ms; historial igual a muestras aceptadas |
-| Reinicio real de worker local | En ejecución al preparar el PR |
+| Reinicio real de worker local | 11 comprobaciones aprobadas; proceso terminado durante generación y recuperación tras 299741 ms de espera real |
 | HTTPS sobre `60390e2`, después de configurar la clave | 64 comprobaciones y 5 acciones de limpieza aprobadas |
 
 Son 419 pruebas API/web/simulador ejecutadas; las 2 HTTP no se cuentan dos veces.
 Informes: [tests](pulsoai-2026-10-23/tests.json),
+[suite completa PASS](pulsoai-2026-10-23/suite.json),
+[reinicio real](pulsoai-2026-10-23/restart.json),
 [navegador local y consumo](pulsoai-2026-10-23/browser-local.json),
 [HTTPS antes de integrar la corrección](pulsoai-2026-10-23/https-before-merge.json).
 Capturas HTTPS revisadas: [escritorio](pulsoai-2026-10-23/mixed-desktop.png),

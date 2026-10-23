@@ -1,0 +1,53 @@
+{
+  "status": "PASS",
+  "generatedAt": "2026-10-23T18:27:20.688Z",
+  "project": "demo-pulsoai-restart-bac0338f",
+  "environment": "Firestore emulator + real Node worker processes + injected provider (zero Groq calls)",
+  "checks": [
+    {
+      "name": "first process entered provider",
+      "pass": true
+    },
+    {
+      "name": "durable generating lease",
+      "pass": true
+    },
+    {
+      "name": "killed process cannot finish job",
+      "pass": true
+    },
+    {
+      "name": "unexpired lease cannot be reclaimed",
+      "pass": true
+    },
+    {
+      "name": "second process generated once",
+      "pass": true
+    },
+    {
+      "name": "second process exited successfully",
+      "pass": true
+    },
+    {
+      "name": "ready after restart with two claims",
+      "pass": true
+    },
+    {
+      "name": "statistics preserve valid temperature and null optics",
+      "pass": true
+    },
+    {
+      "name": "old lease cannot overwrite recovery",
+      "pass": true
+    },
+    {
+      "name": "history and closed session preserved",
+      "pass": true
+    },
+    {
+      "name": "ready is reused without more work",
+      "pass": true
+    }
+  ],
+  "leaseWaitMs": 299741
+}

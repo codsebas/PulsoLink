@@ -72,6 +72,7 @@ export const SessionsPage: React.FC = () => {
     patientNames,
     deviceCodes,
     !patientsQuery.isLoading && !devicesQuery.isLoading,
+    isAdmin,
   );
 
   const patientOptions = useMemo(

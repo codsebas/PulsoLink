@@ -132,6 +132,22 @@ async function main() {
       if (failed) process.exitCode = 1;
       return;
     }
+    if (process.env.PULSOLINK_RESPONSIVE_AUDIT === 'true') {
+      // PL2-14 (#74): medición responsiva comparable entre versiones; no verifica el historial largo.
+      step = 'responsive audit (PL2-14)';
+      const output = path.resolve(process.env.PULSOLINK_EVIDENCE_DIR || path.join(root, '.cache/ui-responsive-audit'));
+      const audit = await require('../qa/ui-responsive-audit.cjs')({ browser, origin, password, output,
+        screenshots: process.env.PULSOLINK_AUDIT_SCREENSHOTS || 'viewport',
+        screenshotWidths: process.env.PULSOLINK_AUDIT_SCREENSHOT_WIDTHS ? process.env.PULSOLINK_AUDIT_SCREENSHOT_WIDTHS.split(',').map(Number) : null });
+      fs.writeFileSync(path.join(output, 'audit.json'), JSON.stringify({
+        environment: process.env.PULSOLINK_ENVIRONMENT || 'Auth/Firestore Standard emulados', browser: browser.version(),
+        checkedAt: new Date().toISOString(), node: process.version,
+        commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8', windowsHide: true }).trim(),
+        ...audit,
+      }, null, 2) + '\n');
+      console.log(JSON.stringify({ responsiveAudit: 'written', routes: audit.results.length, output: path.relative(root, output) }));
+      return;
+    }
     step = 'history tests against authenticated API';
     // Repository integration tests receive this disposable session in memory.
     // Nothing is written to storageState, .env or a credential file.

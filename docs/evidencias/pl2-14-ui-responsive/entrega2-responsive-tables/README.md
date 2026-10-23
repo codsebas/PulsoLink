@@ -21,3 +21,19 @@ Entorno: macOS (zsh), Node.js 24.14.1, Google Chrome 155 con Playwright 1.64.1 (
 **Regresión detectada y corregida durante la entrega:** la primera medición marcó 1 control pequeño más en Sesiones. El enlace del ID de sesión, que encabeza cada tarjeta, medía 139×16 px. Se aplicó al título la misma altura táctil de 44 px que a las acciones, y la medición final no tiene regresiones.
 
 La altura de página crece en las vistas con tarjetas (+144 a +580 px): las filas se apilan en lugar de desplazarse en horizontal. Es una métrica informativa.
+
+## Seguimiento de la revisión de #83 (2026-10-22)
+
+Se atendieron las 4 sugerencias de @Lis671 en un PR aparte:
+
+1. **Pie vacío:** las columnas de acciones devuelven `null` cuando no aplican. La tarjeta omite el pie si ninguna acción tiene contenido, y en la tabla la celda vacía muestra "—".
+2. **Semántica del título:** cada tarjeta encabeza con un `<h2>` y el `<li>` se nombra con `aria-labelledby`.
+3. **Foco al cruzar el breakpoint:** si el foco estaba dentro, pasa al contenedor (`tabIndex=-1`) en vez de perderse en `<body>`.
+4. **`primary` explícito** en Asignaciones (paciente) y Sesiones (ID de sesión).
+
+Verificación en Chrome 155 con emuladores (comprobación temporal no versionada sobre `/sessions` como admin):
+- Foco: desde "Finalizar" a 1280 px, al pasar a 360 px queda en el contenedor de tarjetas.
+- Encabezados: 2 `h2` y tarjetas nombradas.
+- Pie: la sesión finalizada no tiene pie y la activa sí.
+
+Auditoría frente a esta entrega: 0 mejoras y 0 regresiones; la altura baja 41 px en Asignaciones y 25 px en Sesiones al desaparecer los pies vacíos. Aceptación de #33: 17/17. Sección E de PL2-08: aprobada. Pruebas web: 63 aprobadas (5 nuevas).

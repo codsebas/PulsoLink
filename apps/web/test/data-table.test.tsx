@@ -84,4 +84,56 @@ describe('DataTable', () => {
     act(() => screen.getByRole('button', { name: 'Cargar más' }).click());
     expect(onLoadMore).toHaveBeenCalledOnce();
   });
+
+  // Seguimiento de la revisión de #83.
+  const sparse: Column<Row>[] = [
+    { key: 'name', header: 'Nombre', render: (r) => r.name },
+    { key: 'code', header: 'Código', render: (r) => (r.id === 'r2' ? null : r.code) },
+    { key: 'actions', header: 'Acciones', render: (r) => (r.id === 'r2' ? null : <button type="button">Cerrar {r.name}</button>) },
+  ];
+
+  it('sin acciones no dibuja el pie y los valores vacíos se muestran como "—"', () => {
+    mockViewport(false);
+    render(<DataTable columns={sparse} rows={rows} getKey={(r) => r.id} />);
+    const [withActions, withoutActions] = screen.getAllByRole('listitem');
+    expect(within(withActions).getByRole('button', { name: 'Cerrar Paciente uno' })).toBeTruthy();
+    expect(within(withoutActions).queryByRole('button')).toBeNull();
+    expect(withoutActions.querySelector('.border-t')).toBeNull();
+    expect(within(withoutActions).getByText('Código').nextElementSibling?.textContent).toBe('—');
+  });
+
+  it('en la tabla, una celda vacía muestra "—"', () => {
+    render(<DataTable columns={sparse} rows={rows} getKey={(r) => r.id} />);
+    const secondRow = screen.getAllByRole('row')[2];
+    expect(within(secondRow).getAllByRole('cell').map((cell) => cell.textContent)).toEqual(['Paciente dos', '—', '—']);
+  });
+
+  it('cada tarjeta tiene un encabezado que la nombra', () => {
+    mockViewport(false);
+    render(<DataTable columns={columns} rows={rows} getKey={(r) => r.id} />);
+    const headings = screen.getAllByRole('heading', { level: 2 });
+    expect(headings.map((h) => h.textContent)).toEqual(['Paciente uno', 'Paciente dos']);
+    expect(screen.getByRole('listitem', { name: 'Paciente dos' })).toBeTruthy();
+  });
+
+  it('si el foco estaba dentro al cruzar el breakpoint, pasa al contenedor en vez de perderse', () => {
+    const setWide = mockViewport(true);
+    render(<DataTable columns={columns} rows={rows} getKey={(r) => r.id} />);
+    const button = screen.getByRole('button', { name: 'Editar Paciente uno' });
+    act(() => button.focus());
+    setWide(false);
+    const container = document.activeElement as HTMLElement;
+    expect(container).not.toBe(document.body);
+    expect(container.getAttribute('tabindex')).toBe('-1');
+    expect(container.contains(screen.getAllByRole('listitem')[0])).toBe(true);
+  });
+
+  it('sin foco dentro, cruzar el breakpoint no mueve el foco', () => {
+    const setWide = mockViewport(true);
+    render(<><button type="button">Fuera</button><DataTable columns={columns} rows={rows} getKey={(r) => r.id} /></>);
+    const outside = screen.getByRole('button', { name: 'Fuera' });
+    act(() => outside.focus());
+    setWide(false);
+    expect(document.activeElement).toBe(outside);
+  });
 });

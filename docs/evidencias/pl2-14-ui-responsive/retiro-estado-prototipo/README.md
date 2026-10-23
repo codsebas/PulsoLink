@@ -1,6 +1,6 @@
 # PL2-14 — Retiro de "Estado" y "Prototipo" (#74)
 
-Fecha de ejecución: 2026-10-23. Responsable: `@AxelHerrera11`.
+Fecha de ejecución: 2026-10-22. Responsable: `@AxelHerrera11`.
 Entorno: macOS (zsh), Node.js 24.14.1, Google Chrome 155 con Playwright 1.64.1 (temporal), emuladores Auth/Firestore Standard nuevos en cada ejecución.
 
 **Cambio:**

@@ -7,7 +7,8 @@ import { VitalCard } from '../monitoring/VitalCard';
 import { pollingPlan, useDocumentVisible, usePatientAccess, usePatientHistory, usePatientLatest } from './hooks';
 import type { HistoryRange } from './api';
 import type { Patient, PatientMeasurement, PatientMonitoringMeta, PatientSession } from './patient-monitoring.types';
-import { guatemalaDate, rangeFromLocal, formatVital } from './trends';
+import { guatemalaDate, rangeFromLocal } from './trends';
+import { HistoryReadings } from './HistoryReadings';
 
 const PatientTrends = lazy(() => import('./PatientTrends'));
 const states: Record<PatientMonitoringMeta['connectionState'], string> = {
@@ -18,8 +19,6 @@ const connectionStyles: Record<PatientMonitoringMeta['connectionState'], string>
   connected_without_valid_reading: 'border-amber-300 bg-amber-50 text-amber-900',
   connected_with_recent_reading: 'border-emerald-300 bg-emerald-50 text-emerald-900',
 };
-const quality = { valid: 'Válida', no_contact: 'Sin contacto', invalid: 'Inválida', unavailable: 'No disponible' };
-const keys = ['heartRate', 'spo2', 'skinTemperature'] as const;
 
 function ErrorMessage({ error, retry }: { error: unknown; retry?: () => void }) {
   const message = error instanceof ApiClientError && error.statusCode === 403 ? 'No tienes permiso para consultar este expediente.'
@@ -137,11 +136,7 @@ function PatientMonitoring({ patientId }: { patientId: string }) {
         {coverage.truncated ? <p className="text-xs font-semibold text-amber-800">Se conservaron las {coverage.loaded} lecturas más recientes; {coverage.dropped} más antiguas quedaron fuera de memoria y de la gráfica.</p> : null}
         {readings.some((reading) => reading.source === 'simulated') ? <p className="text-xs font-semibold text-violet-800">Este intervalo contiene datos simulados.</p> : null}
         <Suspense fallback={<p role="status">Preparando gráficas…</p>}><PatientTrends readings={readings} /></Suspense>
-        <div tabIndex={0} role="region" aria-label="Tabla de lecturas, desplazamiento horizontal" className="max-w-full overflow-x-auto rounded-xl border border-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-700"><table className="w-full min-w-[720px] bg-white text-left text-sm"><caption className="sr-only">Valores y calidad por lectura del intervalo cargado</caption>
-          <thead className="bg-slate-50 text-slate-600"><tr>{['Fecha (Guatemala)', 'Placa', 'Pulso (bpm)', 'SpO₂ (%)', 'Superficial (°C)', 'Origen'].map((heading) => <th scope="col" key={heading} className="p-3 font-medium">{heading}</th>)}</tr></thead>
-          <tbody>{readings.map((reading) => <tr key={`${reading.sessionId}/${reading.id}`} data-reading-key={`${reading.sessionId}/${reading.id}`} className="border-t border-slate-100"><td className="p-3">{guatemalaDate(reading.receivedAt)}</td><td className="max-w-32 truncate p-3" title={reading.deviceId}>{reading.deviceId}</td>
-            {keys.map((key) => <td className="p-3" key={key}>{reading.measurements[key].status === 'valid' ? formatVital(reading.measurements[key].value) : '—'}<span className="mt-1 block text-xs text-slate-500">{quality[reading.measurements[key].status]}</span></td>)}<td className="p-3">{reading.source === 'simulated' ? 'Simulado' : 'Dispositivo real'}</td></tr>)}</tbody>
-        </table></div>
+        <HistoryReadings readings={readings} />
       </>}
       <div className="flex flex-wrap gap-3"><button type="button" disabled={!history.hasMore || history.isFetching} onClick={history.loadMore} className="rounded-lg border bg-white px-4 py-2 text-sm disabled:opacity-40">Cargar más antiguas</button>
         <button type="button" disabled={history.isFetching} onClick={history.refresh} className="rounded-lg border bg-white px-4 py-2 text-sm disabled:opacity-40">Refrescar lecturas recientes</button></div>

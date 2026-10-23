@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "generatedAt": "2026-10-23T18:25:21.377Z",
+  "stages": [
+    {
+      "name": "browser-Groq-and-web-HTTP",
+      "exitCode": 0
+    },
+    {
+      "name": "api",
+      "exitCode": 0,
+      "passed": 308,
+      "skipped": 0
+    },
+    {
+      "name": "web",
+      "exitCode": 0,
+      "passed": 77,
+      "skipped": 2
+    },
+    {
+      "name": "simulator",
+      "exitCode": 0
+    },
+    {
+      "name": "worker-process-restart",
+      "exitCode": 0
+    }
+  ]
+}

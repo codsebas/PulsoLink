@@ -22,10 +22,11 @@ export function composePlan(facts: Fact[], input: unknown): string {
 }
 export async function generateSummary(facts: Fact[], options: { key: string; model: string }, request: typeof fetch = fetch) {
   if (options.model !== PULSOAI_MODEL || !options.key.trim()) throw new GenerationError('CONFIGURATION_ERROR');
+  const signal = AbortSignal.timeout(30_000);
   let response: Response;
   try {
     response = await request('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST', signal: AbortSignal.timeout(30_000),
+      method: 'POST', signal,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${options.key}` },
       body: JSON.stringify({ model: options.model, reasoning_effort: 'low', max_completion_tokens: 2048,
         stream: false, messages: [
@@ -48,9 +49,17 @@ export async function generateSummary(facts: Fact[], options: { key: string; mod
     throw new GenerationError('PROVIDER_UNAVAILABLE', response.status === 429 || response.status >= 500,
       Math.min(86_400_000, Math.max(30_000, retryAfterMs)));
   }
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch (error) {
+    // fetch resolves at headers: timeout/connection failure can still interrupt the body.
+    if (signal.aborted || error instanceof TypeError) throw new GenerationError('PROVIDER_UNAVAILABLE', true);
+    throw new GenerationError('INVALID_GENERATION');
+  }
   try {
     const data = z.object({ model: z.string(), choices: z.array(z.object({ finish_reason: z.string(),
-      message: z.object({ content: z.string() }) })).min(1) }).parse(await response.json());
+      message: z.object({ content: z.string() }) })).min(1) }).parse(payload);
     if (data.model !== options.model || data.choices?.[0]?.finish_reason !== 'stop') throw new Error();
     const text = composePlan(facts, JSON.parse(data.choices[0].message.content));
     return { text, model: data.model as string };

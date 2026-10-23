@@ -69,6 +69,10 @@ administrativos. Desarrollo local conserva Vite y el proxy existentes.
 
 ## Verificación de esta entrega
 
+Para PulsoAI, seguir la [suite de aceptación final de #72](../qa/pulsoai-aceptacion-final.md):
+incluye configuración privada del proveedor, sesiones sintéticas por HTTPS,
+persistencia independiente y recorrido de navegador con limpieza de fixtures.
+
 Node 24.22.1: tipos de API y 73 pruebas aprobadas (14 de alojamiento y 59 de la
 ruta temporal por entorno). Se comprueba navegación SPA, assets, caché y cabeceras,
 404 JSON, no publicación de dotfiles, permisos de API y rechazo del arranque web

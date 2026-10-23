@@ -7,7 +7,8 @@ const root = process.cwd();
 const requireApi = createRequire(path.join(root, 'apps/api/package.json'));
 const out = path.join(root, '.cache/pulsoai-browser');
 fs.mkdirSync(out, { recursive: true });
-let server, browser, stopWorker;
+let server, browser, stopWorker, page;
+let stage = 'preflight', apiCalls = 0;
 async function main() {
   assert.equal(process.versions.node.split('.')[0], '24');
   assert(process.env.FIREBASE_PROJECT_ID?.startsWith('demo-'));
@@ -33,6 +34,7 @@ async function main() {
   const { DevicesRepository } = moduleAt('modules/devices/devices.repository.js');
   const { AssignmentsRepository } = moduleAt('modules/assignments/assignments.repository.js');
   const db = getDb(), auth = getAuth();
+  stage = 'emulator fixtures';
   const uid = 'pulsoai-admin-' + randomUUID();
   const password = randomBytes(24).toString('base64url');
   const email = uid + '@example.invalid';
@@ -62,14 +64,16 @@ async function main() {
   const { chromium } = require(process.env.PULSOLINK_PLAYWRIGHT_MODULE || 'playwright');
   browser = await chromium.launch({ channel: 'msedge', headless: true });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-  const page = await context.newPage();
+  page = await context.newPage();
   page.setDefaultTimeout(20000);
   const origin = 'http://127.0.0.1:18001';
+  stage = 'browser login';
   await page.goto(origin + '/login');
   await page.getByLabel('Correo electrónico', { exact: true }).fill(email);
   await page.getByLabel('Contraseña', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();
   await page.waitForURL(url => !url.pathname.includes('login'));
+  stage = 'active session browser';
   await page.goto(origin + '/sessions/' + session.sessionId);
   await page.getByText('Frecuencia Cardíaca', { exact: true }).waitFor();
   assert.equal(await page.getByRole('heading', { name: 'Resumen generado por PulsoAI' }).count(), 0);
@@ -78,8 +82,9 @@ async function main() {
     headers: { Origin: origin, 'X-CSRF-Token': csrf }, data: {},
   });
   assert.equal(finished.status(), 200);
+  stage = 'pending summary browser';
   await page.getByText('PulsoAI está preparando el resumen de la sesión.', { exact: true }).waitFor();
-  let apiCalls = 0, usage, returnedModel, finishReason;
+  let usage, returnedModel, finishReason;
   const worker = new SummaryWorker({
     jobs, sessions, measurements,
     config: () => ({ enabled: true, key: privateEnv.GROQ_API_KEY, model: 'openai/gpt-oss-20b' }),
@@ -93,9 +98,11 @@ async function main() {
       return response;
     }),
   });
+  stage = 'real Groq generation';
   await worker.tick();
   const persisted = await jobs.get(session.sessionId);
   assert.equal(persisted.status, 'ready', 'provider result must pass complete fact validation');
+  stage = 'ready summary browser';
   await page.getByRole('heading', { name: 'Resumen generado por PulsoAI', exact: true }).waitFor();
   assert.equal(apiCalls, 1);
   const block = page.getByRole('region', { name: 'Resumen generado por PulsoAI', exact: true });
@@ -103,10 +110,11 @@ async function main() {
   assert(persisted.text.includes('77 bpm'));
   assert(persisted.text.includes('97 %'));
   assert(persisted.text.includes('32 °C'));
-  assert(persisted.text.includes('no validado para uso clínico'));
+  assert(/no (?:está )?validado para uso clínico/.test(persisted.text));
   const oldTime = persisted.generatedAt;
   await page.screenshot({ path: path.join(out, 'desktop.png'), fullPage: true });
   await page.reload();
+  stage = 'reload browser';
   await page.getByRole('heading', { name: 'Resumen generado por PulsoAI' }).waitFor();
   assert.equal((await jobs.get(session.sessionId)).generatedAt, oldTime);
   assert.equal(apiCalls, 1);
@@ -119,6 +127,7 @@ async function main() {
   await db.collection('deviceCredentials').doc(credentialId).set({ deviceId: device.deviceId, enabled: true,
     revokedAt: null, createdAt: new Date().toISOString(), secretHash: createHash('sha256').update(secret).digest('hex') });
   const concurrencyRounds = [];
+  stage = 'six HTTP concurrency rounds';
   const mutation = async (route, data) => page.request.post(origin + '/api/v1' + route, {
     headers: { Origin: origin, 'X-CSRF-Token': csrf }, data, timeout: 5000,
   });
@@ -161,6 +170,7 @@ async function main() {
   // Exercise the two opt-in web HTTP integration tests with a real authenticated
   // emulator session and >100 readings. Never put the cookie in command arguments.
   const integrationCreate = await mutation('/sessions', { assignmentId: assignment.id });
+  stage = 'web HTTP integration';
   assert.equal(integrationCreate.status(), 201);
   const integrationSession = (await integrationCreate.json()).data.id;
   assert.equal((await mutation('/sessions/' + integrationSession + '/start', {})).status(), 200);
@@ -202,8 +212,12 @@ async function main() {
   fs.writeFileSync(path.join(out, 'results.json'), JSON.stringify(result, null, 2));
   console.log(JSON.stringify({ status: result.status, apiCalls, returnedModel, usage, overflowAt390px: overflow, concurrencyRounds, output: out }));
 }
-main().catch(error => {
-  console.error(JSON.stringify({ status: 'FAIL', category: error?.code || error?.name || 'ERROR', assertion: error?.name === 'AssertionError' ? error.message.slice(0, 160) : undefined }));
+main().catch(async error => {
+  const failure = { status: 'FAIL', stage, apiCalls, category: error?.code || error?.name || 'ERROR',
+    assertion: error?.name === 'AssertionError' ? error.message.slice(0, 160) : undefined };
+  fs.writeFileSync(path.join(out, 'failure.json'), JSON.stringify(failure, null, 2));
+  if (page) await page.screenshot({ path: path.join(out, 'failure.png'), fullPage: true }).catch(() => {});
+  console.error(JSON.stringify(failure));
   process.exitCode = 1;
 }).finally(async () => {
   stopWorker?.();

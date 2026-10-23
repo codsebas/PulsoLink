@@ -40,6 +40,8 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 
 ## Evidencias disponibles
 
+- [PulsoAI: fallos y aceptación final de #72, 23-10-2026](pulsoai-aceptacion-final-2026-10-23.md): regresión de timeout durante el cuerpo HTTP, matriz de fallos, recuperación del worker, Groq real y aceptación HTTPS en Render.
+
 - [Gerson: aceptación de issues tras actualizar main, 22-10-2026](../planificacion/gerson-aceptacion-issues-2026-10-22.md): respaldo privado en Windows, Standard/IAM/58 índices efectivos, dry-run cloud sin legado pendiente y resultados FAIL explícitos de concurrencia y nueva aceptación cloud.
 - [Revisión de Didhyer: contrato, negocio y concurrencia del 22-10-2026](didhyer-contrato-qa-2026-10-22.md): regresión HTTP de offsets/IDs, repetición de API y navegador en emuladores, contraste HTTP a 5/30 s de #51; no acredita cloud ni hardware.
 - [Gerson: seguimiento de auditoría del 22-10-2026](gerson-auditoria-2026-10-22.md): aprovisionamiento de placa e identidades, negocio con Firebase real y regresión de descubrimiento de sesiones; separa entregas de aceptación, hardware y despliegue pendientes.

@@ -1,0 +1,486 @@
+{
+  "status": "PASS",
+  "generatedAt": "2026-10-23T18:26:45.447Z",
+  "origin": "https://pulsolink-api.onrender.com",
+  "project": "pulsolink-pruebas-2026-7c8a31",
+  "checks": [
+    {
+      "name": "public HTTPS health cloud",
+      "pass": true
+    },
+    {
+      "name": "admin login",
+      "pass": true
+    },
+    {
+      "name": "session cookie Secure HttpOnly SameSite=Lax Path=/",
+      "pass": true
+    },
+    {
+      "name": "same cloud project and enabled admin",
+      "pass": true
+    },
+    {
+      "name": "create /patients",
+      "pass": true
+    },
+    {
+      "name": "create /devices",
+      "pass": true
+    },
+    {
+      "name": "independent fixture readback",
+      "pass": true
+    },
+    {
+      "name": "create /assignments",
+      "pass": true
+    },
+    {
+      "name": "create /sessions",
+      "pass": true
+    },
+    {
+      "name": "start empty",
+      "pass": true
+    },
+    {
+      "name": "active session does not request summary",
+      "pass": true
+    },
+    {
+      "name": "active session has no job",
+      "pass": true
+    },
+    {
+      "name": "finish succeeds empty",
+      "pass": true
+    },
+    {
+      "name": "summary GET 200",
+      "pass": true
+    },
+    {
+      "name": "summary GET 200",
+      "pass": true
+    },
+    {
+      "name": "terminal state empty",
+      "pass": true
+    },
+    {
+      "name": "all samples and simulated source empty",
+      "pass": true
+    },
+    {
+      "name": "independent summary persistence empty",
+      "pass": true
+    },
+    {
+      "name": "null statistics without fictitious zero empty",
+      "pass": true
+    },
+    {
+      "name": "browser renders empty",
+      "pass": true
+    },
+    {
+      "name": "reload reuses persisted result empty",
+      "pass": true
+    },
+    {
+      "name": "no mobile overflow empty",
+      "pass": true
+    },
+    {
+      "name": "GET and reload do not re-enqueue empty",
+      "pass": true
+    },
+    {
+      "name": "create /sessions",
+      "pass": true
+    },
+    {
+      "name": "start no_contact",
+      "pass": true
+    },
+    {
+      "name": "active session does not request summary",
+      "pass": true
+    },
+    {
+      "name": "active session has no job",
+      "pass": true
+    },
+    {
+      "name": "official HTTPS ingestion no_contact",
+      "pass": true
+    },
+    {
+      "name": "finish succeeds no_contact",
+      "pass": true
+    },
+    {
+      "name": "summary GET 200",
+      "pass": true
+    },
+    {
+      "name": "summary GET 200",
+      "pass": true
+    },
+    {
+      "name": "terminal state no_contact",
+      "pass": true
+    },
+    {
+      "name": "all samples and simulated source no_contact",
+      "pass": true
+    },
+    {
+      "name": "independent summary persistence no_contact",
+      "pass": true
+    },
+    {
+      "name": "null statistics without fictitious zero no_contact",
+      "pass": true
+    },
+    {
+      "name": "browser renders no_contact",
+      "pass": true
+    },
+    {
+      "name": "reload reuses persisted result no_contact",
+      "pass": true
+    },
+    {
+      "name": "no mobile overflow no_contact",
+      "pass": true
+    },
+    {
+      "name": "GET and reload do not re-enqueue no_contact",
+      "pass": true
+    },
+    {
+      "name": "create /sessions",
+      "pass": true
+    },
+    {
+      "name": "start mixed",
+      "pass": true
+    },
+    {
+      "name": "active session does not request summary",
+      "pass": true
+    },
+    {
+      "name": "active session has no job",
+      "pass": true
+    },
+    {
+      "name": "official HTTPS ingestion mixed",
+      "pass": true
+    },
+    {
+      "name": "official HTTPS ingestion mixed",
+      "pass": true
+    },
+    {
+      "name": "official HTTPS ingestion mixed",
+      "pass": true
+    },
+    {
+      "name": "finish succeeds mixed",
+      "pass": true
+    },
+    {
+      "name": "summary GET 200",
+      "pass": true
+    },
+    {
+      "name": "summary GET 200",
+      "pass": true
+    },
+    {
+      "name": "summary GET 200",
+      "pass": true
+    },
+    {
+      "name": "terminal state mixed",
+      "pass": true
+    },
+    {
+      "name": "all samples and simulated source mixed",
+      "pass": true
+    },
+    {
+      "name": "independent summary persistence mixed",
+      "pass": true
+    },
+    {
+      "name": "exact mixed statistics",
+      "pass": true
+    },
+    {
+      "name": "complete approved facts without invented prose",
+      "pass": true
+    },
+    {
+      "name": "Groq model and one successful job attempt",
+      "pass": true
+    },
+    {
+      "name": "retry requires CSRF",
+      "pass": true
+    },
+    {
+      "name": "ready retry idempotent",
+      "pass": true
+    },
+    {
+      "name": "finish repeated idempotent",
+      "pass": true
+    },
+    {
+      "name": "summary requires authentication",
+      "pass": true
+    },
+    {
+      "name": "browser renders mixed",
+      "pass": true
+    },
+    {
+      "name": "reload reuses persisted result mixed",
+      "pass": true
+    },
+    {
+      "name": "no mobile overflow mixed",
+      "pass": true
+    },
+    {
+      "name": "GET and reload do not re-enqueue mixed",
+      "pass": true
+    }
+  ],
+  "sessions": {
+    "empty": {
+      "id": "Rl7PubjDdVqazuBxXgmd",
+      "expected": "insufficient_data",
+      "summary": {
+        "sessionId": "Rl7PubjDdVqazuBxXgmd",
+        "status": "insufficient_data",
+        "stats": {
+          "source": "simulated",
+          "durationSeconds": 0.92,
+          "total": 0,
+          "metrics": {
+            "heartRate": {
+              "unit": "bpm",
+              "validCount": 0,
+              "mean": null,
+              "min": null,
+              "max": null,
+              "quality": {
+                "valid": 0,
+                "no_contact": 0,
+                "invalid": 0,
+                "unavailable": 0
+              }
+            },
+            "spo2": {
+              "unit": "%",
+              "validCount": 0,
+              "mean": null,
+              "min": null,
+              "max": null,
+              "quality": {
+                "valid": 0,
+                "no_contact": 0,
+                "invalid": 0,
+                "unavailable": 0
+              }
+            },
+            "skinTemperature": {
+              "unit": "C",
+              "validCount": 0,
+              "mean": null,
+              "min": null,
+              "max": null,
+              "quality": {
+                "valid": 0,
+                "no_contact": 0,
+                "invalid": 0,
+                "unavailable": 0
+              }
+            }
+          }
+        },
+        "text": null,
+        "generatedAt": null,
+        "errorCode": null
+      },
+      "metadata": {
+        "attempts": 1,
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "promptVersion": "pulsoai-facts-v1",
+        "inputHash": "b3d3533719613116a8b0a522ed854d88e47909df3ddfb3f4417355674f676f41"
+      }
+    },
+    "no_contact": {
+      "id": "kyhl9Lejuvxj2fgchPKs",
+      "expected": "insufficient_data",
+      "summary": {
+        "sessionId": "kyhl9Lejuvxj2fgchPKs",
+        "status": "insufficient_data",
+        "stats": {
+          "source": "simulated",
+          "durationSeconds": 1.22,
+          "total": 1,
+          "metrics": {
+            "heartRate": {
+              "unit": "bpm",
+              "validCount": 0,
+              "mean": null,
+              "min": null,
+              "max": null,
+              "quality": {
+                "valid": 0,
+                "no_contact": 1,
+                "invalid": 0,
+                "unavailable": 0
+              }
+            },
+            "spo2": {
+              "unit": "%",
+              "validCount": 0,
+              "mean": null,
+              "min": null,
+              "max": null,
+              "quality": {
+                "valid": 0,
+                "no_contact": 1,
+                "invalid": 0,
+                "unavailable": 0
+              }
+            },
+            "skinTemperature": {
+              "unit": "C",
+              "validCount": 0,
+              "mean": null,
+              "min": null,
+              "max": null,
+              "quality": {
+                "valid": 0,
+                "no_contact": 0,
+                "invalid": 0,
+                "unavailable": 1
+              }
+            }
+          }
+        },
+        "text": null,
+        "generatedAt": null,
+        "errorCode": null
+      },
+      "metadata": {
+        "attempts": 1,
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "promptVersion": "pulsoai-facts-v1",
+        "inputHash": "878b9be789b2b4d8f0d88b98d6167d3f96aa79f026622732de613dc75b2cf6e8"
+      }
+    },
+    "mixed": {
+      "id": "dN0VhQUIqEJFrt4mEvXE",
+      "expected": "ready",
+      "summary": {
+        "sessionId": "dN0VhQUIqEJFrt4mEvXE",
+        "status": "ready",
+        "stats": {
+          "source": "simulated",
+          "durationSeconds": 1.82,
+          "total": 3,
+          "metrics": {
+            "heartRate": {
+              "unit": "bpm",
+              "validCount": 2,
+              "mean": 77,
+              "min": 76,
+              "max": 78,
+              "quality": {
+                "valid": 2,
+                "no_contact": 1,
+                "invalid": 0,
+                "unavailable": 0
+              }
+            },
+            "spo2": {
+              "unit": "%",
+              "validCount": 2,
+              "mean": 97,
+              "min": 97,
+              "max": 97,
+              "quality": {
+                "valid": 2,
+                "no_contact": 1,
+                "invalid": 0,
+                "unavailable": 0
+              }
+            },
+            "skinTemperature": {
+              "unit": "C",
+              "validCount": 3,
+              "mean": 31,
+              "min": 30,
+              "max": 32,
+              "quality": {
+                "valid": 3,
+                "no_contact": 0,
+                "invalid": 0,
+                "unavailable": 0
+              }
+            }
+          }
+        },
+        "text": "Sesión de origen simulado: 3 registros y 1.82 segundos de duración.\n\nPulso: 2 lecturas válidas; promedio 77 bpm, mínimo 76 bpm y máximo 78 bpm.\n\nPulso: 1 sin contacto, 0 inválidas y 0 no disponibles; excluidas únicamente de los cálculos de esta magnitud, sin borrar registros.\n\nSpO₂ estimada: 2 lecturas válidas; promedio 97 %, mínimo 97 % y máximo 97 %.\n\nSpO₂ estimada: 1 sin contacto, 0 inválidas y 0 no disponibles; excluidas únicamente de los cálculos de esta magnitud, sin borrar registros.\n\nTemperatura superficial: 3 lecturas válidas; promedio 31 °C, mínimo 30 °C y máximo 32 °C.\n\nTemperatura superficial: 0 sin contacto, 0 inválidas y 0 no disponibles; excluidas únicamente de los cálculos de esta magnitud, sin borrar registros.\n\nLos agregados no permiten determinar tendencias ni la duración exacta de la falta de contacto.\n\nSpO₂ es una estimación académica y la temperatura es superficial, no corporal central. Prototipo no validado para uso clínico.",
+        "generatedAt": "2026-10-23T18:27:13.062Z",
+        "errorCode": null
+      },
+      "metadata": {
+        "attempts": 1,
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "promptVersion": "pulsoai-facts-v1",
+        "inputHash": "7bcf533301d87532614e413c269706e5250a15dc52797663260c12320b1871d6"
+      }
+    }
+  },
+  "cleanup": [
+    {
+      "name": "close owned assignment",
+      "pass": true
+    },
+    {
+      "name": "revoke owned credential",
+      "pass": true
+    },
+    {
+      "name": "disable owned simulated device",
+      "pass": true
+    },
+    {
+      "name": "disable owned synthetic patient",
+      "pass": true
+    },
+    {
+      "name": "logout",
+      "pass": true
+    }
+  ],
+  "environment": "Render HTTPS + Firebase cloud + real Groq + Edge",
+  "owned": {
+    "patientId": "AONzrQKRWQ9MpLaD3QPk",
+    "deviceId": "n4e7jfVDjxH9brqJuEhy",
+    "assignmentId": "Tpv7nGv3c8xS10pCCec6"
+  }
+}

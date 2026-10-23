@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-10-23T02:24:00.361Z",
+  "project": "pulsolink-pruebas-2026-7c8a31",
+  "mode": "read-only-cloud",
+  "database": {
+    "edition": "STANDARD",
+    "type": "FIRESTORE_NATIVE",
+    "location": "us-central1"
+  },
+  "indexes": {
+    "versioned": 58,
+    "deployed": 58,
+    "ready": 58,
+    "missing": []
+  },
+  "backendIdentity": {
+    "name": "pulsolink-api-local",
+    "roles": [
+      {
+        "role": "roles/datastore.user",
+        "conditional": false
+      },
+      {
+        "role": "roles/firebaseauth.admin",
+        "conditional": false
+      }
+    ]
+  },
+  "status": "PASS"
+}

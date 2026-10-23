@@ -72,7 +72,11 @@ npm run lint
 
 ## Pendientes y límites
 
-- Sin evidencia de navegador: no se verificó visualmente la pantalla con la capa de datos nueva. La propuesta visual de #29 sigue sin validar por los supervisores.
+- La validación visual del dashboard de #29/#33 sigue pendiente de los supervisores. Los casos de historial HIST-01/HIST-02 sí se repitieron después en navegador: ver [aceptación del 22 de octubre](historial-31-aceptacion-2026-10-22.md).
 - Los emuladores no acreditan disponibilidad de índices compuestos en Firestore Standard real.
 - La prueba de integración se omite sin `PULSOLINK_*`; no debe contarse como aprobada cuando no se ejecutó.
 - No se probó la placa física: las lecturas del historial provienen del emulador y del simulador.
+
+## Aceptación de navegador posterior (22 de octubre de 2026)
+
+La repetición independiente de HIST-01/HIST-02 sobre `main` `3db477a` terminó con `exit 0`: HIST-01 mostró las 162 lecturas y HIST-02 recorrió 1120 lecturas con un máximo de 1000 simultáneas. Se usaron Auth/Firestore emulados y Chromium/Playwright; el ejecutor oficial se copió localmente solo para sustituir el canal `msedge`, no disponible en Linux. Detalle, comandos y capturas en [historial-31-aceptacion-2026-10-22.md](historial-31-aceptacion-2026-10-22.md).

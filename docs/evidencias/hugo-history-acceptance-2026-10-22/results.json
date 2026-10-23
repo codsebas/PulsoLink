@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-10-23T02:41:34.291Z",
+  "base": "abc4d45 + corrección retry",
+  "environment": "Linux; Node 26.7.0; main 3db477a; Auth/Firestore emulados; Chromium 156 (Playwright 1.64.1); adaptación local del runner (sin channel msedge)",
+  "results": [
+    {
+      "id": "HIST-01",
+      "expected": "162 lecturas disponibles y cobertura exacta tras dos ventanas nuevas",
+      "actual": "API recibió 162; interfaz muestra 162; afirma inicio=true",
+      "state": "PASS",
+      "issue": 29
+    },
+    {
+      "id": "HIST-02",
+      "expected": "Navegación permite inspeccionar las 1120 lecturas; máximo 1000 simultáneas",
+      "actual": "12 páginas; 1120 lecturas inspeccionadas; 920 visibles; máximo 1000",
+      "state": "PASS",
+      "issue": 29
+    }
+  ]
+}

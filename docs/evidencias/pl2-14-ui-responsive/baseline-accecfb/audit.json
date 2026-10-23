@@ -1,0 +1,860 @@
+{
+  "environment": "macOS (zsh); Node 24.14.1; Google Chrome; Auth/Firestore Standard emulados (demo-pulsolink-audit)",
+  "browser": "155.0.8059.85",
+  "checkedAt": "2026-10-22T23:45:59.816Z",
+  "node": "v24.14.1",
+  "commit": "accecfb6aaefceba1b4bf95bc5dfefc8d1421657",
+  "thresholds": {
+    "minTargetPx": 44,
+    "minFontPx": 12
+  },
+  "results": [
+    {
+      "role": "admin",
+      "route": "/",
+      "width": 360,
+      "height": 800,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 15,
+      "smallTargets": 14,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 3,
+      "pageHeightPx": 2215,
+      "screenshot": "screenshots/360_home.png"
+    },
+    {
+      "role": "admin",
+      "route": "/monitoring",
+      "width": 360,
+      "height": 800,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 15,
+      "smallTargets": 14,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 0,
+      "pageHeightPx": 800,
+      "screenshot": "screenshots/360_monitoring.png"
+    },
+    {
+      "role": "admin",
+      "route": "/monitoring/monitor-patient",
+      "width": 360,
+      "height": 800,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 20,
+      "smallTargets": 20,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 720,
+          "container": 326,
+          "scrollable": true,
+          "needsHorizontalScroll": true
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 1,
+      "tinyTextElements": 22,
+      "pageHeightPx": 9553,
+      "screenshot": "screenshots/360_monitoring_monitor-patient.png"
+    },
+    {
+      "role": "admin",
+      "route": "/patients",
+      "width": 360,
+      "height": 800,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 17,
+      "smallTargets": 16,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 853,
+          "container": 326,
+          "scrollable": true,
+          "needsHorizontalScroll": true
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 1,
+      "tinyTextElements": 0,
+      "pageHeightPx": 800,
+      "screenshot": "screenshots/360_patients.png"
+    },
+    {
+      "role": "admin",
+      "route": "/devices",
+      "width": 360,
+      "height": 800,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 20,
+      "smallTargets": 19,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 751,
+          "container": 326,
+          "scrollable": true,
+          "needsHorizontalScroll": true
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 1,
+      "tinyTextElements": 0,
+      "pageHeightPx": 815,
+      "screenshot": "screenshots/360_devices.png"
+    },
+    {
+      "role": "admin",
+      "route": "/assignments",
+      "width": 360,
+      "height": 800,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 18,
+      "smallTargets": 18,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 585,
+          "container": 326,
+          "scrollable": true,
+          "needsHorizontalScroll": true
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 1,
+      "tinyTextElements": 0,
+      "pageHeightPx": 1119,
+      "screenshot": "screenshots/360_assignments.png"
+    },
+    {
+      "role": "admin",
+      "route": "/sessions",
+      "width": 360,
+      "height": 800,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 19,
+      "smallTargets": 17,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 892,
+          "container": 326,
+          "scrollable": true,
+          "needsHorizontalScroll": true
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 1,
+      "tinyTextElements": 0,
+      "pageHeightPx": 1053,
+      "screenshot": "screenshots/360_sessions.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/users",
+      "width": 360,
+      "height": 800,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 18,
+      "smallTargets": 17,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 720,
+          "container": 326,
+          "scrollable": true,
+          "needsHorizontalScroll": true
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 1,
+      "tinyTextElements": 0,
+      "pageHeightPx": 800,
+      "screenshot": "screenshots/360_admin_users.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/audit",
+      "width": 360,
+      "height": 800,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 15,
+      "smallTargets": 15,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 658,
+          "container": 326,
+          "scrollable": true,
+          "needsHorizontalScroll": true
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 1,
+      "tinyTextElements": 5,
+      "pageHeightPx": 1195,
+      "screenshot": "screenshots/360_admin_audit.png"
+    },
+    {
+      "role": "admin",
+      "route": "/",
+      "width": 768,
+      "height": 1024,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 15,
+      "smallTargets": 14,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 4,
+      "pageHeightPx": 1358,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/monitoring",
+      "width": 768,
+      "height": 1024,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 15,
+      "smallTargets": 14,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 1,
+      "pageHeightPx": 1024,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/monitoring/monitor-patient",
+      "width": 768,
+      "height": 1024,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 20,
+      "smallTargets": 20,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 734,
+          "container": 734,
+          "scrollable": true,
+          "needsHorizontalScroll": false
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 29,
+      "pageHeightPx": 8733,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/patients",
+      "width": 768,
+      "height": 1024,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 17,
+      "smallTargets": 16,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 853,
+          "container": 734,
+          "scrollable": true,
+          "needsHorizontalScroll": true
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 1,
+      "tinyTextElements": 1,
+      "pageHeightPx": 1024,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/devices",
+      "width": 768,
+      "height": 1024,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 20,
+      "smallTargets": 19,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 751,
+          "container": 734,
+          "scrollable": true,
+          "needsHorizontalScroll": true
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 1,
+      "tinyTextElements": 1,
+      "pageHeightPx": 1024,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/assignments",
+      "width": 768,
+      "height": 1024,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 18,
+      "smallTargets": 16,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 734,
+          "container": 734,
+          "scrollable": true,
+          "needsHorizontalScroll": false
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 1,
+      "pageHeightPx": 1024,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/sessions",
+      "width": 768,
+      "height": 1024,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 19,
+      "smallTargets": 17,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 892,
+          "container": 734,
+          "scrollable": true,
+          "needsHorizontalScroll": true
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 1,
+      "tinyTextElements": 1,
+      "pageHeightPx": 1024,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/admin/users",
+      "width": 768,
+      "height": 1024,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 18,
+      "smallTargets": 17,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 734,
+          "container": 734,
+          "scrollable": true,
+          "needsHorizontalScroll": false
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 1,
+      "pageHeightPx": 1024,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/admin/audit",
+      "width": 768,
+      "height": 1024,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 15,
+      "smallTargets": 15,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 734,
+          "container": 734,
+          "scrollable": true,
+          "needsHorizontalScroll": false
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 7,
+      "pageHeightPx": 1024,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/",
+      "width": 1440,
+      "height": 900,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 15,
+      "smallTargets": 15,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 254x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 121,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 4,
+      "pageHeightPx": 1185,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/monitoring",
+      "width": 1440,
+      "height": 900,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 15,
+      "smallTargets": 14,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 254x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 121,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 1,
+      "pageHeightPx": 900,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/monitoring/monitor-patient",
+      "width": 1440,
+      "height": 900,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 20,
+      "smallTargets": 20,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 254x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 121,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 1118,
+          "container": 1118,
+          "scrollable": true,
+          "needsHorizontalScroll": false
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 26,
+      "pageHeightPx": 7967,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/patients",
+      "width": 1440,
+      "height": 900,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 17,
+      "smallTargets": 17,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 254x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 121,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 1118,
+          "container": 1118,
+          "scrollable": true,
+          "needsHorizontalScroll": false
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 1,
+      "pageHeightPx": 900,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/devices",
+      "width": 1440,
+      "height": 900,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 20,
+      "smallTargets": 20,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 254x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 121,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 1118,
+          "container": 1118,
+          "scrollable": true,
+          "needsHorizontalScroll": false
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 1,
+      "pageHeightPx": 900,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/assignments",
+      "width": 1440,
+      "height": 900,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 18,
+      "smallTargets": 18,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 254x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 121,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 1118,
+          "container": 1118,
+          "scrollable": true,
+          "needsHorizontalScroll": false
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 1,
+      "pageHeightPx": 900,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/sessions",
+      "width": 1440,
+      "height": 900,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 19,
+      "smallTargets": 19,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 254x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 121,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 1118,
+          "container": 1118,
+          "scrollable": true,
+          "needsHorizontalScroll": false
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 1,
+      "pageHeightPx": 900,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/admin/users",
+      "width": 1440,
+      "height": 900,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 18,
+      "smallTargets": 18,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 254x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 121,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 1118,
+          "container": 1118,
+          "scrollable": true,
+          "needsHorizontalScroll": false
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 1,
+      "pageHeightPx": 900,
+      "screenshot": null
+    },
+    {
+      "role": "admin",
+      "route": "/admin/audit",
+      "width": 1440,
+      "height": 900,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 15,
+      "smallTargets": 15,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 254x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 121,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [
+        {
+          "width": 1118,
+          "container": 1118,
+          "scrollable": true,
+          "needsHorizontalScroll": false
+        }
+      ],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 8,
+      "pageHeightPx": 900,
+      "screenshot": null
+    },
+    {
+      "role": "anónimo",
+      "route": "/login",
+      "width": 360,
+      "height": 800,
+      "horizontalOverflowPx": 0,
+      "overflowingElements": [],
+      "interactiveTargets": 13,
+      "smallTargets": 13,
+      "smallTargetSamples": [
+        "PulsoLinkIoT Telemétrico 139x40",
+        "Estado 87x36",
+        "Pacientes 106x36",
+        "Placas 85x36",
+        "Asignaciones 130x36"
+      ],
+      "headerHeightPx": 149,
+      "headerSticky": true,
+      "h1Count": 1,
+      "tables": [],
+      "tablesNeedingHorizontalScroll": 0,
+      "tinyTextElements": 0,
+      "pageHeightPx": 808,
+      "screenshot": "screenshots/360_login.png"
+    }
+  ]
+}

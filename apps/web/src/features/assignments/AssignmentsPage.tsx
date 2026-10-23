@@ -1,178 +1,34 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowRightLeft, Link2, Unlink } from 'lucide-react';
 import { DataTable, type Column } from '../../components/admin/DataTable';
-import { FormDialog } from '../../components/admin/FormDialog';
-import { ConfirmDialog } from '../../components/admin/ConfirmDialog';
 import { SelectField } from '../../components/admin/FormFields';
 import { Badge } from '../../components/admin/Badge';
+import { OptionPagination } from '../../components/admin/OptionPagination';
 import { useSessionUser } from '../auth/useSessionUser';
-import { useAssignments, useCreateAssignment, useCloseAssignment, type AssignmentFilters } from './api';
-import { usePatientOptions } from '../patients/api';
-import { useDeviceOptions } from '../devices/api';
+import { useCatalogOptions } from '../catalog/useCatalogOptions';
+import { useEntityLabels } from '../catalog/useEntityLabels';
 import type { Assignment } from '../../lib/contract-types';
 import { formatDateTime } from '../../lib/format';
-import { OptionPagination } from '../../components/admin/OptionPagination';
-import { formatApiError } from '../../components/admin/api-error';
-import { useEntityLabels } from './useEntityLabels';
-
-function useLookupOptions() {
-  const patientsQuery = usePatientOptions();
-  const devicesQuery = useDeviceOptions();
-
-  const patientNames = useMemo(() => {
-    const map = new Map<string, string>();
-    patientsQuery.data?.pages.forEach((page) =>
-      page.data.forEach((patient) => map.set(patient.id, `${patient.displayName} (${patient.code})`)),
-    );
-    return map;
-  }, [patientsQuery.data]);
-
-  const deviceCodes = useMemo(() => {
-    const map = new Map<string, string>();
-    devicesQuery.data?.pages.forEach((page) =>
-      page.data.forEach((device) => map.set(device.id, device.code)),
-    );
-    return map;
-  }, [devicesQuery.data]);
-
-  return { patientNames, deviceCodes, patientsQuery, devicesQuery };
-}
+import { useAssignments, type AssignmentFilters } from './api';
+import { CreateAssignmentDialog } from './CreateAssignmentDialog';
+import { ReassignDialog } from './ReassignDialog';
+import { CloseAssignmentDialog } from './CloseAssignmentDialog';
 
 const EMPTY_FILTERS: AssignmentFilters = {};
+type OpenDialog = { kind: 'create' } | { kind: 'reassign' } | { kind: 'close'; assignment: Assignment } | null;
 
 export const AssignmentsPage: React.FC = () => {
   const { data: user } = useSessionUser();
   const isAdmin = user?.role === 'admin';
 
   const [filters, setFilters] = useState<AssignmentFilters>(EMPTY_FILTERS);
+  const [dialog, setDialog] = useState<OpenDialog>(null);
+  const closeDialog = () => setDialog(null);
   const listQuery = useAssignments(filters);
-  const { patientNames, deviceCodes, patientsQuery, devicesQuery } = useLookupOptions();
-
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createForm, setCreateForm] = useState({ patientId: '', deviceId: '' });
-  const createMutation = useCreateAssignment();
-
-  const [reassignOpen, setReassignOpen] = useState(false);
-  const [reassignPatientId, setReassignPatientId] = useState('');
-  const [reassignDeviceId, setReassignDeviceId] = useState('');
-  const [reassignStep, setReassignStep] = useState<'idle' | 'closing' | 'creating'>('idle');
-  const [reassignPartialFailure, setReassignPartialFailure] = useState(false);
-
-  // Consultas propias del diálogo de reasignación: no dependen de los filtros
-  // ni de la paginación de la tabla (revisión del PR #38).
-  const reassignQueryEnabled = reassignOpen && Boolean(reassignPatientId);
-  const activeForPatientQuery = useAssignments(
-    { patientId: reassignPatientId, status: 'active' },
-    { enabled: reassignQueryEnabled },
-  );
-  const activeForDeviceQuery = useAssignments(
-    { deviceId: reassignDeviceId, status: 'active' },
-    { enabled: reassignOpen && Boolean(reassignDeviceId) },
-  );
-
-  const [closeTarget, setCloseTarget] = useState<Assignment | null>(null);
-  const closeMutation = useCloseAssignment();
+  const catalog = useCatalogOptions();
 
   const rows = useMemo(() => listQuery.data?.pages.flatMap((page) => page.data) ?? [], [listQuery.data]);
-  const { patientLabel, deviceLabel } = useEntityLabels(
-    rows,
-    patientNames,
-    deviceCodes,
-    !patientsQuery.isLoading && !devicesQuery.isLoading,
-    isAdmin,
-  );
-
-  const patientOptions = useMemo(
-    () =>
-      Array.from(patientNames.entries()).map(([value, label]) => ({ value, label })),
-    [patientNames],
-  );
-  const deviceOptions = useMemo(
-    () =>
-      Array.from(deviceCodes.entries()).map(([value, label]) => ({ value, label })),
-    [deviceCodes],
-  );
-
-  // Origen de verdad propio del diálogo: primera página del filtro activo del
-  // paciente, sin depender de los filtros ni del cursor de la tabla.
-  const activeForReassignedPatient = activeForPatientQuery.data?.pages[0]?.data[0];
-  const reassignLookupLoading =
-    activeForPatientQuery.isLoading ||
-    (Boolean(reassignDeviceId) && activeForDeviceQuery.isLoading);
-
-  // Asignación activa que ya usa la placa elegida; si es de otro paciente, no
-  // se puede crear la nueva asignación.
-  const deviceActiveAssignment = activeForDeviceQuery.data?.pages[0]?.data[0];
-  const deviceOccupiedByOther =
-    Boolean(deviceActiveAssignment) && deviceActiveAssignment?.patientId !== reassignPatientId;
-  const reassignLookupError = activeForPatientQuery.error ?? activeForDeviceQuery.error;
-  const reassignBlocked = reassignLookupLoading || Boolean(reassignLookupError) || deviceOccupiedByOther ||
-    activeForReassignedPatient?.deviceId === reassignDeviceId;
-
-  const openReassignDialog = () => {
-    createMutation.reset();
-    closeMutation.reset();
-    setReassignPartialFailure(false);
-    setReassignPatientId('');
-    setReassignDeviceId('');
-    setReassignOpen(true);
-  };
-
-  const closeReassignDialog = () => {
-    setReassignOpen(false);
-    setReassignPartialFailure(false);
-  };
-
-  const handleCreate = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    try {
-      await createMutation.mutateAsync({
-        patientId: createForm.patientId,
-        deviceId: createForm.deviceId,
-      });
-      setCreateOpen(false);
-      setCreateForm({ patientId: '', deviceId: '' });
-    } catch {
-      // El error queda expuesto en mutation.error y se muestra en el diálogo.
-    }
-  };
-
-  const handleReassign = async () => {
-    if (!reassignPatientId || !reassignDeviceId || reassignBlocked) return;
-    createMutation.reset();
-    closeMutation.reset();
-    setReassignPartialFailure(false);
-    let closedPrevious = false;
-    try {
-      if (activeForReassignedPatient) {
-        setReassignStep('closing');
-        await closeMutation.mutateAsync(activeForReassignedPatient.id);
-        closedPrevious = true;
-      }
-      setReassignStep('creating');
-      await createMutation.mutateAsync({
-        patientId: reassignPatientId,
-        deviceId: reassignDeviceId,
-      });
-      closeReassignDialog();
-    } catch {
-      // El cierre no es atómico con la creación: si ya se cerró, avisar que la
-      // paciente queda sin asignación activa (revisión del PR #38).
-      setReassignPartialFailure(closedPrevious);
-    } finally {
-      setReassignStep('idle');
-    }
-  };
-
-  const handleClose = async () => {
-    if (!closeTarget) return;
-    try {
-      await closeMutation.mutateAsync(closeTarget.id);
-      setCloseTarget(null);
-    } catch {
-      // El error queda expuesto en mutation.error y se muestra en el diálogo.
-    }
-  };
+  const { patientLabel, deviceLabel } = useEntityLabels(rows, catalog.patientNames, catalog.deviceCodes, catalog.ready, isAdmin);
 
   const columns: Column<Assignment>[] = [
     {
@@ -199,12 +55,7 @@ export const AssignmentsPage: React.FC = () => {
     {
       key: 'status',
       header: 'Estado',
-      render: (a) =>
-        a.endedAt === null ? (
-          <Badge tone="emerald">Activa</Badge>
-        ) : (
-          <Badge tone="slate">Cerrada</Badge>
-        ),
+      render: (a) => (a.endedAt === null ? <Badge tone="emerald">Activa</Badge> : <Badge tone="slate">Cerrada</Badge>),
     },
     { key: 'startedAt', header: 'Inicio', render: (a) => formatDateTime(a.startedAt) },
     { key: 'endedAt', header: 'Cierre', render: (a) => formatDateTime(a.endedAt) },
@@ -217,7 +68,7 @@ export const AssignmentsPage: React.FC = () => {
               a.endedAt === null ? (
                 <button
                   type="button"
-                  onClick={() => setCloseTarget(a)}
+                  onClick={() => setDialog({ kind: 'close', assignment: a })}
                   className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-lg text-xs font-semibold text-rose-700 transition-colors"
                 >
                   <Unlink className="w-3.5 h-3.5" aria-hidden="true" />
@@ -243,10 +94,7 @@ export const AssignmentsPage: React.FC = () => {
           <div className="flex gap-2 self-start">
             <button
               type="button"
-              onClick={() => {
-                createMutation.reset();
-                setCreateOpen(true);
-              }}
+              onClick={() => setDialog({ kind: 'create' })}
               className="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm"
             >
               <Link2 className="w-4 h-4" aria-hidden="true" />
@@ -254,7 +102,7 @@ export const AssignmentsPage: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={openReassignDialog}
+              onClick={() => setDialog({ kind: 'reassign' })}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold transition-colors"
             >
               <ArrowRightLeft className="w-4 h-4" aria-hidden="true" />
@@ -270,10 +118,7 @@ export const AssignmentsPage: React.FC = () => {
           label="Estado"
           value={filters.status ?? ''}
           onChange={(event) =>
-            setFilters((prev) => ({
-              ...prev,
-              status: (event.target.value || undefined) as AssignmentFilters['status'],
-            }))
+            setFilters((prev) => ({ ...prev, status: (event.target.value || undefined) as AssignmentFilters['status'] }))
           }
           options={[
             { value: '', label: 'Todos' },
@@ -285,24 +130,20 @@ export const AssignmentsPage: React.FC = () => {
           id="assignments-patient"
           label="Paciente"
           value={filters.patientId ?? ''}
-          onChange={(event) =>
-            setFilters((prev) => ({ ...prev, patientId: event.target.value || undefined }))
-          }
-          options={[{ value: '', label: 'Todos' }, ...patientOptions]}
+          onChange={(event) => setFilters((prev) => ({ ...prev, patientId: event.target.value || undefined }))}
+          options={[{ value: '', label: 'Todos' }, ...catalog.patientOptions]}
         />
         <SelectField
           id="assignments-device"
           label="Placa"
           value={filters.deviceId ?? ''}
-          onChange={(event) =>
-            setFilters((prev) => ({ ...prev, deviceId: event.target.value || undefined }))
-          }
-          options={[{ value: '', label: 'Todas' }, ...deviceOptions]}
+          onChange={(event) => setFilters((prev) => ({ ...prev, deviceId: event.target.value || undefined }))}
+          options={[{ value: '', label: 'Todas' }, ...catalog.deviceOptions]}
         />
       </div>
 
-      <OptionPagination label="pacientes" query={patientsQuery} />
-      <OptionPagination label="placas" query={devicesQuery} />
+      <OptionPagination label="pacientes" query={catalog.patientsQuery} />
+      <OptionPagination label="placas" query={catalog.devicesQuery} />
       <DataTable<Assignment>
         columns={columns}
         rows={rows}
@@ -317,153 +158,9 @@ export const AssignmentsPage: React.FC = () => {
         emptyHint="Asigna una placa habilitada a un paciente habilitado para poder crear sesiones."
       />
 
-      <FormDialog
-        open={createOpen}
-        title="Asignar placa a paciente"
-        onClose={() => setCreateOpen(false)}
-        onSubmit={handleCreate}
-        submitLabel="Asignar"
-        isSubmitting={createMutation.isPending}
-        error={createMutation.error}
-      >
-        <OptionPagination label="pacientes" query={patientsQuery} />
-        <OptionPagination label="placas" query={devicesQuery} />
-        <SelectField
-          id="assignment-patient"
-          label="Paciente"
-          required
-          value={createForm.patientId}
-          onChange={(event) => setCreateForm((prev) => ({ ...prev, patientId: event.target.value }))}
-          options={[{ value: '', label: 'Selecciona un paciente…' }, ...patientOptions]}
-        />
-        <SelectField
-          id="assignment-device"
-          label="Placa"
-          required
-          value={createForm.deviceId}
-          onChange={(event) => setCreateForm((prev) => ({ ...prev, deviceId: event.target.value }))}
-          options={[{ value: '', label: 'Selecciona una placa…' }, ...deviceOptions]}
-          hint="Solo placas habilitadas. Si el paciente o la placa ya están ocupados, la API responde con un conflicto."
-        />
-      </FormDialog>
-
-      <FormDialog
-        open={reassignOpen}
-        title="Reasignar placa"
-        onClose={closeReassignDialog}
-        onSubmit={(event) => {
-          event.preventDefault();
-          void handleReassign();
-        }}
-        submitLabel="Reasignar"
-        isSubmitting={
-          reassignStep !== 'idle' || createMutation.isPending || closeMutation.isPending
-        }
-        error={createMutation.error ?? closeMutation.error}
-        footer={
-          <button
-            type="submit"
-            disabled={
-              reassignBlocked ||
-              reassignStep !== 'idle' ||
-              createMutation.isPending ||
-              closeMutation.isPending
-            }
-            className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
-          >
-            {reassignLookupLoading
-              ? 'Consultando asignaciones…'
-              : reassignStep === 'closing'
-                ? 'Cerrando asignación…'
-                : reassignStep === 'creating'
-                  ? 'Creando asignación…'
-                  : 'Reasignar'}
-          </button>
-        }
-      >
-        <OptionPagination label="pacientes" query={patientsQuery} />
-        <OptionPagination label="placas" query={devicesQuery} />
-        {reassignLookupError ? <div role="alert" className="text-sm text-rose-800">
-          {formatApiError(reassignLookupError)}
-          <button type="button" onClick={() => { void activeForPatientQuery.refetch(); if (reassignDeviceId) void activeForDeviceQuery.refetch(); }}>Reintentar asignaciones</button>
-        </div> : null}
-        {reassignPartialFailure && (
-          <div
-            role="alert"
-            className="p-3 bg-amber-50 border border-amber-300 rounded-lg text-xs text-amber-900"
-          >
-            La asignación anterior ya se cerró; la nueva no se pudo crear. La paciente queda sin
-            asignación activa. Reintenta con una placa disponible.
-          </div>
-        )}
-        <SelectField
-          id="reassign-patient"
-          label="Paciente"
-          required
-          value={reassignPatientId}
-          onChange={(event) => setReassignPatientId(event.target.value)}
-          options={[{ value: '', label: 'Selecciona un paciente…' }, ...patientOptions]}
-        />
-        {reassignPatientId && (
-          <p className="p-3 bg-sky-50 border border-sky-200 rounded-lg text-xs text-sky-800">
-            {activeForPatientQuery.isLoading ? (
-              'Consultando la asignación activa de la paciente…'
-            ) : activeForReassignedPatient ? (
-              <>
-                Se cerrará la asignación activa actual (placa{' '}
-                <strong className="font-mono">
-                  {deviceCodes.get(activeForReassignedPatient.deviceId) ??
-                    activeForReassignedPatient.deviceId}
-                </strong>
-                ) y se creará una nueva. El historial previo del paciente se conserva.
-              </>
-            ) : (
-              'Este paciente no tiene asignación activa; se creará una nueva directamente.'
-            )}
-          </p>
-        )}
-        <SelectField
-          id="reassign-device"
-          label="Nueva placa"
-          required
-          value={reassignDeviceId}
-          onChange={(event) => setReassignDeviceId(event.target.value)}
-          options={[{ value: '', label: 'Selecciona una placa…' }, ...deviceOptions]}
-        />
-        {reassignDeviceId && activeForDeviceQuery.isLoading && (
-          <p className="text-xs text-slate-500">Consultando la asignación activa de la placa…</p>
-        )}
-        {deviceOccupiedByOther && deviceActiveAssignment && (
-          <div
-            role="alert"
-            className="p-3 bg-rose-50 border border-rose-300 rounded-lg text-xs text-rose-800"
-          >
-            Esta placa ya tiene una asignación activa con{' '}
-            <strong>{patientNames.get(deviceActiveAssignment.patientId) ?? 'otro paciente'}</strong>
-            . Elige otra placa.
-          </div>
-        )}
-        {reassignDeviceId && activeForReassignedPatient?.deviceId === reassignDeviceId ?
-          <p role="status" className="text-sm text-amber-900">Esta placa ya está asignada al paciente. Selecciona una placa diferente.</p> : null}
-      </FormDialog>
-
-      <ConfirmDialog
-        open={closeTarget !== null}
-        title="Cerrar asignación"
-        danger
-        isPending={closeMutation.isPending}
-        error={closeMutation.error}
-        message={
-          <>
-            Se cerrará la asignación{' '}
-            <strong className="font-mono">{closeTarget?.id}</strong> y se liberarán el paciente y la
-            placa. Debe no tener sesiones abiertas; el historial no se modifica.
-          </>
-        }
-        confirmLabel="Cerrar asignación"
-        onConfirm={() => void handleClose()}
-        onCancel={() => setCloseTarget(null)}
-      />
+      {dialog?.kind === 'create' && <CreateAssignmentDialog catalog={catalog} onClose={closeDialog} />}
+      {dialog?.kind === 'reassign' && <ReassignDialog catalog={catalog} onClose={closeDialog} />}
+      {dialog?.kind === 'close' && <CloseAssignmentDialog assignment={dialog.assignment} onClose={closeDialog} />}
     </div>
   );
 };

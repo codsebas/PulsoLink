@@ -70,3 +70,5 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 - [PL2-14 entrega 1: navegación móvil, 22-10-2026](pl2-14-ui-responsive/entrega1-mobile-navigation/README.md): cabecera de 149 a 65 px en móvil y tablet; 47 mejoras y 0 regresiones frente a la línea base; aceptación de #33 17/17.
 
 - [PL2-14 entrega 2: tablas en móvil, 22-10-2026](pl2-14-ui-responsive/entrega2-responsive-tables/README.md): tarjetas por debajo de `sm` en las 6 tablas administrativas; 11 mejoras y 0 regresiones frente a la entrega 1; aceptación de #33 17/17.
+
+- [PL2-14 entrega 4: arquitectura de páginas administrativas, 22-10-2026](pl2-14-ui-responsive/entrega4-admin-pages/README.md): diálogos y catálogos extraídos; páginas de 1671 a 799 líneas sin cambios visibles; aceptación de #33 17/17.

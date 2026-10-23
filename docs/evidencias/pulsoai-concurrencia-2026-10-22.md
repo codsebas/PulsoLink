@@ -71,3 +71,15 @@ npx --yes --package=node@24 --package=firebase-tools --call 'firebase emulators:
 En esta ejecución se usaron configuraciones ignoradas con puertos alternativos/libres para no interferir con otros emuladores. El runner copia el build a una carpeta temporal: sendFile rechaza por seguridad rutas absolutas con segmentos ocultos como .codex; no se relajó esa protección. El intento inicial de navegador falló en /login por esa ruta antes de llamar a Groq; el posterior con copia temporal pasó. Otro intento de arranque colisionó con puertos ocupados; se usaron puertos libres sin detener procesos ajenos.
 
 Esta aceptación resuelve el bloqueo local de concurrencia. No certifica Render, carga distribuida ni hardware. El PR puede pasar a revisión; para publicar quedan la integración del PR, configurar GROQ_API_KEY/GROQ_MODEL/SESSION_SUMMARY_ENABLED en Render y ejecutar el recorrido HTTPS allí. No se fusionó ni desplegó por estas pruebas.
+
+## Revisión previa al merge de #76
+
+Se incorporó main `6995e5a` (incluye #79, #80, #81 y #82) y después `498e1bf` (#83, tablas móviles). Dependencias #26, #27, #29, #31, #34 y #51 cerradas en GitHub. #28 sigue abierto para aceptación cloud, sin observaciones bloqueantes de backend en emuladores; #35 y el diseño #74 no bloquean esta integración.
+
+Con Node 24.22.1, typecheck y build de todos los workspaces pasan. La primera ejecución de `npm run verify` dentro de Auth/Firestore Standard emulados falló con archivos API en paralelo: un timeout de aprovisionamiento de 5000 ms, su fallo posterior de autenticación y una recuperación de usuario con completed=0. `users-service` y `users-auth-emulator` consultan operaciones pendientes del mismo proyecto y podían procesar los fixtures ajenos. Web: 55 aprobadas y 2 HTTP omitidas; simulador: 32 aprobadas.
+
+Se cambió únicamente el orden entre archivos del script API a `vitest run --fileParallelism=false`, documentado en desarrollo-local.md. No se cambiaron aserciones ni timeouts. Repetición mediante `emulators:exec ... 'npm test'`: salida 0, **API 267/267**, web **55 aprobadas/2 omitidas**, simulador **32/32**. El caso JOINT-CONC-08 tarda 352 ms; seis carreras PulsoAI: 194, 126, 176, 293, 225 y 241 ms. Las carreras dentro de cada prueba continúan concurrentes. No se volvió a llamar a Groq en esta revisión; el recorrido real y las dos pruebas HTTP opt-in anteriores conservan su evidencia, sin presentarlos como repetidos sobre la base nueva.
+
+GitHub no registra revisiones humanas ni checks de CI para #76, y main no tiene protección ni rulesets obligatorios. La aprobación técnica se basa en esta revisión y ejecución local; la solicitud del usuario autoriza fusionar una vez conformes las comprobaciones. La configuración y aceptación HTTPS de Render siguen pendientes y #72 debe permanecer abierto hasta completarlas.
+
+Tras incorporar #83, se repitieron typecheck, build y suite completa del frontend: **60 aprobadas y 2 HTTP omitidas**, salida 0. API y simulador no cambiaron respecto de la ejecución emulada aprobada. Se conserva la advertencia de bundle superior a 500 kB.

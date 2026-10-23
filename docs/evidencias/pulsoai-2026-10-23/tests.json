@@ -1,0 +1,1873 @@
+{
+  "api": {
+    "passed": 308,
+    "skipped": 0,
+    "failed": 0,
+    "files": [
+      {
+        "file": "apps/api/test/auth-provisioning.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "aprovisionamiento CLI de Auth sin cambios destructivos repetir conserva contraseña y nombre aunque los argumentos cambien",
+            "status": "passed"
+          },
+          {
+            "name": "aprovisionamiento CLI de Auth sin cambios destructivos rechaza una cuenta deshabilitada sin reactivarla ni crear el otro destino",
+            "status": "passed"
+          },
+          {
+            "name": "aprovisionamiento CLI de Auth sin cambios destructivos el alias legado crea un perfil sugerido viewer; rechaza aliases contradictorios",
+            "status": "passed"
+          },
+          {
+            "name": "aprovisionamiento CLI de Auth sin cambios destructivos falla antes de crear por proyecto distinto o por usar la misma identidad para ambos roles",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/contract-alignment.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps CSRF_INVALID to 403 Forbidden",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps PATIENT_NOT_FOUND to 404 Not Found",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps DEVICE_NOT_FOUND to 404 Not Found",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps SESSION_NOT_FOUND to 404 Not Found",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps ASSIGNMENT_NOT_FOUND to 404 Not Found",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps USER_NOT_FOUND to 404 Not Found",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps AUDIT_NOT_FOUND to 404 Not Found",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps INVALID_CURSOR to 400 Bad Request",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps INVALID_SESSION_STATE to 409 Conflict",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps RESOURCE_DISABLED to 403 Forbidden",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps ASSIGNMENT_IN_USE to 409 Conflict",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Specific error codes vs generic mapping maps ASSIGNMENT_CONFLICT to 409 Conflict",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Contract regex alignment documentId pattern rejects dot and double-dot traversal and slashes",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) Contract regex alignment dateOffsetPattern accepts UTC Z and timezone offsets, rejecting bare dates",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) OpenAPI 2.0.0 contract file verification contracts/device.openapi.yaml contains updated patterns and error catalogue",
+            "status": "passed"
+          },
+          {
+            "name": "OpenAPI 2.0.0 & Zod contract alignment (Issue #27, A08) OpenAPI 2.0.0 contract file verification contracts/web.openapi.yaml contains updated patterns and error catalogue",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/device-api.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) Autenticación (Bearer <credentialId>.<secret>) devuelve 401 si no se envía la cabecera Authorization",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) Autenticación (Bearer <credentialId>.<secret>) devuelve 401 si la cabecera no tiene esquema Bearer",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) Autenticación (Bearer <credentialId>.<secret>) devuelve 401 si el token no es válido o está revocado",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) GET /api/v1/device/config devuelve 200 con configuración e intervalos sin exponer secretos (sesión inactiva)",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) GET /api/v1/device/config devuelve activeSessionId cuando el dispositivo tiene una sesión activa asignada",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) GET /api/v1/device/config devuelve 401 si el dispositivo fue deshabilitado posteriormente en base de datos",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/heartbeat devuelve 200 y actualiza lastSeenAt con payload válido",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/heartbeat devuelve 400 si bootId no es un UUID válido",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/heartbeat devuelve 400 si uptimeMs es negativo",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/heartbeat devuelve 400 si se envían campos desconocidos (schema strict)",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements acepta capturedAt con offset y lo normaliza a UTC antes de persistir",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements rechaza IDs de sesión . y .. por HTTP sin escribir mediciones",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements muestra válida se guarda y devuelve 201 (duplicate = false)",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements repetición idéntica devuelve 200 sin duplicar (duplicate = true)",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements misma clave (deviceId+bootId+sequence) y contenido distinto devuelve 409 IDEMPOTENCY_CONFLICT",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements una muestra nueva para sesión finalizada o inactiva devuelve 409 SESSION_NOT_ACTIVE",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements repetir una muestra ya guardada conserva su respuesta idempotente 200 tras finalizar la sesión",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements devuelve 400 si se envía un valor no válido para status: valid (ej. pulso null)",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements devuelve 400 si status no_contact contiene un valor numérico (debe ser null)",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements admite lecturas con falta de contacto óptico cuando el valor es null",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements rechaza con 403 si el deviceId declarado difiere de la credencial",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) POST /api/v1/device/measurements rechaza con 413 si la carga útil excede los 8 KiB del contrato",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) Integración con createApp() GET /api/v1/device/config responde 401 UNAUTHENTICATED sin credencial",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) Integración con createApp() POST /api/v1/device/heartbeat responde 401 UNAUTHENTICATED sin credencial",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato A: Endpoints de Dispositivo IoT / Simulador (/api/v1/device) Integración con createApp() POST /api/v1/device/measurements responde 401 UNAUTHENTICATED sin credencial",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/firebase-base.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "PL2 Firebase base rejects live or partially configured environments for local fixtures",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 Firebase base recognizes viewer and denies writes even through existing session services",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/firebase-fixtures.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "PL2 emulator fixtures creates admin/viewer once without changing passwords, disabled profiles or device secrets",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/health.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "GET /api/v1/health debe responder 200 con status ok y metadatos de la API",
+            "status": "passed"
+          },
+          {
+            "name": "GET /api/v1/health debe responder 404 en rutas inexistentes con formato estándar de error",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/legacy-migration.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "PL2 legacy migration dry-runs without inference, requires backup and preserves ingestion keys across repeated applications",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 legacy migration refuses a fabricated patient/assignment mapping before making any write",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 legacy migration executes CLI dry-run and requires an external durable backup before applying",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 legacy migration downgrades operator without promotion and resumes an interrupted Auth revocation",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/monitoring-meta.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "monitoring quality and connectivity distinguishes connection from optical contact and stale measurements at exact thresholds",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/patient-monitoring-api.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "PL2 patient monitoring HTTP + real Auth/Firestore emulators authenticates viewer, records one opening, and serves persisted history without poll auditing",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 patient monitoring HTTP + real Auth/Firestore emulators uses only the current board to report freshness and keeps the previous board in history",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/patient-persistence.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "PL2 patient persistence (Standard emulator) allows one assignment per board under concurrent requests",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 patient persistence (Standard emulator) allows one board per patient and prevents disable while assigned",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 patient persistence (Standard emulator) reserves created sessions against concurrent create/close and keeps audit idempotent",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 patient persistence (Standard emulator) serializes assignment close against creation of a session",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 patient persistence (Standard emulator) preserves history across two boards and deduplicates after reassignment",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 patient persistence (Standard emulator) paginates equal dates and measurement IDs using full document paths",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 patient persistence (Standard emulator) coordinates finish with a new ingestion without leaving orphan writes",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 patient persistence (Standard emulator) resolves concurrent session finish against 5 incoming measurements (JOINT-CONC-08) within 5000 ms budget",
+            "status": "passed"
+          },
+          {
+            "name": "PL2 patient persistence (Standard emulator) deduplicates access events and rejects arbitrary sensitive context",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/patient-trends.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "patient trends retains same reading IDs from different sessions and leaves gaps between boards",
+            "status": "passed"
+          },
+          {
+            "name": "patient trends keeps absent optical values null and gaps of more than 10 seconds",
+            "status": "passed"
+          },
+          {
+            "name": "patient trends converts Guatemala filters to UTC and rejects inverted ranges",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/persistence-validation.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "persistence input boundaries rejects invalid quality, units and sequence before touching Firestore",
+            "status": "passed"
+          },
+          {
+            "name": "persistence input boundaries rejects malformed, wrong-scope cursors and invalid page sizes",
+            "status": "passed"
+          },
+          {
+            "name": "persistence input boundaries enforces documentId constraints rejecting slashes and path traversal dots",
+            "status": "passed"
+          },
+          {
+            "name": "persistence input boundaries accepts UTC and offset datetimes and normalizes to UTC ISO string",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/persistence.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "Firestore + Auth emulators: persistence provisions once and preserves existing profiles, reservation and credential on reruns",
+            "status": "passed"
+          },
+          {
+            "name": "Firestore + Auth emulators: persistence authenticates a device without returning its secret hash and rejects disabled/revoked credentials",
+            "status": "passed"
+          },
+          {
+            "name": "Firestore + Auth emulators: persistence executes the provisioning CLI with stable data and redacts failures",
+            "status": "passed"
+          },
+          {
+            "name": "Firestore + Auth emulators: persistence allows one concurrent reservation and makes start/finish idempotent",
+            "status": "passed"
+          },
+          {
+            "name": "Firestore + Auth emulators: persistence deduplicates concurrent normalized payloads atomically and persists quality/source",
+            "status": "passed"
+          },
+          {
+            "name": "Firestore + Auth emulators: persistence retains original duplicate response after finish and rejects new samples/reopening",
+            "status": "passed"
+          },
+          {
+            "name": "Firestore + Auth emulators: persistence paginates ties without gaps, bounds dates and binds cursors to filters and parent session",
+            "status": "passed"
+          },
+          {
+            "name": "Firestore + Auth emulators: persistence denies direct client reads and writes with and without an authenticated identity",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/physical-provisioning.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "aprovisionamiento de NodeMCU (datos ficticios en emuladores) dry-run no escribe; repetir apply conserva secreto, estado y auditoría",
+            "status": "passed"
+          },
+          {
+            "name": "aprovisionamiento de NodeMCU (datos ficticios en emuladores) no rota, no rehabilita credenciales y no convierte placas simuladas",
+            "status": "passed"
+          },
+          {
+            "name": "aprovisionamiento de NodeMCU (datos ficticios en emuladores) comprueba identidad y perfil admin actuales",
+            "status": "passed"
+          },
+          {
+            "name": "aprovisionamiento de NodeMCU (datos ficticios en emuladores) reintentos concurrentes crean un registro y un único evento",
+            "status": "passed"
+          },
+          {
+            "name": "aprovisionamiento de NodeMCU (datos ficticios en emuladores) credencial aprovisionada funciona por config/heartbeat/ingestión oficial con rechazos reales",
+            "status": "passed"
+          },
+          {
+            "name": "aprovisionamiento de NodeMCU (datos ficticios en emuladores) CLI conserva el archivo privado y rechaza destinos equivocados sin imprimir secreto",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/pl2-business-api.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "PL2 API HTTP con Firestore Standard emulado aplica permisos y preserva historia del paciente entre dos placas y sesiones",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/pulsoai-emulator.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "PulsoAI: Firestore Standard emulator cierra y encola atómicamente, genera con todas las páginas y reutiliza ready",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: Firestore Standard emulator exclusión concurrente, recuperación tras reinicio y rechazo de publicador antiguo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: Firestore Standard emulator resuelve seis carreras en ambos órdenes bajo 5 s conservando historia, idempotencia y un trabajo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: Firestore Standard emulator un worker nuevo recupera generación interrumpida; el resultado anterior no reemplaza el recuperado",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: Firestore Standard emulator tres generaciones interrumpidas agotan el presupuesto, sin reclamar una cuarta llamada",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/pulsoai-failures.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) HTTP 400 es permanente y no filtra el cuerpo ni la clave",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) HTTP 401 es permanente y no filtra el cuerpo ni la clave",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) HTTP 403 es permanente y no filtra el cuerpo ni la clave",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) HTTP 404 es permanente y no filtra el cuerpo ni la clave",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) HTTP 429 permite reintento acotado",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) HTTP 500 permite reintento acotado",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) HTTP 502 permite reintento acotado",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) HTTP 503 permite reintento acotado",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) Retry-After 120 respeta el piso y límite de espera",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) Retry-After 0 respeta el piso y límite de espera",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) Retry-After invalid respeta el piso y límite de espera",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) Retry-After 999999 respeta el piso y límite de espera",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) acepta Retry-After como fecha HTTP",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) timeout de 30 s before-headers conserva reintento",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) timeout de 30 s during-body conserva reintento",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) fallo de red es transitorio y saneado",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) conexión interrumpida durante el cuerpo permite reintento sin filtrar el error",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) rechaza JSON exterior inválido sin publicarlo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) rechaza sobre incompleto sin publicarlo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) rechaza JSON interior inválido sin publicarlo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) rechaza hechos incompletos sin publicarlo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) rechaza hechos duplicados sin publicarlo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) rechaza hecho inventado sin publicarlo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) rechaza cifras y diagnóstico inventados sin publicarlo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) rechaza variante no autorizada sin publicarlo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) rechaza otro modelo sin publicarlo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) rechaza salida truncada sin publicarlo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) solo envía hechos agregados; un plan válido reproduce exactamente los hechos del servidor",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) configuración inválida no llama al proveedor",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: matriz de fallos del proveedor #72 (sin llamadas externas) configuración inválida no llama al proveedor",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: mensajes, conservación y presupuesto de reintentos #72 empty termina sin IA y sin ceros ficticios",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: mensajes, conservación y presupuesto de reintentos #72 no_contact termina sin IA y sin ceros ficticios",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: mensajes, conservación y presupuesto de reintentos #72 invalid termina sin IA y sin ceros ficticios",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: mensajes, conservación y presupuesto de reintentos #72 unavailable termina sin IA y sin ceros ficticios",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: mensajes, conservación y presupuesto de reintentos #72 sin contacto óptico conserva temperatura válida y declara origen simulado",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: mensajes, conservación y presupuesto de reintentos #72 429 conserva estadísticas y no reclama otro trabajo durante Retry-After",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: mensajes, conservación y presupuesto de reintentos #72 fallo definitivo conserva estadísticas sin publicar texto ni programar más intentos",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: mensajes, conservación y presupuesto de reintentos #72 fallo definitivo conserva estadísticas sin publicar texto ni programar más intentos",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: mensajes, conservación y presupuesto de reintentos #72 fallo definitivo conserva estadísticas sin publicar texto ni programar más intentos",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/pulsoai.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "PulsoAI: estadísticas y fidelidad recorre todas las páginas, separa calidad óptica y temperatura y no convierte null en cero",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: estadísticas y fidelidad rechaza paginación incompleta y sesiones ajenas en lugar de truncar estadísticas",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: estadísticas y fidelidad exige cada hecho exactamente una vez y solo permite variantes aprobadas",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: estadísticas y fidelidad sanea 401/429, respeta Retry-After y rechaza truncamiento y modelos distintos",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: ciclo de trabajo y permisos publica una vez con estadísticas y evita ejecutar ticks superpuestos",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: ciclo de trabajo y permisos conserva estadísticas sin llamadas cuando está deshabilitado o sin datos válidos",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: ciclo de trabajo y permisos persiste reintento transitorio y no expone el error crudo",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI: ciclo de trabajo y permisos GET no genera trabajo y viewer no puede solicitarlo ni una sesión activa permite generar",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/reading-test.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado acepta MeasurementInput completo sin autenticar ni buscar deviceId/sessionId",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado acepta fecha UTC y muestra independiente sin contacto óptico",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado acepta null para calidad no_contact",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado acepta null para calidad invalid",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado acepta null para calidad unavailable",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza unidad incorrecta con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza calidad desconocida con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza no_contact con número con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza invalid con número con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza unavailable con número con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza valid con null con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza pulso cero con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza SpO2 mayor que 100 con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza temperatura mayor que 125 con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza fecha ilegible con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza fecha sin zona con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza fecha con offset no UTC con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza deviceId vacío con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza deviceId demasiado largo con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza deviceId con / con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza sessionId vacío con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza sessionId demasiado largo con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza sessionId con / con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza bootId inválido con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza sequence negativa con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza sequence fraccionaria con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza sequence fuera de uint32 con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza pulso mayor que 300 con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza SpO2 negativa con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza temperatura menor que -55 con 400 claro y sin log de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige el campo deviceId",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige el campo sessionId",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige el campo bootId",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige el campo sequence",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige el campo capturedAt",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige el campo measurements",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige measurements.heartRate",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige measurements.spo2",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige measurements.skinTemperature",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige value en cada magnitud",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige unit en cada magnitud",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado exige status en cada magnitud",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza tipo inválido de deviceId",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza tipo inválido de sessionId",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza tipo inválido de bootId",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza tipo inválido de sequence",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza tipo inválido de capturedAt",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza tipo inválido de measurements",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado respeta IDs opacos del OpenAPI y escapa saltos de línea en una sola línea JSON",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado acepta el límite sequence=0 y límites técnicos inclusivos",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado acepta el límite sequence=4294967295 y límites técnicos inclusivos",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado procesa cada envío nuevo al llegar, sin deduplicación, temporizador ni cola",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza JSON malformado sin registrar el cuerpo",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado no registra Authorization, cookies ni otros encabezados",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado rechaza campos ajenos, incluidas contraseñas/tokens, sin imprimirlos",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado mantiene el límite de cuerpo de 8 KiB",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado no monta la ruta en production",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado no monta la ruta en test",
+            "status": "passed"
+          },
+          {
+            "name": "POST dev/reading-test: diagnóstico aislado no cambia la exigencia de credencial de la ingestión oficial",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/session-execution.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "coordinación acotada por sesión mantiene orden FIFO, libera errores y no bloquea otras sesiones/clientes",
+            "status": "passed"
+          },
+          {
+            "name": "coordinación acotada por sesión rechaza saturación antes de ejecutar y vuelve a admitir al liberar",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/sessions-api.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "Contrato B: dispositivos y sesiones PulsoAI exige cookie, CSRF y admin para solicitar; viewer solo consulta sin generar",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato B: dispositivos y sesiones exige sesión web y CSRF en mutaciones antes de tocar la persistencia",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato B: dispositivos y sesiones viewer y administrador consultan todas las sesiones sin filtro de propietario",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato B: dispositivos y sesiones viewer consulta sesiones ajenas pero no puede iniciar ni finalizar",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato B: dispositivos y sesiones crea sesiones desde la asignación con el administrador autenticado y traduce conflictos",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato B: dispositivos y sesiones devuelve metadatos de antigüedad y calidad sin convertir null en cero",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato B: dispositivos y sesiones devuelve data:null, ageMs:null y stale:true si la sesión no tiene lecturas",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato B: dispositivos y sesiones valida filtros y límites y rechaza cursores ajenos a la consulta",
+            "status": "passed"
+          },
+          {
+            "name": "Contrato B con Firestore Emulator crea, inicia, consulta muestras, finaliza y conserva el historial por HTTP",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/users-audit-api.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "API de usuarios y auditoría niega usuarios y auditoría a viewer; admin consulta ambos",
+            "status": "passed"
+          },
+          {
+            "name": "API de usuarios y auditoría exige CSRF y admin para crear; el cuerpo se valida y no devuelve contraseña",
+            "status": "passed"
+          },
+          {
+            "name": "API de usuarios y auditoría actualiza con CSRF y pasa los cambios al servicio",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/users-auth-emulator.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "UsersService con Firebase Auth Emulator real sincroniza rol y deshabilitación reales en Auth",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firebase Auth Emulator real aplica rol y deshabilitación en la misma cookie antes de sincronizar Auth",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/users-service.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "UsersService con Firestore Emulator crea perfil e identidad, no persiste la contraseña y es idempotente",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firestore Emulator rechaza correo de otra identidad sin adoptar ni dejar perfil huérfano",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firestore Emulator actualiza versión, deshabilita y revoca sesiones; reintenta una sincronización fallida",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firestore Emulator permite deshabilitar con una actualización pendiente y reemplaza la operación anterior",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firestore Emulator recupera el perfil actual y no reactiva una operación antigua",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firestore Emulator rechaza el reintento de creación si el perfil cambió después",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firestore Emulator serializa recuperadores concurrentes y aplica la identidad una sola vez",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firestore Emulator recupera actualizaciones pendientes y omite creaciones sin identidad",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firestore Emulator no devuelve éxito a otro admin mientras sigue pendiente la sincronización",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firestore Emulator repara una escritura tardía después de perder el reclamo y completar otra versión",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firestore Emulator continúa después de una página de creaciones que esperan contraseña",
+            "status": "passed"
+          },
+          {
+            "name": "UsersService con Firestore Emulator conserva una reparación durable si Auth falla después de una escritura tardía",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/web-hosting.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "web and API under one origin serves SPA navigation /",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin serves SPA navigation /login",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin serves SPA navigation /monitoring/patient.with.dots",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin serves SPA navigation /admin/users",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin serves HEAD and immutable compiled assets",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin does not replace /api with HTML",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin does not replace /api/v1/missing with HTML",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin does not replace /API/v1/missing with HTML",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin does not replace /api/shadow.html with HTML",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin does not replace /assets/missing.js with HTML",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin does not replace /.env with HTML",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin preserves public health and authenticated API responses",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin does not serve the SPA for JSON-only requests or POST",
+            "status": "passed"
+          },
+          {
+            "name": "web and API under one origin requires a build and leaves the API-only factory available",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/auth/app-protection.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "arranque sin FIREBASE_WEB_API_KEY GET /api/v1/health responde 200",
+            "status": "passed"
+          },
+          {
+            "name": "arranque sin FIREBASE_WEB_API_KEY POST /api/v1/auth/login con CSRF válido responde 503 AUTH_UNAVAILABLE",
+            "status": "passed"
+          },
+          {
+            "name": "arranque sin FIREBASE_WEB_API_KEY POST /api/v1/auth/login sin CSRF responde 403 CSRF_INVALID",
+            "status": "passed"
+          },
+          {
+            "name": "protección de rutas web GET /api/v1/auth/me sin sesión responde 401 UNAUTHENTICATED",
+            "status": "passed"
+          },
+          {
+            "name": "protección de rutas web GET /api/v1/devices sin sesión responde 401 UNAUTHENTICATED",
+            "status": "passed"
+          },
+          {
+            "name": "protección de rutas web GET /api/v1/sessions sin sesión responde 401 UNAUTHENTICATED",
+            "status": "passed"
+          },
+          {
+            "name": "protección de rutas web GET /api/v1/users y /api/v1/audit-logs sin sesión responden 401 UNAUTHENTICATED",
+            "status": "passed"
+          },
+          {
+            "name": "protección de rutas web POST /api/v1/sessions evalúa primero requireUser y responde 401 sin sesión",
+            "status": "passed"
+          },
+          {
+            "name": "protección de rutas web la ruta de dispositivo (Contrato A) no exige sesión: sin credenciales responde 401 por su propia autenticación",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/auth/auth.config.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "loadAuthConfigFromEnv: COOKIE_SECURE sin COOKIE_SECURE definida deja cookieSecure = true",
+            "status": "passed"
+          },
+          {
+            "name": "loadAuthConfigFromEnv: COOKIE_SECURE con COOKIE_SECURE=false deja cookieSecure = false",
+            "status": "passed"
+          },
+          {
+            "name": "loadAuthConfigFromEnv: COOKIE_SECURE con COOKIE_SECURE=true deja cookieSecure = true",
+            "status": "passed"
+          },
+          {
+            "name": "loadAuthConfigFromEnv: FIREBASE_WEB_API_KEY opcional sin FIREBASE_WEB_API_KEY no lanza y deja la clave vacía",
+            "status": "passed"
+          },
+          {
+            "name": "loadAuthConfigFromEnv: CORS_ORIGIN sin CORS_ORIGIN usa el origen de desarrollo predeterminado",
+            "status": "passed"
+          },
+          {
+            "name": "loadAuthConfigFromEnv: CORS_ORIGIN con dos orígenes separados por coma los acepta y normaliza",
+            "status": "passed"
+          },
+          {
+            "name": "loadAuthConfigFromEnv: errores sin exponer valores con CSRF_SECRET corto el error menciona CSRF_SECRET y no el valor",
+            "status": "passed"
+          },
+          {
+            "name": "loadAuthConfigFromEnv: errores sin exponer valores en producción con el CSRF_SECRET de desarrollo el error nombra la variable sin su valor",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/auth/auth.middleware.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "requireUser sin cookie responde 401 UNAUTHENTICATED",
+            "status": "passed"
+          },
+          {
+            "name": "requireUser con cookie inválida responde 401",
+            "status": "passed"
+          },
+          {
+            "name": "requireUser con sesión válida asigna req.user sin el campo enabled",
+            "status": "passed"
+          },
+          {
+            "name": "requireUser con usuario deshabilitado responde 403 USER_DISABLED",
+            "status": "passed"
+          },
+          {
+            "name": "requireUser con usuario sin documento responde 401",
+            "status": "passed"
+          },
+          {
+            "name": "requireUser lee la cookie aunque la app no monte cookie-parser",
+            "status": "passed"
+          },
+          {
+            "name": "requireRole sin usuario responde 401",
+            "status": "passed"
+          },
+          {
+            "name": "requireRole con rol insuficiente responde 403 FORBIDDEN",
+            "status": "passed"
+          },
+          {
+            "name": "requireRole con rol adecuado deja pasar",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/auth/auth.router.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "GET /csrf devuelve data.csrfToken y establece la cookie HttpOnly",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: CSRF y origen sin X-CSRF-Token responde 403 CSRF_INVALID",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: CSRF y origen con token válido pero origen no permitido responde 403 CSRF_INVALID",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: CSRF y origen sin Origin ni Referer responde 403 CSRF_INVALID",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: validación con cuerpo inválido responde 400 VALIDATION_ERROR",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: validación con un campo role extra responde 400 VALIDATION_ERROR",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: validación con JSON malformado responde 400 VALIDATION_ERROR con requestId",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: validación con un cuerpo mayor a 8 KiB responde 413 PAYLOAD_TOO_LARGE",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: validación contraseña incorrecta y correo inexistente dan el mismo 401",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: éxito responde 200 con el usuario y sin idToken",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: éxito establece la cookie de sesión con los atributos y Max-Age acordados",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: éxito rota el CSRF: el token anterior ya no sirve para /logout",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: éxito usuario deshabilitado responde 403 USER_DISABLED sin cookie de sesión",
+            "status": "passed"
+          },
+          {
+            "name": "POST /login: éxito usuario autenticado en Firebase pero sin documento responde 401 sin cookie",
+            "status": "passed"
+          },
+          {
+            "name": "auditoría de login registra el éxito con el actor verificado y no expone credenciales",
+            "status": "passed"
+          },
+          {
+            "name": "auditoría de login registra el fallo como anonymous sin copiar el correo",
+            "status": "passed"
+          },
+          {
+            "name": "auditoría de login no entrega la sesión si falla la auditoría obligatoria",
+            "status": "passed"
+          },
+          {
+            "name": "GET /me sin cookie responde 401",
+            "status": "passed"
+          },
+          {
+            "name": "GET /me con sesión responde 200 con el usuario",
+            "status": "passed"
+          },
+          {
+            "name": "GET /me con la sesión revocada responde 401",
+            "status": "passed"
+          },
+          {
+            "name": "POST /logout responde 204, borra la cookie y luego /me da 401",
+            "status": "passed"
+          },
+          {
+            "name": "POST /logout sin sesión también responde 204 (idempotente)",
+            "status": "passed"
+          },
+          {
+            "name": "requireRole operador en ruta de admin responde 403 y admin responde 200",
+            "status": "passed"
+          },
+          {
+            "name": "rate limit de login el tercer intento responde 429 con cabecera Retry-After",
+            "status": "passed"
+          },
+          {
+            "name": "formato de error toda respuesta de error incluye code, message y requestId",
+            "status": "passed"
+          },
+          {
+            "name": "formato de error reutiliza la cabecera x-request-id cuando existe",
+            "status": "passed"
+          },
+          {
+            "name": "atributo Secure de las cookies COOKIE_SECURE=true incluye Secure",
+            "status": "passed"
+          },
+          {
+            "name": "atributo Secure de las cookies COOKIE_SECURE=false no incluye Secure",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/auth/firebase-identity-provider.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "FirebaseIdentityProvider.verifyPassword: mapeo de errores INVALID_LOGIN_CREDENTIALS se traduce a 401 INVALID_CREDENTIALS",
+            "status": "passed"
+          },
+          {
+            "name": "FirebaseIdentityProvider.verifyPassword: mapeo de errores TOO_MANY_ATTEMPTS_TRY_LATER se traduce a 429 TOO_MANY_ATTEMPTS",
+            "status": "passed"
+          },
+          {
+            "name": "FirebaseIdentityProvider.verifyPassword: mapeo de errores una respuesta 5xx se traduce a 503 AUTH_UNAVAILABLE",
+            "status": "passed"
+          },
+          {
+            "name": "FirebaseIdentityProvider.verifyPassword: mapeo de errores un fallo de red se traduce a 503 AUTH_UNAVAILABLE",
+            "status": "passed"
+          },
+          {
+            "name": "FirebaseIdentityProvider.verifyPassword: mapeo de errores sin FIREBASE_WEB_API_KEY responde 503 AUTH_UNAVAILABLE sin llamar a la red",
+            "status": "passed"
+          },
+          {
+            "name": "FirebaseIdentityProvider.verifyPassword: mapeo de errores usa el emulador cuando se define FIREBASE_AUTH_EMULATOR_HOST",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/auth/session-access.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "canAccessSession un admin puede acceder a una sesión ajena",
+            "status": "passed"
+          },
+          {
+            "name": "canAccessSession un viewer puede acceder a su propia sesión",
+            "status": "passed"
+          },
+          {
+            "name": "canAccessSession un viewer puede acceder a una sesión ajena",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/api/test/auth/users-repository-adapter.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "UsersRepositoryAdapter mapea uid → id y traduce el documento a AppUser",
+            "status": "passed"
+          },
+          {
+            "name": "UsersRepositoryAdapter devuelve null cuando el documento no existe",
+            "status": "passed"
+          },
+          {
+            "name": "UsersRepositoryAdapter devuelve null y registra solo el uid cuando el rol es inválido",
+            "status": "passed"
+          },
+          {
+            "name": "UsersRepositoryAdapter devuelve null cuando enabled no es booleano",
+            "status": "passed"
+          }
+        ]
+      }
+    ]
+  },
+  "web": {
+    "passed": 77,
+    "skipped": 2,
+    "failed": 0,
+    "files": [
+      {
+        "file": "apps/web/test/admin-completion.test.tsx",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "diálogos administrativos Escape respeta el envío pendiente y devuelve el foco al cerrar",
+            "status": "passed"
+          },
+          {
+            "name": "diálogos administrativos la confirmación permite cancelar con Escape y bloquea doble envío",
+            "status": "passed"
+          },
+          {
+            "name": "opciones posteriores a la primera página reintenta el cursor fallido en lugar de volver a cargar las páginas sanas",
+            "status": "passed"
+          },
+          {
+            "name": "opciones posteriores a la primera página conserva los primeros 100 pacientes y usa el cursor opaco para cargar el 101",
+            "status": "passed"
+          },
+          {
+            "name": "opciones posteriores a la primera página conserva los primeros 100 placas y usa el cursor opaco para cargar el 101",
+            "status": "passed"
+          },
+          {
+            "name": "no cierra una asignación cuando falla la consulta de ocupación",
+            "status": "passed"
+          },
+          {
+            "name": "muestra nombre y código de pacientes y placas deshabilitados en el historial de asignaciones",
+            "status": "passed"
+          },
+          {
+            "name": "viewer no pide el detalle de registros fuera del catálogo (la API lo rechaza con 403)",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/admin-shared.test.tsx",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "EditToggleActions ofrece editar y deshabilitar o habilitar según el estado",
+            "status": "passed"
+          },
+          {
+            "name": "ToggleEnabledDialog deshabilita un registro habilitado y cierra al confirmar",
+            "status": "passed"
+          },
+          {
+            "name": "ToggleEnabledDialog para un registro deshabilitado muestra el mensaje de habilitar",
+            "status": "passed"
+          },
+          {
+            "name": "ToggleEnabledDialog si la API falla, muestra el error y no cierra",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/data-table.test.tsx",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "DataTable sin matchMedia (jsdom) muestra la tabla de siempre",
+            "status": "passed"
+          },
+          {
+            "name": "DataTable en móvil muestra tarjetas: título principal, campos etiquetados y acciones al pie",
+            "status": "passed"
+          },
+          {
+            "name": "DataTable sin columna principal usa la primera columna de detalle",
+            "status": "passed"
+          },
+          {
+            "name": "DataTable cambia de vista al cruzar el breakpoint",
+            "status": "passed"
+          },
+          {
+            "name": "DataTable conserva estados vacío y \"Cargar más\" en móvil",
+            "status": "passed"
+          },
+          {
+            "name": "DataTable sin acciones no dibuja el pie y los valores vacíos se muestran como \"—\"",
+            "status": "passed"
+          },
+          {
+            "name": "DataTable en la tabla, una celda vacía muestra \"—\"",
+            "status": "passed"
+          },
+          {
+            "name": "DataTable cada tarjeta tiene un encabezado que la nombra",
+            "status": "passed"
+          },
+          {
+            "name": "DataTable el nivel del encabezado de las tarjetas es configurable",
+            "status": "passed"
+          },
+          {
+            "name": "DataTable si el foco estaba dentro al cruzar el breakpoint, pasa al contenedor en vez de perderse",
+            "status": "passed"
+          },
+          {
+            "name": "DataTable sin foco dentro, cruzar el breakpoint no mueve el foco",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/history-hook.test.tsx",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "integración del hook de historial recupera más de veinte muestras por refresco sin perder las anteriores",
+            "status": "passed"
+          },
+          {
+            "name": "integración del hook de historial visibilitychange recupera las 47 muestras de una pestaña oculta",
+            "status": "passed"
+          },
+          {
+            "name": "integración del hook de historial navega 1120 lecturas con una sola ventana en caché y vuelve a recientes",
+            "status": "passed"
+          },
+          {
+            "name": "integración del hook de historial aborta una página pendiente al salir sin reconstruir la caché del expediente",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/history-readings.test.tsx",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "HistoryReadings sin matchMedia (jsdom) conserva la tabla con todas las filas y su clave de lectura",
+            "status": "passed"
+          },
+          {
+            "name": "HistoryReadings en móvil dibuja tandas de 20 sin perder las lecturas cargadas",
+            "status": "passed"
+          },
+          {
+            "name": "HistoryReadings en móvil cada lectura muestra placa, magnitudes con calidad y origen, sin convertir null en cero",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/history-window.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "ventana continua y navegación acotada HIST-01 conserva las 162 lecturas tras dos refrescos de 21 muestras nuevas",
+            "status": "passed"
+          },
+          {
+            "name": "ventana continua y navegación acotada HIST-02 permite visitar las 1120 lecturas con memoria y páginas acotadas",
+            "status": "passed"
+          },
+          {
+            "name": "ventana continua y navegación acotada recupera 47 muestras de una ausencia sin descargar páginas antiguas sanas",
+            "status": "passed"
+          },
+          {
+            "name": "ventana continua y navegación acotada una ausencia mayor al límite mantiene acceso al intervalo omitido mediante cursor",
+            "status": "passed"
+          },
+          {
+            "name": "ventana continua y navegación acotada no crece sin límite con miles de refrescos superpuestos",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/history.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "historial del paciente conserva el orden del servidor: receivedAt DESC y ruta completa DESC en empates",
+            "status": "passed"
+          },
+          {
+            "name": "historial del paciente no duplica lecturas repetidas dentro de una página ni entre páginas",
+            "status": "passed"
+          },
+          {
+            "name": "historial del paciente distingue lecturas con el mismo ID pero de sesiones distintas",
+            "status": "passed"
+          },
+          {
+            "name": "historial del paciente declara la cobertura y el truncamiento sin ocultar lo descartado",
+            "status": "passed"
+          },
+          {
+            "name": "historial del paciente aísla la caché por paciente y por rango consultado",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/mobile-menu.test.tsx",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "visibleNavItems muestra administración solo a admin y oculta Acceso con sesión",
+            "status": "passed"
+          },
+          {
+            "name": "MobileMenu abre con aria-expanded, enfoca el primer enlace y muestra la identidad",
+            "status": "passed"
+          },
+          {
+            "name": "MobileMenu aria-controls apunta a un elemento existente también con el menú cerrado",
+            "status": "passed"
+          },
+          {
+            "name": "MobileMenu Escape cierra y devuelve el foco al botón",
+            "status": "passed"
+          },
+          {
+            "name": "MobileMenu el tabulador circula entre \"Salir\", el botón y los enlaces sin salir del menú",
+            "status": "passed"
+          },
+          {
+            "name": "MobileMenu elegir un enlace navega y cierra el menú",
+            "status": "passed"
+          },
+          {
+            "name": "MobileMenu un cambio de ruta por otra vía (atrás, redirección) también lo cierra",
+            "status": "passed"
+          },
+          {
+            "name": "MobileMenu con el menú abierto el resto de la página queda inerte y sin desplazamiento",
+            "status": "passed"
+          },
+          {
+            "name": "MobileMenu tocar fuera del panel lo cierra",
+            "status": "passed"
+          },
+          {
+            "name": "MobileMenu el viewer no ve enlaces de administración en el menú",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/monitoring-api.integration.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "historial del paciente contra la API real recorre todas las páginas sin duplicar ni perder lecturas",
+            "status": "skipped"
+          },
+          {
+            "name": "historial del paciente contra la API real conserva la calidad de cada magnitud en la última muestra y en el historial",
+            "status": "skipped"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/monitoring-api.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "acceso HTTP al historial del paciente recorre varias páginas sin duplicar ni perder lecturas con empates temporales",
+            "status": "passed"
+          },
+          {
+            "name": "acceso HTTP al historial del paciente envía el cursor, el límite y los filtros temporales al servidor",
+            "status": "passed"
+          },
+          {
+            "name": "acceso HTTP al historial del paciente la ventana en vivo pide solo una fracción del historial",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/patient-monitoring-page.test.tsx",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "pantalla de monitoreo con la capa de datos descubre una sesión iniciada externamente y vuelve a esperar al finalizarla",
+            "status": "passed"
+          },
+          {
+            "name": "pantalla de monitoreo con la capa de datos pausa el descubrimiento en una pestaña oculta y lo reanuda al volver",
+            "status": "passed"
+          },
+          {
+            "name": "pantalla de monitoreo con la capa de datos muestra la última muestra y el historial sin pedir el expediente completo",
+            "status": "passed"
+          },
+          {
+            "name": "pantalla de monitoreo con la capa de datos acumula páginas antiguas al pedir más historial y declara la cobertura",
+            "status": "passed"
+          },
+          {
+            "name": "pantalla de monitoreo con la capa de datos reintenta el archivo que falló y recupera historial después de un error de red",
+            "status": "passed"
+          },
+          {
+            "name": "pantalla de monitoreo con la capa de datos refrescar un historial sano solo vuelve a pedir la ventana reciente",
+            "status": "passed"
+          },
+          {
+            "name": "pantalla de monitoreo con la capa de datos conserva las filas y reintenta el cursor de una página posterior fallida",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/polling.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "plan de refresco del monitoreo refresca la última muestra y la ventana en vivo solo con sesión activa y pestaña visible",
+            "status": "passed"
+          },
+          {
+            "name": "plan de refresco del monitoreo no incluye las páginas acumuladas del historial: no se redescargan en cada tick",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/pulsoai.test.tsx",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "PulsoAI mínimo funcional muestra la marca solicitada y texto como contenido seguro",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI mínimo funcional no llama resumen generado a un fallo y permite reintento solo al admin",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI mínimo funcional insufficient_data conserva estadísticas nulas y origen simulado",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI mínimo funcional disabled conserva estadísticas nulas y origen simulado",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI mínimo funcional failed conserva estadísticas nulas y origen simulado",
+            "status": "passed"
+          },
+          {
+            "name": "PulsoAI mínimo funcional muestra falta de contacto óptico sin ocultar temperatura superficial válida",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/series.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "series de signos vitales ordena cronológicamente y desempata por ruta",
+            "status": "passed"
+          },
+          {
+            "name": "series de signos vitales conserva los valores ausentes como null y nunca como cero",
+            "status": "passed"
+          },
+          {
+            "name": "series de signos vitales abre un hueco cuando pasa más de diez segundos o cambia de placa",
+            "status": "passed"
+          },
+          {
+            "name": "series de signos vitales mantiene en la misma serie las lecturas históricas de distintas placas",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "file": "apps/web/test/vital-card.test.tsx",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "calidad individual de signos vitales distingue valid con texto y estilo, sin convertir ausencia en cero",
+            "status": "passed"
+          },
+          {
+            "name": "calidad individual de signos vitales distingue no_contact con texto y estilo, sin convertir ausencia en cero",
+            "status": "passed"
+          },
+          {
+            "name": "calidad individual de signos vitales distingue invalid con texto y estilo, sin convertir ausencia en cero",
+            "status": "passed"
+          },
+          {
+            "name": "calidad individual de signos vitales distingue unavailable con texto y estilo, sin convertir ausencia en cero",
+            "status": "passed"
+          },
+          {
+            "name": "calidad individual de signos vitales espera datos sin declarar calidad válida",
+            "status": "passed"
+          }
+        ]
+      }
+    ]
+  },
+  "webHttp": {
+    "passed": 2,
+    "skipped": 0,
+    "failed": 0,
+    "files": [
+      {
+        "file": "apps/web/test/monitoring-api.integration.test.ts",
+        "status": "passed",
+        "tests": [
+          {
+            "name": "historial del paciente contra la API real recorre todas las páginas sin duplicar ni perder lecturas",
+            "status": "passed"
+          },
+          {
+            "name": "historial del paciente contra la API real conserva la calidad de cada magnitud en la última muestra y en el historial",
+            "status": "passed"
+          }
+        ]
+      }
+    ]
+  },
+  "simulator": {
+    "passed": 32,
+    "failed": 0,
+    "skipped": 0,
+    "source": "node:test stdout of pulsoai-final-suite"
+  }
+}

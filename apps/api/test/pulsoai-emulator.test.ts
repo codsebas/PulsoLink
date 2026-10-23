@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import { initializeApp, deleteApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { randomUUID } from 'node:crypto';
@@ -99,5 +99,52 @@ describe.skipIf(!enabled)('PulsoAI: Firestore Standard emulator', () => {
       await db.collection('sessionSummaries').doc(created.sessionId).update({ status: 'disabled', availableAt: null });
     }
     console.log('PulsoAI six race rounds (ms):', JSON.stringify(times));
+  }, 30000);
+
+  it('un worker nuevo recupera generación interrumpida; el resultado anterior no reemplaza el recuperado', async () => {
+    const id = randomUUID();
+    await db.collection('sessions').doc(id).set({ sessionId: id, deviceId: 'synthetic', operatorId: 'admin',
+      source: 'simulated', status: 'finished', createdAt: '2026-10-23T00:00:00.000Z',
+      startedAt: '2026-10-23T00:00:00.000Z', finishedAt: '2026-10-23T00:01:00.000Z', latestMeasurement: null });
+    await db.collection('sessions').doc(id).collection('measurements').doc('m').set({ id: 'm', sessionId: id,
+      deviceId: 'synthetic', source: 'simulated', receivedAt: '2026-10-23T00:00:02.000Z', measurements: {
+        heartRate: { value: null, unit: 'bpm', status: 'no_contact' },
+        spo2: { value: null, unit: '%', status: 'no_contact' },
+        skinTemperature: { value: 31, unit: 'C', status: 'valid' },
+      } });
+    await db.collection('sessionSummaries').doc(id).set(pendingSummary(id, new Date().toISOString()));
+    // A process was lost after claiming a job. Its expired lease is durable in Firestore.
+    const interrupted = (await jobs.claim())!;
+    expect(interrupted.sessionId).toBe(id);
+    expect(await new SummaryRepository(() => db).claim()).toBeNull();
+    await db.collection('sessionSummaries').doc(id).update({ availableAt: '2000-01-01T00:00:00.000Z' });
+    const recoveredJobs = new SummaryRepository(() => db);
+    const generate = vi.fn(async (facts: Parameters<typeof composePlan>[0]) => ({ model: 'openai/gpt-oss-20b',
+      text: composePlan(facts, { sentences: facts.map(f => ({ id: f.id, variant: 0 })) }) }));
+    await new SummaryWorker({ jobs: recoveredJobs, sessions: new SessionsRepository(() => db),
+      measurements: new MeasurementsRepository(() => db), generate,
+      config: () => ({ enabled: true, key: 'synthetic', model: 'openai/gpt-oss-20b' }) }).tick();
+    const result = await recoveredJobs.get(id);
+    expect(result).toMatchObject({ status: 'ready', attempts: 2, stats: { total: 1,
+      metrics: { heartRate: { mean: null }, skinTemperature: { mean: 31 } } } });
+    expect(result?.text).toContain('sin valores válidos');
+    expect(generate).toHaveBeenCalledOnce();
+    expect(await jobs.publish(interrupted, { status: 'ready', text: 'obsolete' })).toBe(false);
+    expect(await jobs.get(id)).toEqual(result);
+    expect((await sessions.getById(id))?.status).toBe('finished');
+    expect((await measurements.list(id)).data).toHaveLength(1);
+  }, 30000);
+
+  it('tres generaciones interrumpidas agotan el presupuesto, sin reclamar una cuarta llamada', async () => {
+    const id = randomUUID();
+    await db.collection('sessionSummaries').doc(id).set(pendingSummary(id, new Date().toISOString()));
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const claimed = await new SummaryRepository(() => db).claim();
+      expect(claimed).toMatchObject({ sessionId: id, status: 'generating', attempts: attempt });
+      await db.collection('sessionSummaries').doc(id).update({ availableAt: '2000-01-01T00:00:00.000Z' });
+    }
+    expect(await new SummaryRepository(() => db).claim()).toBeNull();
+    expect(await jobs.get(id)).toMatchObject({ status: 'failed', attempts: 3, errorCode: 'ATTEMPTS_EXHAUSTED', availableAt: null, leaseToken: null });
+    expect(await jobs.claim()).toBeNull();
   }, 30000);
 });

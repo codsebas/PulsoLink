@@ -7,6 +7,7 @@ import type { MeasurementsPayload } from '../../shared/types.js';
 import type { SessionDocument } from '../sessions/sessions.repository.js';
 import type { DeviceDocument } from '../devices/devices.repository.js';
 import type { AssignmentDocument } from '../assignments/assignments.repository.js';
+import { executeForSession } from '../../shared/session-execution.js';
 
 export interface StoredMeasurement {
   id: string; sessionId: string; deviceId: string; source: 'real' | 'simulated';
@@ -58,7 +59,7 @@ export class MeasurementsRepository {
     const sessionRef = db.collection('sessions').doc(data.sessionId);
     const deviceRef = db.collection('devices').doc(deviceId);
     const measurementRef = sessionRef.collection('measurements').doc();
-    return db.runTransaction(async (tx) => {
+    return executeForSession(db, data.sessionId, () => db.runTransaction(async (tx) => {
       const [sessionSnapshot, deviceSnapshot, keySnapshot] = await tx.getAll(sessionRef, deviceRef, keyRef);
       const device = deviceSnapshot.data() as DeviceDocument | undefined;
       if (!device?.enabled) throw new PersistenceError('DEVICE_DISABLED', 'Dispositivo no habilitado.');
@@ -100,7 +101,7 @@ export class MeasurementsRepository {
       }
       tx.update(deviceRef, { lastSeenAt: receivedAt });
       return { measurementId: measurement.id, receivedAt, duplicate: false };
-    });
+    }));
   }
 
   async getLatest(sessionId: string): Promise<StoredMeasurement | null> {

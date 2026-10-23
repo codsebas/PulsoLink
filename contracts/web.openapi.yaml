@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: "PulsoLink — Contrato B: frontend web"
-  version: 2.0.0
+  version: 2.1.0
   description: "Objetivo aprobado 18-10-2026, con implementación parcial de la API y pendiente de integración
     de interfaz, emisor y nube. Versionar documento como 2.0.0 no crea /api/v2. Roles admin|viewer: viewer solo consulta; todo
     cambio administrativo y consulta de auditoría exige admin. Excepción funcional: viewer puede registrar su
@@ -15,6 +15,56 @@ x-contract-status: approved-target-pending-implementation
 security:
   - SessionCookie: []
 paths:
+  /sessions/{id}/summary:
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: string, minLength: 1, maxLength: 128}}
+    get:
+      operationId: getSessionSummary
+      summary: Consultar resumen de sesión PulsoAI
+      description: Admin/viewer con acceso a la sesión. Lectura sin generación ni llamadas externas. Ver docs/arquitectura/pulsoai.md.
+      x-roles: [admin, viewer]
+      responses:
+        '200':
+          description: Estado, estadísticas y texto persistido; not_requested si no existe trabajo.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: {$ref: '#/components/schemas/SessionSummary'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /sessions/{id}/summary/retry:
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: string, minLength: 1, maxLength: 128}}
+    post:
+      operationId: retrySessionSummary
+      summary: Solicitar o reintentar resumen PulsoAI
+      description: Solo admin y sesión finished. Ready/pending/generating idempotentes; demás reintentos esperan 60 s (409 SUMMARY_RETRY_TOO_SOON). No llama Groq dentro de HTTP.
+      x-roles: [admin]
+      parameters:
+        - {name: X-CSRF-Token, in: header, required: true, schema: {type: string, minLength: 1}}
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: false}
+      responses:
+        '202':
+          description: Trabajo solicitado o estado existente; generación recuperable en servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: {$ref: '#/components/schemas/SessionSummary'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
   /health:
     get:
       operationId: getWebApiHealth
@@ -1531,7 +1581,7 @@ paths:
     post:
       operationId: finishSession
       summary: Finalizar sesión
-      description: Solo admin. Transacción libera reservas de sesión sin cerrar asignación. Repetir finalizada
+      description: Solo admin. Transacción libera reservas de sesión sin cerrar asignación y crea trabajo PulsoAI pending sin llamar Groq. Repetir finalizada
         conserva fechas; creada sin iniciar devuelve 409. Auditar transición.
       x-implementation-status: implemented-emulator-verified
       x-roles:
@@ -2084,6 +2134,55 @@ paths:
             pattern: ^(?!\.{1,2}$)[^/]+$
 components:
   schemas:
+    SessionSummary:
+      type: object
+      additionalProperties: false
+      required: [sessionId, status, stats, text, generatedAt, errorCode]
+      properties:
+        sessionId: {type: string}
+        status: {type: string, enum: [not_requested, pending, generating, ready, failed, disabled, insufficient_data]}
+        stats:
+          oneOf:
+            - {$ref: '#/components/schemas/SessionSummaryStats'}
+            - {type: 'null'}
+        text: {type: [string, 'null']}
+        generatedAt: {type: [string, 'null'], format: date-time}
+        errorCode: {type: [string, 'null'], enum: [null, PROVIDER_UNAVAILABLE, INVALID_GENERATION, SUMMARY_TOO_LARGE, CONFIGURATION_ERROR, ATTEMPTS_EXHAUSTED]}
+    SessionSummaryStats:
+      type: object
+      additionalProperties: false
+      required: [source, durationSeconds, total, metrics]
+      properties:
+        source: {type: string, enum: [real, simulated]}
+        durationSeconds: {type: [number, 'null'], minimum: 0}
+        total: {type: integer, minimum: 0}
+        metrics:
+          type: object
+          additionalProperties: false
+          required: [heartRate, spo2, skinTemperature]
+          properties:
+            heartRate: {$ref: '#/components/schemas/SessionSummaryMetric'}
+            spo2: {$ref: '#/components/schemas/SessionSummaryMetric'}
+            skinTemperature: {$ref: '#/components/schemas/SessionSummaryMetric'}
+    SessionSummaryMetric:
+      type: object
+      additionalProperties: false
+      required: [unit, validCount, mean, min, max, quality]
+      properties:
+        unit: {type: string, enum: [bpm, '%', C]}
+        validCount: {type: integer, minimum: 0}
+        mean: {type: [number, 'null']}
+        min: {type: [number, 'null']}
+        max: {type: [number, 'null']}
+        quality:
+          type: object
+          additionalProperties: false
+          required: [valid, no_contact, invalid, unavailable]
+          properties:
+            valid: {type: integer, minimum: 0}
+            no_contact: {type: integer, minimum: 0}
+            invalid: {type: integer, minimum: 0}
+            unavailable: {type: integer, minimum: 0}
     ErrorResponse:
       type: object
       additionalProperties: false
@@ -2726,6 +2825,7 @@ components:
         - ASSIGNMENT_CONFLICT: Conflicto de asignación; paciente o placa ya asignados a otra relación activa.
         - ASSIGNMENT_IN_USE: Asignación con sesión abierta activa al intentar cerrarla, o placa/paciente en uso al intentar deshabilitarlos.
         - INVALID_SESSION_STATE: Transición de estado de sesión no permitida (p. ej. finalizar sesión created o iniciar sesión finished).
+        - SUMMARY_RETRY_TOO_SOON: Esperar 60 segundos antes de reintentar un resumen PulsoAI terminal.
         - IDEMPOTENCY_CONFLICT: Clave o reintento conflictivo con carga útil o estado diferente.
         - SESSION_NOT_ACTIVE: Sesión no activa para el dispositivo o asignación.
         - ASSIGNMENT_NOT_ACTIVE: Asignación inactiva o incompatible con la sesión.

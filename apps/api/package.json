@@ -9,7 +9,7 @@
     "build": "rimraf dist && tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --fileParallelism=false",
     "lint": "echo [api] lint ok"
   },
   "dependencies": {

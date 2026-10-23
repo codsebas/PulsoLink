@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Activity, AlertCircle, Clock, Heart, RefreshCw, Thermometer, WifiOff } from 'lucide-react';
 import { ApiClientError, apiClient } from '../../lib/api-client';
 import { VitalCard } from './VitalCard';
+import { PulsoAISummary } from './PulsoAISummary';
 import type {
   LatestMeasurement,
   LatestMeasurementMeta,
@@ -160,6 +161,7 @@ export function DashboardPage() {
         <span>Última muestra: {formatGuatemalaTime(latest?.receivedAt)}</span>
         <span>Último contacto: {formatGuatemalaTime(meta?.lastSeenAt)}</span>
       </div>
+      {isHistorical && <PulsoAISummary sessionId={id} visible={isPageVisible} />}
     </div>
   );
 }

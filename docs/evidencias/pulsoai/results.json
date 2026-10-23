@@ -1,0 +1,81 @@
+{
+  "status": "PASS",
+  "generatedAt": "2026-10-22T23:03:22.617Z",
+  "project": "demo-pulsoai-browser",
+  "environment": "Auth/Firestore Standard emulators + real Groq API + Edge headless + compiled SPA",
+  "sessionId": "tDMwBaq3FQuvCP9zBhpo",
+  "apiCalls": 1,
+  "returnedModel": "openai/gpt-oss-20b",
+  "finishReason": "stop",
+  "usage": {
+    "queue_time": 0.185204791,
+    "prompt_tokens": 862,
+    "prompt_time": 0.09277047,
+    "completion_tokens": 123,
+    "completion_time": 0.137676944,
+    "total_tokens": 985,
+    "total_time": 0.230447414,
+    "completion_tokens_details": {
+      "reasoning_tokens": 20
+    }
+  },
+  "stats": {
+    "source": "simulated",
+    "durationSeconds": 2.46,
+    "total": 3,
+    "metrics": {
+      "heartRate": {
+        "unit": "bpm",
+        "validCount": 2,
+        "mean": 77,
+        "min": 76,
+        "max": 78,
+        "quality": {
+          "valid": 2,
+          "no_contact": 1,
+          "invalid": 0,
+          "unavailable": 0
+        }
+      },
+      "spo2": {
+        "unit": "%",
+        "validCount": 2,
+        "mean": 97,
+        "min": 97,
+        "max": 97,
+        "quality": {
+          "valid": 2,
+          "no_contact": 1,
+          "invalid": 0,
+          "unavailable": 0
+        }
+      },
+      "skinTemperature": {
+        "unit": "C",
+        "validCount": 3,
+        "mean": 32,
+        "min": 31,
+        "max": 33,
+        "quality": {
+          "valid": 3,
+          "no_contact": 0,
+          "invalid": 0,
+          "unavailable": 0
+        }
+      }
+    }
+  },
+  "text": "Sesión de origen simulado: 3 registros y 2.46 segundos de duración.\n\nPara pulso se obtuvieron 2 lecturas válidas: promedio 77 bpm, mínimo 76 bpm y máximo 78 bpm.\n\nPulso: 1 sin contacto, 0 inválidas y 0 no disponibles; excluidas únicamente de los cálculos de esta magnitud, sin borrar registros.\n\nPara spo₂ estimada se obtuvieron 2 lecturas válidas: promedio 97 %, mínimo 97 % y máximo 97 %.\n\nSpO₂ estimada: 1 sin contacto, 0 inválidas y 0 no disponibles; excluidas únicamente de los cálculos de esta magnitud, sin borrar registros.\n\nPara temperatura superficial se obtuvieron 3 lecturas válidas: promedio 32 °C, mínimo 31 °C y máximo 33 °C.\n\nTemperatura superficial: 0 sin contacto, 0 inválidas y 0 no disponibles; excluidas únicamente de los cálculos de esta magnitud, sin borrar registros.\n\nNo se infieren tendencias, estabilidad ni duración de falta de contacto a partir de estos agregados.\n\nSpO₂ es una estimación académica y la temperatura es superficial, no corporal central. Prototipo no validado para uso clínico.",
+  "overflowAt390px": false,
+  "checks": [
+    "real-emulator-login",
+    "active-session-no-summary",
+    "finish-HTTP-200",
+    "durable-pending",
+    "real-Groq-strict-plan",
+    "complete-facts",
+    "persisted-ready",
+    "browser-title-and-text",
+    "reload-reuses-result"
+  ]
+}

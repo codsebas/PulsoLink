@@ -18,7 +18,7 @@ export const RouteErrorPage: React.FC = () => {
       {import.meta.env.DEV && detail && (
         <p className="text-xs font-mono text-rose-700 break-words">{detail}</p>
       )}
-      <Link to="/" className="inline-block text-sm font-semibold text-sky-700 hover:underline">
+      <Link to="/monitoring" className="inline-block text-sm font-semibold text-sky-700 hover:underline">
         Volver al inicio
       </Link>
     </div>

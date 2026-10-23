@@ -1,17 +1,15 @@
 import type React from 'react';
-import { Activity, CircuitBoard, Clock, Link2, Radio, ScrollText, ShieldCheck, UserCog, Users } from 'lucide-react';
+import { Activity, CircuitBoard, Clock, Link2, ScrollText, ShieldCheck, UserCog, Users } from 'lucide-react';
 import type { AuthUser } from '../../lib/contract-types';
 
 export interface NavItem {
   label: string;
   path: string;
   icon: React.ComponentType<{ className?: string }>;
-  isDemo?: boolean;
   adminOnly?: boolean;
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { label: 'Estado', path: '/', icon: Activity },
   { label: 'Pacientes', path: '/patients', icon: Users },
   { label: 'Placas', path: '/devices', icon: CircuitBoard },
   { label: 'Asignaciones', path: '/assignments', icon: Link2 },
@@ -19,7 +17,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { label: 'Monitoreo', path: '/monitoring', icon: Activity },
   { label: 'Usuarios', path: '/admin/users', icon: UserCog, adminOnly: true },
   { label: 'Auditoría', path: '/admin/audit', icon: ScrollText, adminOnly: true },
-  { label: 'Prototipo', path: '/demo', icon: Radio, isDemo: true },
   { label: 'Acceso', path: '/login', icon: ShieldCheck },
 ];
 

@@ -1,14 +1,12 @@
 import React from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
 import { NotFoundPage } from '../components/layout/NotFoundPage';
 import { RouteErrorPage } from '../components/layout/RouteErrorPage';
-import { HomePage } from '../features/home/HomePage';
 import { AuthCard } from '../features/auth/AuthCard';
 import { ProtectedRoute } from '../features/auth/ProtectedRoute';
 import { SessionsPage } from '../features/sessions/SessionsPage';
 import { DashboardPage } from '../features/monitoring/DashboardPage';
-import { LiveMockupPage } from '../features/demo/LiveMockupPage';
 import { PatientsPage } from '../features/patients/PatientsPage';
 import { DevicesPage } from '../features/devices/DevicesPage';
 import { AssignmentsPage } from '../features/assignments/AssignmentsPage';
@@ -26,8 +24,9 @@ export const router = createBrowserRouter([
         errorElement: <RouteErrorPage />,
         children: [
           {
+            // "Estado" y "Prototipo" se retiraron (#74): la entrada lleva al monitoreo, que exige sesión.
             index: true,
-            element: <HomePage />,
+            element: <Navigate to="/monitoring" replace />,
           },
           {
             path: 'login',
@@ -35,7 +34,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'demo',
-            element: <LiveMockupPage />,
+            element: <Navigate to="/monitoring" replace />,
           },
           {
             // Rutas que requieren usuario autenticado (Issue #10 - @Mar-03).

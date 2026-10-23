@@ -21,24 +21,11 @@ export const NavItemLink: React.FC<NavItemLinkProps> = ({ item, variant }) => {
       end={item.path === '/'}
       className={({ isActive }) =>
         `flex items-center rounded-lg text-sm font-medium transition-colors motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-700 focus-visible:-outline-offset-2 ${layout[variant]} ${
-          item.isDemo
-            ? isActive
-              ? 'bg-rose-100 text-rose-800 font-bold ring-1 ring-rose-300'
-              : 'bg-rose-50 text-rose-700 hover:bg-rose-100 font-semibold'
-            : isActive
-              ? 'bg-sky-50 text-sky-700'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          isActive ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
         }`
       }
     >
-      {item.isDemo ? (
-        <span className="relative flex h-2 w-2" aria-hidden="true">
-          <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-        </span>
-      ) : (
-        <Icon className="w-4 h-4" aria-hidden="true" />
-      )}
+      <Icon className="w-4 h-4" aria-hidden="true" />
       <span>{item.label}</span>
     </NavLink>
   );

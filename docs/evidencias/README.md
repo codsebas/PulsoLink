@@ -74,3 +74,5 @@ Use **Aprobado** solo si el comando o recorrido se ejecutó y produjo el resulta
 - [PL2-14 entrega 3: detalle del paciente en móvil, 22-10-2026](pl2-14-ui-responsive/entrega3-monitoring-mobile/README.md): lista compacta del historial en móvil y gráficas con marcadores y texto de 12 px; 4 mejoras y 0 regresiones frente a la entrega 2; HIST-01/HIST-02 PASS.
 
 - [PL2-14 entrega 4: arquitectura de páginas administrativas, 22-10-2026](pl2-14-ui-responsive/entrega4-admin-pages/README.md): diálogos y catálogos extraídos; páginas de 1671 a 799 líneas sin cambios visibles; aceptación de #33 17/17.
+
+- [PL2-14: retiro de "Estado" y "Prototipo", 23-10-2026](pl2-14-ui-responsive/retiro-estado-prototipo/README.md): `/` y `/demo` redirigen a `/monitoring`; aceptación de #33 17/17; el bundle principal baja de más de 500 kB a 404 kB.

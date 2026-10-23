@@ -5,7 +5,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const ROUTES = ['/', '/monitoring', '/monitoring/monitor-patient', '/patients', '/devices', '/assignments', '/sessions', '/admin/users', '/admin/audit'];
+const ROUTES = ['/monitoring', '/monitoring/monitor-patient', '/patients', '/devices', '/assignments', '/sessions', '/admin/users', '/admin/audit'];
 const VIEWPORTS = [[360, 800], [768, 1024], [1440, 900]];
 const MIN_TARGET_PX = 44;
 const MIN_FONT_PX = 12;

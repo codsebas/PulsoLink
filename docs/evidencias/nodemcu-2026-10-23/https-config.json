@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "environment": "PC HTTPS read-only; not a physical firmware test",
+  "config": {
+    "deviceId": "node-msu-01",
+    "activeSessionId": null,
+    "uploadIntervalMs": 2000,
+    "heartbeatIntervalMs": 15000,
+    "serverTime": "2026-10-23T19:57:46.126Z"
+  },
+  "invalidCredentialStatus": 401
+}

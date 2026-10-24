@@ -1,6 +1,30 @@
 # Firmware NodeMCU ESP8266
 
-Responsable: `@codsebas`, [issue #12](https://github.com/codsebas/PulsoLink/issues/12). Hardware: NodeMCU ESP8266, MAX30102 por I2C y DS18B20 TO-92 por 1-Wire; ver [hardware](../../docs/hardware/README.md).
+Responsable: `@codsebas`, [issue #35](https://github.com/codsebas/PulsoLink/issues/35) (antecedente #12). Hardware: NodeMCU ESP8266, MAX30102 por I2C y DS18B20 TO-92 por 1-Wire; ver [hardware](../../docs/hardware/README.md).
+
+## Node MSU 01: versión 1.3 para Render
+
+La [versión 1.3](src/pulsolink-v1.3/pulsolink-v1.3.ino) adapta el sketch cargado
+aportado por Sebastián. Conserva D2/SDA, D1/SCL y D5/DS18B20, parámetros y
+algoritmo de sensores. Añade config/heartbeat/mediciones del contrato A, Bearer,
+HTTPS con CA verificada y hora SNTP, sesión dinámica y descarte tras cambios de
+conexión/sesión. No cambia la API ni introduce MQTT o acceso directo a Firebase.
+
+Es **un solo `.ino`, sin `config.h`**. La versión de Git contiene placeholders.
+La copia privada para cargar tiene SSID, contraseña y credencial escritos al
+inicio, según el requisito de la demostración. Nunca publicar esa copia ni su
+binario. [Preparación y comprobaciones](../../docs/qa/nodemcu-render-2026-10-23.md).
+
+El registro cloud es `deviceId=node-msu-01`, código visible **Node MSU 01**,
+`source=real`. El programa recibe `activeSessionId` del servidor; no se edita
+para cambiar de paciente o iniciar otra sesión. Si no hay sesión, solo consulta
+configuración y comunica presencia.
+
+La compilación de v1.3 no acredita carga ni integración física. El estado y
+los límites de cada prueba se registran en la guía. V1.2 y los ejemplos se
+conservan como referencia del comportamiento probado anteriormente.
+
+## Antecedente: incorporación de v1.2
 
 > **Alcance objetivo:** El [contrato aprobado](../../docs/arquitectura/contrato-aprobado-2026-10-18.md) y el [plan vigente](../../docs/planificacion/ejecucion-2026-10-18.md) definen el objetivo de firmware: JSON del Contrato A 2.0.0, nuevas muestras sin cola offline, `deviceId` contrastado por la API y HTTPS verificado para despliegue. El sketch incorporado aquí usa la ruta temporal; la integración oficial continúa pendiente.
 

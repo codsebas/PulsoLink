@@ -21,7 +21,7 @@ Fecha: 23-10-2026. Responsable: `@codsebas`. Rama: `feat/nodemcu-render`.
 | Aprovisionamiento cloud | Dry-run y aplicación ejecutados; dispositivo/credencial creados mediante script existente y auditoría |
 | GET config HTTPS desde PC con credencial real | 200, ID correcto, sesión null, intervalos 2000/15000 ms |
 | GET config con secreto incorrecto desde PC | 401 |
-| Código C++ de política/configuración/confirmaciones | 43 casos aprobados mediante compilador nativo |
+| Código C++ de política/configuración/confirmaciones y buffer HTTP | 51 casos aprobados mediante compilador nativo |
 | Conservación de sensores | Siete funciones comparadas con v1.2, pines y parámetros iguales |
 | Compilación pública y copia privada | Aprobadas con ESP8266 3.1.2, NodeMCU 1.0 ESP-12E, 160 MHz |
 | Ejecución física con v1.3 | Salida serie aportada por el usuario: config 401 y eventos de desconexión Wi-Fi; sin aceptación completa |
@@ -29,7 +29,7 @@ Fecha: 23-10-2026. Responsable: `@codsebas`. Rama: `feat/nodemcu-render`.
 No se enviaron lecturas sintéticas como `real` desde PC. La consulta de config
 no simula el recorrido del hardware. No cerrar #35 sin completar la prueba física.
 
-Evidencias ejecutadas: [43 casos C++](../evidencias/nodemcu-2026-10-23/policy.json)
+Evidencias ejecutadas: [51 casos C++](../evidencias/nodemcu-2026-10-23/policy.json)
 y [consulta HTTPS desde PC](../evidencias/nodemcu-2026-10-23/https-config.json).
 
 El usuario decidió realizar la carga manual desde Arduino IDE. El agente no
@@ -43,6 +43,25 @@ del cable anterior; no se diagnosticó la causa física ni se certificó el hard
 Consulta cloud del 23-10-2026 a las 18:54 de Guatemala: `node-msu-01` habilitado,
 `lastSeenAt:null`, `activeSessionId:null`. No hay heartbeat o medición aceptada
 registrados para esta placa. La carga final y aceptación física siguen pendientes.
+
+### Corrección v1.3.1 del lector HTTP
+
+Con una NodeMCU de reemplazo, el usuario aportó un arranque v1.3 que conecta al
+Wi-Fi y recibe config HTTP 200, seguido de "respuesta invalida". Se encontró
+que `ResponseBuffer` heredaba `Print::availableForWrite()` con resultado cero.
+En ESP8266 core 3.1.2, `HTTPClient::writeToStream` usa `Stream::sendSize`, cuya
+ruta `SendGenericPeekBuffer` consulta esa capacidad antes de transferir bytes.
+Así podía agotar la espera sin copiar el JSON, aunque el estado HTTP fuera 200.
+
+V1.3.1 declara el espacio restante y que el buffer no espera nueva capacidad
+(`outputCanTimeout=false`). Conserva el límite de 2048 bytes y la terminación
+nula. Ocho casos adicionales comprueban transferencia con consulta previa de
+capacidad, parseo de config y límites del buffer. La regresión falló en el primer
+caso antes de corregir y los 51 casos pasaron después. Es una prueba nativa del
+contrato de transferencia; no sustituye ejecutar HTTP/TLS en el microcontrolador.
+La copia privada v1.3.1 compiló con ArduinoJson 6.21.5 y core 3.1.2: RAM global
+36532/80192, IRAM 61279/65536 y flash 386064/1048576 bytes.
+Falta recargar v1.3.1 y comprobar config y heartbeat 200 en la placa física.
 
 ## Archivo que se carga
 

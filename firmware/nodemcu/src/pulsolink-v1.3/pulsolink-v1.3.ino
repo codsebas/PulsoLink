@@ -16,7 +16,7 @@ const char *kWifiPassword = "TU_CLAVE_WIFI";
 const char *kDeviceId = "node-msu-01";
 const char *kDeviceCredential = "CREDENTIAL_ID.SECRET";
 const char *kApiBase = "https://pulsolink-api.onrender.com/api/v1";
-const char *kFirmwareVersion = "pulsolink-1.3.0";
+const char *kFirmwareVersion = "pulsolink-1.3.1";
 // GTS Root R4, descargada de https://pki.goog/roots.pem el 23-10-2026.
 // CA raiz (no certificado efimero de Render); verificar si cambia el emisor.
 static const char kRootCa[] PROGMEM = R"PEM(-----BEGIN CERTIFICATE-----
@@ -353,6 +353,9 @@ public:
     bytes[length++] = char(value); bytes[length] = 0; return 1;
   }
   using Print::write;
+  // ESP8266 HTTPClient uses sendSize, which checks capacity before write().
+  int availableForWrite() override { return int(sizeof(bytes) - 1 - length); }
+  bool outputCanTimeout() override { return false; }
   int available() override { return 0; }
   int read() override { return -1; }
   int peek() override { return -1; }
@@ -517,7 +520,7 @@ void setup() {
   WiFi.begin(kWifiSsid, kWifiPassword);
   makeBootId();
   lastPostAt = millis();
-  Serial.println(F("Node MSU 01 - PulsoLink v1.3: prototipo academico, no uso clinico."));
+  Serial.println(F("Node MSU 01 - PulsoLink v1.3.1: prototipo academico, no uso clinico."));
   Serial.print(F("bootId="));
   Serial.println(bootId);
 }

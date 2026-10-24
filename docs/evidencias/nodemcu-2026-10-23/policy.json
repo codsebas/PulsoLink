@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "cppCases": 43,
+  "preservedSensorFunctions": [
+    "makeBootId",
+    "startMax",
+    "serviceTemperature",
+    "readSample",
+    "printReport",
+    "appendMetric",
+    "resetOpticalWindowAfterPost"
+  ],
+  "pins": "D2/D1/D5",
+  "generatedAt": "2026-10-24T01:07:19.536Z"
+}

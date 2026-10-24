@@ -9,6 +9,7 @@ const original = fs.readFileSync(path.join(root, 'firmware/nodemcu/src/sketch-pu
 const out = path.join(root, '.cache/nodemcu-tests');
 fs.mkdirSync(out, { recursive: true });
 const policy = sketch.split('// BEGIN NETWORK POLICY')[1].split('\n').slice(1).join('\n').split('// END NETWORK POLICY')[0];
+const responseBuffer = sketch.slice(sketch.indexOf('class ResponseBuffer :'), sketch.indexOf('\nint requestApi('));
 function body(source, name) {
   const start = source.indexOf(name + '(');
   const brace = source.indexOf('{', start);
@@ -26,6 +27,22 @@ const cpp = `#include <cstdint>
 #include <iostream>
 #include <cstdlib>
 #include <ArduinoJson.h>
+// Match the ESP8266 Print/Stream defaults relevant to HTTP sendSize.
+class Print {
+public:
+  virtual ~Print() = default;
+  virtual size_t write(uint8_t) = 0;
+  virtual int availableForWrite() { return 0; }
+  virtual bool outputCanTimeout() { return true; }
+};
+class Stream : public Print {
+public:
+  virtual int available() = 0;
+  virtual int read() = 0;
+  virtual int peek() = 0;
+  virtual void flush() = 0;
+};
+${responseBuffer}
 ${policy}
 int count = 0;
 void check(bool ok) { ++count; if (!ok) { std::cerr << "Failed case " << count; std::exit(1); } }
@@ -36,6 +53,23 @@ bool config(const char* input) {
   return decodeConfiguration(doc.as<JsonObjectConst>(), "node-msu-01", session, sizeof(session), upload, heartbeat);
 }
 int main() {
+  ResponseBuffer received;
+  const char* wireBody = R"({"deviceId":"node-msu-01","activeSessionId":null,"uploadIntervalMs":2000,"heartbeatIntervalMs":15000})";
+  size_t transferred = 0;
+  // ESP8266 Stream::SendGenericPeekBuffer consults capacity before writing.
+  while (transferred < strlen(wireBody) && received.availableForWrite() > 0) {
+    if (received.write(uint8_t(wireBody[transferred])) != 1) break;
+    ++transferred;
+  }
+  check(transferred == strlen(wireBody));
+  check(config(received.bytes));
+  check(!received.outputCanTimeout());
+  check(received.availableForWrite() == int(2048 - transferred));
+  while (received.length < 2048) received.write(uint8_t(' '));
+  check(received.availableForWrite() == 0);
+  check(received.bytes[2048] == 0);
+  check(received.write(uint8_t('x')) == 0 && received.overflow);
+  check(received.length == 2048 && received.bytes[2048] == 0);
   check(due(2000, 0, 2000)); check(!due(1999, 0, 2000));
   check(due(10, UINT32_MAX - 9, 20)); check(!due(9, UINT32_MAX - 9, 20));
   for (int code : {400,401,403,404,413}) check(terminalHttp(code));

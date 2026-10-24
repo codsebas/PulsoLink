@@ -15,6 +15,10 @@ La copia privada para cargar tiene SSID, contraseña y credencial escritos al
 inicio, según el requisito de la demostración. Nunca publicar esa copia ni su
 binario. [Preparación y comprobaciones](../../docs/qa/nodemcu-render-2026-10-23.md).
 
+Usar **ArduinoJson 6.21.5**, la versión comprobada para esta entrega; no instalar
+automáticamente la última versión al preparar otra computadora. Las versiones
+de las demás bibliotecas están en la guía de comprobaciones.
+
 El registro cloud es `deviceId=node-msu-01`, código visible **Node MSU 01**,
 `source=real`. El programa recibe `activeSessionId` del servidor; no se edita
 para cambiar de paciente o iniciar otra sesión. Si no hay sesión, solo consulta
